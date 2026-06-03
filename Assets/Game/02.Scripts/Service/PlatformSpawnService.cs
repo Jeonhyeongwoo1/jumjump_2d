@@ -1,0 +1,128 @@
+using System;
+using JumJump.Controller;
+using JumJump.Event;
+using JumJump.Factory;
+using JumJump.Interface;
+using JumJump.Registry;
+using UnityEngine;
+using VContainer.Unity;
+
+namespace JumJump.Service
+{
+    public sealed class PlatformSpawnService : IInitializable, IDisposable
+    {
+        private const int InitialPlatformCount = 8;
+        private const int PlatformsAhead = 6;
+        private const float VerticalSpacing = 1.8f;
+        private const float XRange = 2.2f;
+        private const float PlatformWidth = 1.25f;
+        private const float BaseMoveSpeed = 0.45f;
+
+        private int _nextPlatformIndex;
+        private readonly IEventBus _eventBus;
+        private readonly PlatformFactory _platformFactory;
+        private readonly PlatformRegistry _platformRegistry;
+        private readonly PlayerJumpController _playerJumpController;
+        private readonly ScoreService _scoreService;
+
+        public PlatformSpawnService(
+            IEventBus eventBus,
+            PlatformFactory platformFactory,
+            PlatformRegistry platformRegistry,
+            PlayerJumpController playerJumpController,
+            ScoreService scoreService)
+        {
+            _eventBus = eventBus;
+            _platformFactory = platformFactory;
+            _platformRegistry = platformRegistry;
+            _playerJumpController = playerJumpController;
+            _scoreService = scoreService;
+        }
+
+        public void Initialize()
+        {
+            _eventBus.Subscribe<PlayerLandedEvent>(OnPlayerLanded);
+            _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
+            ResetPlatforms();
+        }
+
+        public void Dispose()
+        {
+            _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
+            _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+        }
+
+        private void ResetPlatforms()
+        {
+            _platformRegistry.Clear();
+            _nextPlatformIndex = 0;
+
+            var startPlatform = SpawnPlatform(Vector3.zero, 0f);
+            _playerJumpController.PlaceOnPlatform(startPlatform);
+
+            for (var i = 1; i < InitialPlatformCount; i++)
+            {
+                SpawnNextPlatform();
+            }
+
+            _eventBus.Publish(new PlatformsResetEvent(startPlatform));
+        }
+
+        private PlatformController SpawnNextPlatform()
+        {
+            var nextY = _nextPlatformIndex * VerticalSpacing;
+            var xStep = ((_nextPlatformIndex * 37) % 100) / 100f;
+            var x = Mathf.Lerp(-XRange, XRange, xStep);
+            var scoreFactor = Mathf.Clamp01(_scoreService.Score / 50f);
+            var moveSpeed = _nextPlatformIndex < 3 ? 0f : BaseMoveSpeed + scoreFactor;
+            return SpawnPlatform(new Vector3(x, nextY, 0f), moveSpeed);
+        }
+
+        private PlatformController SpawnPlatform(Vector3 position, float moveSpeed)
+        {
+            var platform = _platformFactory.Get();
+            if (platform == null)
+            {
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Failed to get platform from factory.");
+                return null;
+            }
+
+            platform.Initialize(_nextPlatformIndex, position, PlatformWidth, moveSpeed, -XRange, XRange);
+            _platformRegistry.Register(platform);
+            _nextPlatformIndex++;
+            return platform;
+        }
+
+        private void EnsurePlatformsAhead(PlatformController landedPlatform)
+        {
+            if (landedPlatform == null)
+            {
+                return;
+            }
+
+            while (_nextPlatformIndex - landedPlatform.PlatformIndex <= PlatformsAhead)
+            {
+                if (SpawnNextPlatform() == null)
+                {
+                    return;
+                }
+            }
+        }
+
+        private void OnPlayerLanded(in PlayerLandedEvent ev)
+        {
+            if (ev.Platform == null)
+            {
+                return;
+            }
+
+            _platformRegistry.ReleaseBelow(ev.Platform.CenterY);
+            EnsurePlatformsAhead(ev.Platform);
+        }
+
+        private void OnRestartRequested(in RestartRequestedEvent ev)
+        {
+            ResetPlatforms();
+        }
+    }
+}
