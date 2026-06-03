@@ -11,6 +11,7 @@ namespace JumJump.Service
         public GameStateType State => _state;
 
         private GameStateType _state = GameStateType.Ready;
+        private bool _isReady;
         private readonly IEventBus _eventBus;
         private readonly ScoreService _scoreService;
 
@@ -22,6 +23,7 @@ namespace JumJump.Service
 
         public void Initialize()
         {
+            _eventBus.Subscribe<GameResourcesReadyEvent>(OnResourcesReady);
             _eventBus.Subscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
@@ -30,13 +32,24 @@ namespace JumJump.Service
 
         public void Dispose()
         {
+            _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
             _eventBus.Unsubscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
         }
 
+        private void OnResourcesReady(in GameResourcesReadyEvent ev)
+        {
+            _isReady = true;
+        }
+
         private void OnTapRequested(in TapRequestedEvent ev)
         {
+            if (!_isReady)
+            {
+                return;
+            }
+
             if (_state == GameStateType.Ready)
             {
                 _state = GameStateType.Playing;

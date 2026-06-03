@@ -2,8 +2,11 @@ using System.IO;
 using JumJump;
 using JumJump.Camera;
 using JumJump.Controller;
+using JumJump.Factory;
 using JumJump.Presenter;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -20,34 +23,57 @@ namespace JumJump.Editor
         private const string InputActionsPath = "Assets/InputSystem_Actions.inputactions";
         private const string PrefabFolderPath = "Assets/Game/03.Prefabs";
         private const string PlatformPrefabPath = PrefabFolderPath + "/Platform.prefab";
+        private const string PlayerPrefabPath = PrefabFolderPath + "/Player.prefab";
 
         [MenuItem("JumJump/Setup/Rebuild Game Scene")]
         public static void RebuildGameScene()
         {
             EnsureFolders();
 
+            var platformPrefab = CreatePlatformPrefab();
+            var playerPrefab = CreatePlayerPrefab();
+            RegisterAddressable(PlatformPrefabPath, PlatformFactory.AddressableKey);
+            RegisterAddressable(PlayerPrefabPath, PlayerFactory.AddressableKey);
+
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "GameScene";
 
-            var platformPrefab = CreatePlatformPrefab();
             var camera = CreateCamera();
-            var player = CreatePlayer();
-            var systems = CreateSystems(platformPrefab, player);
+            var systems = CreateSystems();
             var hud = CreateHud();
 
             var followCamera = camera.GetComponent<VerticalFollowCamera>();
-            SetObjectField(followCamera, "_target", player.transform);
 
             var lifeScope = systems.GetComponent<GameSceneLifeScope>();
             SetObjectField(lifeScope, "_inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
-            SetObjectField(lifeScope, "_playerJumpController", player.GetComponent<PlayerJumpController>());
-            SetObjectField(lifeScope, "_platformPrefab", platformPrefab);
+            SetObjectField(lifeScope, "_followCamera", followCamera);
             SetObjectField(lifeScope, "_platformPoolRoot", systems.transform.Find("PlatformPoolRoot"));
             SetObjectField(lifeScope, "_gameHudPresenter", hud.GetComponent<GameHudPresenter>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             Selection.activeObject = AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath);
             Debug.Log($"[{nameof(JumJumpSceneSetupTool)}] Rebuilt scene: {ScenePath}");
+        }
+
+        private static void RegisterAddressable(string assetPath, string address)
+        {
+            var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
+            if (settings == null)
+            {
+                Debug.LogError($"[{nameof(JumJumpSceneSetupTool)}] Failed to resolve Addressable settings.");
+                return;
+            }
+
+            var guid = AssetDatabase.AssetPathToGUID(assetPath);
+            if (string.IsNullOrEmpty(guid))
+            {
+                Debug.LogError($"[{nameof(JumJumpSceneSetupTool)}] Asset not found for addressable: {assetPath}");
+                return;
+            }
+
+            var entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
+            entry.address = address;
+            settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryModified, entry, true);
         }
 
         private static void EnsureFolders()
@@ -98,10 +124,15 @@ namespace JumJump.Editor
             return cameraObject;
         }
 
-        private static GameObject CreatePlayer()
+        private static GameObject CreatePlayerPrefab()
         {
+            var existingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
+            if (existingPrefab != null)
+            {
+                return existingPrefab;
+            }
+
             var player = new GameObject("Player_Chick");
-            player.transform.position = new Vector3(0f, 0.58f, 0f);
 
             var spriteRenderer = player.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = GetBuiltinSprite();
@@ -109,10 +140,14 @@ namespace JumJump.Editor
             player.transform.localScale = new Vector3(0.48f, 0.48f, 1f);
 
             player.AddComponent<PlayerJumpController>();
-            return player;
+
+            var savedPrefab = PrefabUtility.SaveAsPrefabAsset(player, PlayerPrefabPath);
+            Object.DestroyImmediate(player);
+            AssetDatabase.SaveAssets();
+            return savedPrefab;
         }
 
-        private static GameObject CreateSystems(PlatformController platformPrefab, GameObject player)
+        private static GameObject CreateSystems()
         {
             var systems = new GameObject("GameSystems");
             systems.AddComponent<GameSceneLifeScope>();

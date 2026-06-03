@@ -22,43 +22,51 @@ namespace JumJump.Service
         private readonly IEventBus _eventBus;
         private readonly PlatformFactory _platformFactory;
         private readonly PlatformRegistry _platformRegistry;
-        private readonly PlayerJumpController _playerJumpController;
+        private readonly PlayerRegistry _playerRegistry;
         private readonly ScoreService _scoreService;
 
         public PlatformSpawnService(
             IEventBus eventBus,
             PlatformFactory platformFactory,
             PlatformRegistry platformRegistry,
-            PlayerJumpController playerJumpController,
+            PlayerRegistry playerRegistry,
             ScoreService scoreService)
         {
             _eventBus = eventBus;
             _platformFactory = platformFactory;
             _platformRegistry = platformRegistry;
-            _playerJumpController = playerJumpController;
+            _playerRegistry = playerRegistry;
             _scoreService = scoreService;
         }
 
         public void Initialize()
         {
+            _eventBus.Subscribe<GameResourcesReadyEvent>(OnResourcesReady);
             _eventBus.Subscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
-            ResetPlatforms();
         }
 
         public void Dispose()
         {
+            _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
             _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
         }
 
         private void ResetPlatforms()
         {
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot reset platforms.");
+                return;
+            }
+
             _platformRegistry.Clear();
             _nextPlatformIndex = 0;
 
             var startPlatform = SpawnPlatform(Vector3.zero, 0f);
-            _playerJumpController.PlaceOnPlatform(startPlatform);
+            player.PlaceOnPlatform(startPlatform);
 
             for (var i = 1; i < InitialPlatformCount; i++)
             {
@@ -118,6 +126,11 @@ namespace JumJump.Service
 
             _platformRegistry.ReleaseBelow(ev.Platform.CenterY);
             EnsurePlatformsAhead(ev.Platform);
+        }
+
+        private void OnResourcesReady(in GameResourcesReadyEvent ev)
+        {
+            ResetPlatforms();
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
