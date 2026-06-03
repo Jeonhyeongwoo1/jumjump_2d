@@ -28,6 +28,20 @@ namespace JumJump.Event
         }
     }
 
+    public struct GameResourcesReadyEvent
+    {
+    }
+
+    public struct PlayerSpawnedEvent
+    {
+        public PlayerJumpController Player { get; private set; }
+
+        public PlayerSpawnedEvent(PlayerJumpController player)
+        {
+            Player = player;
+        }
+    }
+
     public struct PlayerJumpRequestedEvent
     {
     }

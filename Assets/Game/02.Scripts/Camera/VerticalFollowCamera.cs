@@ -1,4 +1,7 @@
+using JumJump.Event;
+using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Camera
 {
@@ -9,9 +12,33 @@ namespace JumJump.Camera
         [SerializeField] private float _smoothSpeed = 8f;
         [SerializeField] private float _verticalOffset = 1.2f;
 
+        private IEventBus _eventBus;
+
+        [Inject]
+        public void Construct(IEventBus eventBus)
+        {
+            _eventBus = eventBus;
+            _eventBus.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+        }
+
         public void Bind(Transform target)
         {
             _target = target;
+        }
+
+        private void OnPlayerSpawned(in PlayerSpawnedEvent ev)
+        {
+            if (ev.Player == null)
+            {
+                return;
+            }
+
+            Bind(ev.Player.transform);
+        }
+
+        private void OnDestroy()
+        {
+            _eventBus?.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
         }
 
         private void LateUpdate()

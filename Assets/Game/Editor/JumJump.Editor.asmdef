@@ -3,9 +3,13 @@
     "rootNamespace": "JumJump.Editor",
     "references": [
         "JumJump.Runtime",
+        "VContainer",
         "Unity.InputSystem",
         "Unity.InputSystem.ForUI",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [
         "Editor"
