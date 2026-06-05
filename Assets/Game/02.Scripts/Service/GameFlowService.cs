@@ -1,24 +1,33 @@
 using System;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Service.GameFlowState;
 using UnityEngine;
 using VContainer.Unity;
 
 namespace JumJump.Service
 {
-    public sealed class GameFlowService : IInitializable, IDisposable
+    public sealed class GameFlowService : IInitializable, ITickable, IDisposable, IGameFlowStateContext
     {
-        public GameStateType State => _state;
+        public GameStateType State => _currentState != null ? _currentState.StateType : GameStateType.Ready;
 
-        private GameStateType _state = GameStateType.Ready;
         private bool _isReady;
+        private IGameFlowState _currentState;
         private readonly IEventBus _eventBus;
-        private readonly ScoreService _scoreService;
+        private readonly ReadyGameFlowState _readyState;
+        private readonly PlayingGameFlowState _playingState;
+        private readonly GameOverGameFlowState _gameOverState;
 
-        public GameFlowService(IEventBus eventBus, ScoreService scoreService)
+        public GameFlowService(
+            IEventBus eventBus,
+            ReadyGameFlowState readyState,
+            PlayingGameFlowState playingState,
+            GameOverGameFlowState gameOverState)
         {
             _eventBus = eventBus;
-            _scoreService = scoreService;
+            _readyState = readyState;
+            _playingState = playingState;
+            _gameOverState = gameOverState;
         }
 
         public void Initialize()
@@ -27,7 +36,12 @@ namespace JumJump.Service
             _eventBus.Subscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
-            PublishStateChanged();
+            ChangeState(GameStateType.Ready);
+        }
+
+        public void Tick()
+        {
+            _currentState?.OnUpdate();
         }
 
         public void Dispose()
@@ -36,6 +50,29 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+            _currentState?.OnExit();
+            _currentState = null;
+        }
+
+        public void ChangeState(GameStateType stateType)
+        {
+            var nextState = GetState(stateType);
+            if (nextState == null)
+            {
+                Debug.LogError($"[{nameof(GameFlowService)}] Missing state: {stateType}.");
+                return;
+            }
+
+            if (_currentState == nextState)
+            {
+                PublishStateChanged();
+                return;
+            }
+
+            _currentState?.OnExit();
+            _currentState = nextState;
+            PublishStateChanged();
+            _currentState.OnEnter();
         }
 
         private void OnResourcesReady(in GameResourcesReadyEvent ev)
@@ -50,51 +87,38 @@ namespace JumJump.Service
                 return;
             }
 
-            if (_state == GameStateType.Ready)
-            {
-                _state = GameStateType.Playing;
-                PublishStateChanged();
-                _eventBus.Publish(new GameStartedEvent());
-                return;
-            }
-
-            if (_state == GameStateType.Playing)
-            {
-                _eventBus.Publish(new PlayerJumpRequestedEvent());
-                return;
-            }
-
-            if (_state == GameStateType.GameOver)
-            {
-                _state = GameStateType.Ready;
-                PublishStateChanged();
-                _eventBus.Publish(new RestartRequestedEvent());
-            }
+            _currentState?.OnTapRequested(this);
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
         {
-            if (_state == GameStateType.GameOver)
-            {
-                return;
-            }
-
-            _state = GameStateType.GameOver;
-            PublishStateChanged();
-            _eventBus.Publish(new GameOverEvent(_scoreService.Score, _scoreService.HighScore));
+            _currentState?.OnPlayerMissedLanding(this);
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
-            _state = GameStateType.Ready;
-            PublishStateChanged();
-            _eventBus.Publish(new GameResetEvent());
+            _currentState?.OnRestartRequested(this);
+        }
+
+        private IGameFlowState GetState(GameStateType stateType)
+        {
+            switch (stateType)
+            {
+                case GameStateType.Ready:
+                    return _readyState;
+                case GameStateType.Playing:
+                    return _playingState;
+                case GameStateType.GameOver:
+                    return _gameOverState;
+                default:
+                    return null;
+            }
         }
 
         private void PublishStateChanged()
         {
-            Debug.Log($"[{nameof(GameFlowService)}] State changed: {_state}");
-            _eventBus.Publish(new GameStateChangedEvent(_state));
+            Debug.Log($"[{nameof(GameFlowService)}] State changed: {State}");
+            _eventBus.Publish(new GameStateChangedEvent(State));
         }
     }
 }

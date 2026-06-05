@@ -5,6 +5,7 @@ using JumJump.Interface;
 using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Service;
+using JumJump.Service.GameFlowState;
 using UnityEngine.InputSystem;
 using VContainer;
 using VContainer.Unity;
@@ -29,6 +30,9 @@ namespace JumJump
             builder.RegisterInstance(_platformPoolRoot);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);
+            builder.Register<ReadyGameFlowState>(Lifetime.Scoped);
+            builder.Register<PlayingGameFlowState>(Lifetime.Scoped);
+            builder.Register<GameOverGameFlowState>(Lifetime.Scoped);
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();
