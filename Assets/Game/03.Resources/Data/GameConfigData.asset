@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ea7d891eabc42daabc1b6454ea3e34f, type: 3}
+  m_Name: GameConfigData
+  m_EditorClassIdentifier: 
+  _preLoadLabel: PreLoad
+  _playerAddressableKey: Player
+  _platformAddressableKey: Platform
+  _playerPoolKey: Player
+  _playerPrewarmCount: 1
+  _platformPoolKey: Platform
+  _platformPrewarmCount: 12
+  _initialPlatformCount: 8
+  _platformsAhead: 6
+  _stationaryPlatformCount: 3
+  _platformVerticalSpacing: 1.8
+  _platformXRange: 2.2
+  _platformWidth: 1
+  _platformBaseMoveSpeed: 0.45
+  _platformScoreSpeedMaxScore: 50
+  _platformXPatternMultiplier: 37
+  _platformXPatternModulo: 100
+  _platformLandingHeight: 0.48
+  _playerJumpDuration: 0.48
+  _playerJumpHeight: 1.35
+  _playerVerticalOffset: 0.58
+  _playerLandingVerticalTolerance: 0.35
+  _highScoreKey: JumJump.HighScore
+  _tapActionPath: Player/Attack
+  _cameraMinimumY: 0
+  _cameraSmoothSpeed: 8
+  _cameraVerticalOffset: 1.2

@@ -94,7 +94,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Controller.PlatformController
   _spriteRenderer: {fileID: 1592748717023723788}
   _landingCollider: {fileID: 9043882273822907714}
-  _landingHeight: 0.48
 --- !u!1 &4454547963678434718
 GameObject:
   m_ObjectHideFlags: 0

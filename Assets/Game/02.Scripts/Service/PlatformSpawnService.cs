@@ -1,5 +1,6 @@
 using System;
 using JumJump.Controller;
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
@@ -11,32 +12,28 @@ namespace JumJump.Service
 {
     public sealed class PlatformSpawnService : IInitializable, IDisposable
     {
-        private const int InitialPlatformCount = 8;
-        private const int PlatformsAhead = 6;
-        private const float VerticalSpacing = 1.8f;
-        private const float XRange = 2.2f;
-        private const float PlatformWidth = 1.25f;
-        private const float BaseMoveSpeed = 0.45f;
-
         private int _nextPlatformIndex;
         private readonly IEventBus _eventBus;
         private readonly PlatformFactory _platformFactory;
         private readonly PlatformRegistry _platformRegistry;
         private readonly PlayerRegistry _playerRegistry;
         private readonly ScoreService _scoreService;
+        private readonly GameConfigData _configData;
 
         public PlatformSpawnService(
             IEventBus eventBus,
             PlatformFactory platformFactory,
             PlatformRegistry platformRegistry,
             PlayerRegistry playerRegistry,
-            ScoreService scoreService)
+            ScoreService scoreService,
+            GameConfigData configData)
         {
             _eventBus = eventBus;
             _platformFactory = platformFactory;
             _platformRegistry = platformRegistry;
             _playerRegistry = playerRegistry;
             _scoreService = scoreService;
+            _configData = configData;
         }
 
         public void Initialize()
@@ -68,7 +65,7 @@ namespace JumJump.Service
             var startPlatform = SpawnPlatform(Vector3.zero, 0f);
             player.PlaceOnPlatform(startPlatform);
 
-            for (var i = 1; i < InitialPlatformCount; i++)
+            for (var i = 1; i < _configData.InitialPlatformCount; i++)
             {
                 SpawnNextPlatform();
             }
@@ -78,11 +75,15 @@ namespace JumJump.Service
 
         private PlatformController SpawnNextPlatform()
         {
-            var nextY = _nextPlatformIndex * VerticalSpacing;
-            var xStep = ((_nextPlatformIndex * 37) % 100) / 100f;
-            var x = Mathf.Lerp(-XRange, XRange, xStep);
-            var scoreFactor = Mathf.Clamp01(_scoreService.Score / 50f);
-            var moveSpeed = _nextPlatformIndex < 3 ? 0f : BaseMoveSpeed + scoreFactor;
+            var nextY = _nextPlatformIndex * _configData.PlatformVerticalSpacing;
+            var xPatternModulo = Mathf.Max(1, _configData.PlatformXPatternModulo);
+            var xStep = ((_nextPlatformIndex * _configData.PlatformXPatternMultiplier) % xPatternModulo) /
+                        (float)xPatternModulo;
+            var x = Mathf.Lerp(-_configData.PlatformXRange, _configData.PlatformXRange, xStep);
+            var scoreFactor = Mathf.Clamp01(_scoreService.Score / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
+            var moveSpeed = _nextPlatformIndex < _configData.StationaryPlatformCount
+                ? 0f
+                : _configData.PlatformBaseMoveSpeed + scoreFactor;
             return SpawnPlatform(new Vector3(x, nextY, 0f), moveSpeed);
         }
 
@@ -95,7 +96,14 @@ namespace JumJump.Service
                 return null;
             }
 
-            platform.Initialize(_nextPlatformIndex, position, PlatformWidth, moveSpeed, -XRange, XRange);
+            platform.Initialize(
+                _nextPlatformIndex,
+                position,
+                _configData.PlatformWidth,
+                _configData.PlatformLandingHeight,
+                moveSpeed,
+                -_configData.PlatformXRange,
+                _configData.PlatformXRange);
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
@@ -108,7 +116,7 @@ namespace JumJump.Service
                 return;
             }
 
-            while (_nextPlatformIndex - landedPlatform.PlatformIndex <= PlatformsAhead)
+            while (_nextPlatformIndex - landedPlatform.PlatformIndex <= _configData.PlatformsAhead)
             {
                 if (SpawnNextPlatform() == null)
                 {

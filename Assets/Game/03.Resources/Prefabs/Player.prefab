@@ -46,10 +46,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d2e34364f533b04ab86bfd52dadaa64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Controller.PlayerJumpController
-  _jumpDuration: 0.48
-  _jumpHeight: 1.35
-  _characterVerticalOffset: 0.58
-  _landingVerticalTolerance: 0.35
 --- !u!58 &2549147012901758232
 CircleCollider2D:
   m_ObjectHideFlags: 0

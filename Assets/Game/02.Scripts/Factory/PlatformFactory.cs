@@ -1,6 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Controller;
+using JumJump.Data;
 using JumJump.Service;
 using UnityEngine;
 
@@ -8,23 +9,24 @@ namespace JumJump.Factory
 {
     public sealed class PlatformFactory
     {
-        public const string AddressableKey = "Platform";
-
-        private const int PrewarmCount = 12;
-        private const string PoolKey = "Platform";
-
         private readonly Transform _poolRoot;
         private readonly PoolService _poolService;
         private readonly ResourceService _resourceService;
+        private readonly GameConfigData _configData;
 
         private PlatformController _platformPrefab;
         private bool _isReady;
 
-        public PlatformFactory(Transform poolRoot, PoolService poolService, ResourceService resourceService)
+        public PlatformFactory(
+            Transform poolRoot,
+            PoolService poolService,
+            ResourceService resourceService,
+            GameConfigData configData)
         {
             _poolRoot = poolRoot;
             _poolService = poolService;
             _resourceService = resourceService;
+            _configData = configData;
         }
 
         public async UniTask WarmupAsync(CancellationToken cancellationToken = default)
@@ -34,10 +36,10 @@ namespace JumJump.Factory
                 return;
             }
 
-            var prefab = await _resourceService.LoadPrefabAsync(AddressableKey, cancellationToken);
+            var prefab = await _resourceService.LoadPrefabAsync(_configData.PlatformAddressableKey, cancellationToken);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(PlatformFactory)}] Failed to load platform prefab: {AddressableKey}");
+                Debug.LogError($"[{nameof(PlatformFactory)}] Failed to load platform prefab: {_configData.PlatformAddressableKey}");
                 return;
             }
 
@@ -48,7 +50,7 @@ namespace JumJump.Factory
                 return;
             }
 
-            _poolService.Register(PoolKey, Create, OnGet, OnRelease, PrewarmCount);
+            _poolService.Register(_configData.PlatformPoolKey, Create, OnGet, OnRelease, _configData.PlatformPrewarmCount);
             _isReady = true;
         }
 
@@ -60,12 +62,12 @@ namespace JumJump.Factory
                 return null;
             }
 
-            return _poolService.Get<PlatformController>(PoolKey);
+            return _poolService.Get<PlatformController>(_configData.PlatformPoolKey);
         }
 
         public void Release(PlatformController platform)
         {
-            _poolService.Release(PoolKey, platform);
+            _poolService.Release(_configData.PlatformPoolKey, platform);
         }
 
         private PlatformController Create()

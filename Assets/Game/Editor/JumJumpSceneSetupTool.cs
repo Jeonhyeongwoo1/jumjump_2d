@@ -2,7 +2,7 @@ using System.IO;
 using JumJump;
 using JumJump.Camera;
 using JumJump.Controller;
-using JumJump.Factory;
+using JumJump.Data;
 using JumJump.Presenter;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
@@ -21,19 +21,23 @@ namespace JumJump.Editor
     {
         private const string ScenePath = "Assets/Game/01.Scenes/GameScene.unity";
         private const string InputActionsPath = "Assets/InputSystem_Actions.inputactions";
-        private const string PrefabFolderPath = "Assets/Game/03.Prefabs";
+        private const string ResourceFolderPath = "Assets/Game/03.Resources";
+        private const string PrefabFolderPath = ResourceFolderPath + "/Prefabs";
+        private const string DataFolderPath = ResourceFolderPath + "/Data";
         private const string PlatformPrefabPath = PrefabFolderPath + "/Platform.prefab";
         private const string PlayerPrefabPath = PrefabFolderPath + "/Player.prefab";
+        private const string GameConfigPath = DataFolderPath + "/GameConfigData.asset";
 
         [MenuItem("JumJump/Setup/Rebuild Game Scene")]
         public static void RebuildGameScene()
         {
             EnsureFolders();
 
-            var platformPrefab = CreatePlatformPrefab();
-            var playerPrefab = CreatePlayerPrefab();
-            RegisterAddressable(PlatformPrefabPath, PlatformFactory.AddressableKey);
-            RegisterAddressable(PlayerPrefabPath, PlayerFactory.AddressableKey);
+            var configData = EnsureGameConfigData();
+            CreatePlatformPrefab();
+            CreatePlayerPrefab();
+            RegisterAddressable(PlatformPrefabPath, configData.PlatformAddressableKey, configData.PreLoadLabel);
+            RegisterAddressable(PlayerPrefabPath, configData.PlayerAddressableKey, configData.PreLoadLabel);
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "GameScene";
@@ -45,6 +49,7 @@ namespace JumJump.Editor
             var followCamera = camera.GetComponent<VerticalFollowCamera>();
 
             var lifeScope = systems.GetComponent<GameSceneLifeScope>();
+            SetObjectField(lifeScope, "_gameConfigData", configData);
             SetObjectField(lifeScope, "_inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
             SetObjectField(lifeScope, "_followCamera", followCamera);
             SetObjectField(lifeScope, "_platformPoolRoot", systems.transform.Find("PlatformPoolRoot"));
@@ -55,7 +60,7 @@ namespace JumJump.Editor
             Debug.Log($"[{nameof(JumJumpSceneSetupTool)}] Rebuilt scene: {ScenePath}");
         }
 
-        private static void RegisterAddressable(string assetPath, string address)
+        private static void RegisterAddressable(string assetPath, string address, string label)
         {
             var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
             if (settings == null)
@@ -73,6 +78,7 @@ namespace JumJump.Editor
 
             var entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
             entry.address = address;
+            entry.SetLabel(label, true, true);
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryModified, entry, true);
         }
 
@@ -80,7 +86,23 @@ namespace JumJump.Editor
         {
             CreateFolderIfMissing("Assets", "Game");
             CreateFolderIfMissing("Assets/Game", "01.Scenes");
-            CreateFolderIfMissing("Assets/Game", "03.Prefabs");
+            CreateFolderIfMissing("Assets/Game", "03.Resources");
+            CreateFolderIfMissing(ResourceFolderPath, "Prefabs");
+            CreateFolderIfMissing(ResourceFolderPath, "Data");
+        }
+
+        private static GameConfigData EnsureGameConfigData()
+        {
+            var configData = AssetDatabase.LoadAssetAtPath<GameConfigData>(GameConfigPath);
+            if (configData != null)
+            {
+                return configData;
+            }
+
+            configData = ScriptableObject.CreateInstance<GameConfigData>();
+            AssetDatabase.CreateAsset(configData, GameConfigPath);
+            AssetDatabase.SaveAssets();
+            return configData;
         }
 
         private static PlatformController CreatePlatformPrefab()

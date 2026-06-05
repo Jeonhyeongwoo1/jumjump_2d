@@ -1,3 +1,4 @@
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
@@ -10,11 +11,6 @@ namespace JumJump.Controller
     {
         public bool IsJumping => _isJumping;
 
-        [SerializeField] private float _jumpDuration = 0.48f;
-        [SerializeField] private float _jumpHeight = 1.35f;
-        [SerializeField] private float _characterVerticalOffset = 0.58f;
-        [SerializeField] private float _landingVerticalTolerance = 0.35f;
-
         private bool _isJumping;
         private float _jumpElapsed;
         private Vector3 _jumpStartPosition;
@@ -23,12 +19,14 @@ namespace JumJump.Controller
         private PlatformController _targetPlatform;
         private IEventBus _eventBus;
         private PlatformRegistry _platformRegistry;
+        private GameConfigData _configData;
 
         [Inject]
-        public void Construct(IEventBus eventBus, PlatformRegistry platformRegistry)
+        public void Construct(IEventBus eventBus, PlatformRegistry platformRegistry, GameConfigData configData)
         {
             _eventBus = eventBus;
             _platformRegistry = platformRegistry;
+            _configData = configData;
         }
 
         public void PlaceOnPlatform(PlatformController platform)
@@ -42,7 +40,7 @@ namespace JumJump.Controller
                 return;
             }
 
-            transform.position = platform.GetLandingPosition(_characterVerticalOffset);
+            transform.position = platform.GetLandingPosition(_configData.PlayerVerticalOffset);
         }
 
         private void OnPlayerJumpRequested(in PlayerJumpRequestedEvent ev)
@@ -63,7 +61,7 @@ namespace JumJump.Controller
 
             _jumpElapsed = 0f;
             _jumpStartPosition = transform.position;
-            _jumpEndPosition = _targetPlatform.GetLandingPosition(_characterVerticalOffset);
+            _jumpEndPosition = _targetPlatform.GetLandingPosition(_configData.PlayerVerticalOffset);
             _isJumping = true;
             _eventBus.Publish(new PlayerJumpStartedEvent());
         }
@@ -74,7 +72,10 @@ namespace JumJump.Controller
             transform.position = _jumpEndPosition;
 
             if (_targetPlatform != null &&
-                _targetPlatform.IsLandingPointInside(transform.position, _characterVerticalOffset, _landingVerticalTolerance))
+                _targetPlatform.IsLandingPointInside(
+                    transform.position,
+                    _configData.PlayerVerticalOffset,
+                    _configData.PlayerLandingVerticalTolerance))
             {
                 _currentPlatform = _targetPlatform;
                 _eventBus.Publish(new PlayerLandedEvent(_currentPlatform));
@@ -109,8 +110,8 @@ namespace JumJump.Controller
             }
 
             _jumpElapsed += Time.deltaTime;
-            var normalizedTime = Mathf.Clamp01(_jumpElapsed / _jumpDuration);
-            var arcHeight = 4f * _jumpHeight * normalizedTime * (1f - normalizedTime);
+            var normalizedTime = Mathf.Clamp01(_jumpElapsed / _configData.PlayerJumpDuration);
+            var arcHeight = 4f * _configData.PlayerJumpHeight * normalizedTime * (1f - normalizedTime);
             var nextPosition = Vector3.LerpUnclamped(_jumpStartPosition, _jumpEndPosition, normalizedTime);
             nextPosition.y += arcHeight;
             transform.position = nextPosition;

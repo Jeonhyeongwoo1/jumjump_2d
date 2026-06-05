@@ -17,18 +17,25 @@ namespace JumJump.Service
     public sealed class GameBootstrapService : IAsyncStartable
     {
         private readonly IEventBus _eventBus;
+        private readonly ResourceService _resourceService;
         private readonly PlatformFactory _platformFactory;
         private readonly PlayerFactory _playerFactory;
 
-        public GameBootstrapService(IEventBus eventBus, PlatformFactory platformFactory, PlayerFactory playerFactory)
+        public GameBootstrapService(
+            IEventBus eventBus,
+            ResourceService resourceService,
+            PlatformFactory platformFactory,
+            PlayerFactory playerFactory)
         {
             _eventBus = eventBus;
+            _resourceService = resourceService;
             _platformFactory = platformFactory;
             _playerFactory = playerFactory;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
+            await _resourceService.PreLoadAsync(cancellation);
             await _platformFactory.WarmupAsync(cancellation);
             await _playerFactory.WarmupAsync(cancellation);
 

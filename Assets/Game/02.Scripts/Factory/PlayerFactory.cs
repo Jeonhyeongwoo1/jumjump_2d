@@ -1,6 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Controller;
+using JumJump.Data;
 using JumJump.Registry;
 using JumJump.Service;
 using UnityEngine;
@@ -11,15 +12,11 @@ namespace JumJump.Factory
 {
     public sealed class PlayerFactory
     {
-        public const string AddressableKey = "Player";
-
-        private const string PoolKey = "Player";
-        private const int PrewarmCount = 1;
-
         private readonly PoolService _poolService;
         private readonly ResourceService _resourceService;
         private readonly PlayerRegistry _playerRegistry;
         private readonly IObjectResolver _resolver;
+        private readonly GameConfigData _configData;
 
         private GameObject _playerPrefab;
         private bool _isReady;
@@ -28,12 +25,14 @@ namespace JumJump.Factory
             PoolService poolService,
             ResourceService resourceService,
             PlayerRegistry playerRegistry,
-            IObjectResolver resolver)
+            IObjectResolver resolver,
+            GameConfigData configData)
         {
             _poolService = poolService;
             _resourceService = resourceService;
             _playerRegistry = playerRegistry;
             _resolver = resolver;
+            _configData = configData;
         }
 
         public async UniTask WarmupAsync(CancellationToken cancellationToken = default)
@@ -43,10 +42,10 @@ namespace JumJump.Factory
                 return;
             }
 
-            var prefab = await _resourceService.LoadPrefabAsync(AddressableKey, cancellationToken);
+            var prefab = await _resourceService.LoadPrefabAsync(_configData.PlayerAddressableKey, cancellationToken);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(PlayerFactory)}] Failed to load player prefab: {AddressableKey}");
+                Debug.LogError($"[{nameof(PlayerFactory)}] Failed to load player prefab: {_configData.PlayerAddressableKey}");
                 return;
             }
 
@@ -57,7 +56,7 @@ namespace JumJump.Factory
             }
 
             _playerPrefab = prefab;
-            _poolService.Register(PoolKey, Create, OnGet, OnRelease, PrewarmCount);
+            _poolService.Register(_configData.PlayerPoolKey, Create, OnGet, OnRelease, _configData.PlayerPrewarmCount);
             _isReady = true;
         }
 
@@ -69,7 +68,7 @@ namespace JumJump.Factory
                 return null;
             }
 
-            var player = _poolService.Get<Player>(PoolKey);
+            var player = _poolService.Get<Player>(_configData.PlayerPoolKey);
             _playerRegistry.Set(player);
             return player;
         }

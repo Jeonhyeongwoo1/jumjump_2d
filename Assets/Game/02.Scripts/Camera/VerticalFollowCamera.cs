@@ -1,3 +1,4 @@
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using UnityEngine;
@@ -8,16 +9,15 @@ namespace JumJump.Camera
     public sealed class VerticalFollowCamera : MonoBehaviour
     {
         [SerializeField] private Transform _target;
-        [SerializeField] private float _minimumY;
-        [SerializeField] private float _smoothSpeed = 8f;
-        [SerializeField] private float _verticalOffset = 1.2f;
 
         private IEventBus _eventBus;
+        private GameConfigData _configData;
 
         [Inject]
-        public void Construct(IEventBus eventBus)
+        public void Construct(IEventBus eventBus, GameConfigData configData)
         {
             _eventBus = eventBus;
+            _configData = configData;
             _eventBus.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
         }
 
@@ -49,8 +49,8 @@ namespace JumJump.Camera
             }
 
             var nextPosition = transform.position;
-            var targetY = Mathf.Max(_minimumY, _target.position.y + _verticalOffset);
-            nextPosition.y = Mathf.Lerp(nextPosition.y, targetY, _smoothSpeed * Time.deltaTime);
+            var targetY = Mathf.Max(_configData.CameraMinimumY, _target.position.y + _configData.CameraVerticalOffset);
+            nextPosition.y = Mathf.Lerp(nextPosition.y, targetY, _configData.CameraSmoothSpeed * Time.deltaTime);
             transform.position = nextPosition;
         }
     }

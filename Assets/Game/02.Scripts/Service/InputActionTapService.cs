@@ -1,4 +1,5 @@
 using System;
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using UnityEngine;
@@ -9,16 +10,16 @@ namespace JumJump.Service
 {
     public sealed class InputActionTapService : IInitializable, IDisposable
     {
-        private const string TapActionPath = "Player/Attack";
-
         private InputAction _tapAction;
         private readonly IEventBus _eventBus;
         private readonly InputActionAsset _inputActions;
+        private readonly GameConfigData _configData;
 
-        public InputActionTapService(IEventBus eventBus, InputActionAsset inputActions)
+        public InputActionTapService(IEventBus eventBus, InputActionAsset inputActions, GameConfigData configData)
         {
             _eventBus = eventBus;
             _inputActions = inputActions;
+            _configData = configData;
         }
 
         public void Initialize()
@@ -29,10 +30,10 @@ namespace JumJump.Service
                 return;
             }
 
-            _tapAction = _inputActions.FindAction(TapActionPath, false);
+            _tapAction = _inputActions.FindAction(_configData.TapActionPath, false);
             if (_tapAction == null)
             {
-                Debug.LogError($"[{nameof(InputActionTapService)}] Missing input action: {TapActionPath}.");
+                Debug.LogError($"[{nameof(InputActionTapService)}] Missing input action: {_configData.TapActionPath}.");
                 return;
             }
 

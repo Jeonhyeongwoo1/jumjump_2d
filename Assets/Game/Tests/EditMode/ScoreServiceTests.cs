@@ -1,3 +1,4 @@
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Service;
 using NUnit.Framework;
@@ -7,23 +8,27 @@ namespace JumJump.Tests
 {
     public sealed class ScoreServiceTests
     {
+        private GameConfigData _configData;
+
         [SetUp]
         public void SetUp()
         {
-            PlayerPrefs.DeleteKey("JumJump.HighScore");
+            _configData = ScriptableObject.CreateInstance<GameConfigData>();
+            PlayerPrefs.DeleteKey(_configData.HighScoreKey);
         }
 
         [TearDown]
         public void TearDown()
         {
-            PlayerPrefs.DeleteKey("JumJump.HighScore");
+            PlayerPrefs.DeleteKey(_configData.HighScoreKey);
+            Object.DestroyImmediate(_configData);
         }
 
         [Test]
         public void PlayerLanded_IncrementsScore()
         {
             var eventBus = new EventBus();
-            var scoreService = new ScoreService(eventBus);
+            var scoreService = new ScoreService(eventBus, _configData);
 
             scoreService.Initialize();
             eventBus.Publish(new PlayerLandedEvent(null));
@@ -38,7 +43,7 @@ namespace JumJump.Tests
         public void Restart_ResetsCurrentScoreOnly()
         {
             var eventBus = new EventBus();
-            var scoreService = new ScoreService(eventBus);
+            var scoreService = new ScoreService(eventBus, _configData);
 
             scoreService.Initialize();
             eventBus.Publish(new PlayerLandedEvent(null));

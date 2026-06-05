@@ -1,4 +1,5 @@
 using JumJump.Camera;
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
@@ -14,6 +15,7 @@ namespace JumJump
 {
     public sealed class GameSceneLifeScope : LifetimeScope
     {
+        [UnityEngine.SerializeField] private GameConfigData _gameConfigData;
         [UnityEngine.SerializeField] private InputActionAsset _inputActions;
         [UnityEngine.SerializeField] private VerticalFollowCamera _followCamera;
         [UnityEngine.SerializeField] private UnityEngine.Transform _platformPoolRoot;
@@ -21,6 +23,12 @@ namespace JumJump
 
         protected override void Configure(IContainerBuilder builder)
         {
+            if (_gameConfigData == null)
+            {
+                UnityEngine.Debug.LogError($"[{nameof(GameSceneLifeScope)}] Missing {nameof(GameConfigData)}.");
+            }
+
+            builder.RegisterInstance(_gameConfigData);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);

@@ -10,10 +10,10 @@ namespace JumJump.Controller
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
-        [SerializeField] private float _landingHeight = 0.48f;
 
         private int _platformIndex;
-        private float _halfWidth = 0.7f;
+        private float _halfWidth;
+        private float _landingHeight;
         private float _moveSpeed;
         private float _leftBound;
         private float _rightBound;
@@ -26,10 +26,18 @@ namespace JumJump.Controller
             _onReleaseAction = onReleaseAction;
         }
 
-        public void Initialize(int platformIndex, Vector3 position, float width, float moveSpeed, float leftBound, float rightBound)
+        public void Initialize(
+            int platformIndex,
+            Vector3 position,
+            float width,
+            float landingHeight,
+            float moveSpeed,
+            float leftBound,
+            float rightBound)
         {
             _platformIndex = platformIndex;
             _halfWidth = width * 0.5f;
+            _landingHeight = landingHeight;
             _moveSpeed = moveSpeed;
             _leftBound = leftBound;
             _rightBound = rightBound;
