@@ -34,9 +34,9 @@ namespace JumJump.Event
 
     public struct PlayerSpawnedEvent
     {
-        public PlayerJumpController Player { get; private set; }
+        public Player Player { get; private set; }
 
-        public PlayerSpawnedEvent(PlayerJumpController player)
+        public PlayerSpawnedEvent(Player player)
         {
             Player = player;
         }

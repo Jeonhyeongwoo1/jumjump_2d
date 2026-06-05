@@ -7,9 +7,9 @@ namespace JumJump.Registry
     /// </summary>
     public sealed class PlayerRegistry
     {
-        public PlayerJumpController Player { get; private set; }
+        public Player Player { get; private set; }
 
-        public void Set(PlayerJumpController player)
+        public void Set(Player player)
         {
             Player = player;
         }

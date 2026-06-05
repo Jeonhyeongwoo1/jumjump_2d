@@ -93,16 +93,6 @@ namespace JumJump.Controller
             {
                 _landingCollider = GetComponent<BoxCollider2D>();
             }
-
-            if (_spriteRenderer == null)
-            {
-                Debug.LogError($"[{nameof(PlatformController)}] Missing SpriteRenderer.");
-            }
-
-            if (_landingCollider == null)
-            {
-                Debug.LogError($"[{nameof(PlatformController)}] Missing BoxCollider2D.");
-            }
         }
 
         private void Update()

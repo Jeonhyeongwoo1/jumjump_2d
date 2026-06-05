@@ -50,9 +50,9 @@ namespace JumJump.Factory
                 return;
             }
 
-            if (prefab.GetComponent<PlayerJumpController>() == null)
+            if (prefab.GetComponent<Player>() == null)
             {
-                Debug.LogError($"[{nameof(PlayerFactory)}] Loaded prefab has no {nameof(PlayerJumpController)}.");
+                Debug.LogError($"[{nameof(PlayerFactory)}] Loaded prefab has no {nameof(Player)}.");
                 return;
             }
 
@@ -61,7 +61,7 @@ namespace JumJump.Factory
             _isReady = true;
         }
 
-        public PlayerJumpController Spawn()
+        public Player Spawn()
         {
             if (!_isReady)
             {
@@ -69,24 +69,24 @@ namespace JumJump.Factory
                 return null;
             }
 
-            var player = _poolService.Get<PlayerJumpController>(PoolKey);
+            var player = _poolService.Get<Player>(PoolKey);
             _playerRegistry.Set(player);
             return player;
         }
 
-        private PlayerJumpController Create()
+        private Player Create()
         {
             var instance = Object.Instantiate(_playerPrefab);
             _resolver.InjectGameObject(instance);
-            return instance.GetComponent<PlayerJumpController>();
+            return instance.GetComponent<Player>();
         }
 
-        private void OnGet(PlayerJumpController player)
+        private void OnGet(Player player)
         {
             player.gameObject.SetActive(true);
         }
 
-        private void OnRelease(PlayerJumpController player)
+        private void OnRelease(Player player)
         {
             player.gameObject.SetActive(false);
         }

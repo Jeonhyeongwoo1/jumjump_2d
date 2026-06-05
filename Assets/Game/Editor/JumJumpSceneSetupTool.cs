@@ -139,7 +139,7 @@ namespace JumJump.Editor
             spriteRenderer.color = new Color(1f, 0.9f, 0.28f);
             player.transform.localScale = new Vector3(0.48f, 0.48f, 1f);
 
-            player.AddComponent<PlayerJumpController>();
+            player.AddComponent<Player>();
 
             var savedPrefab = PrefabUtility.SaveAsPrefabAsset(player, PlayerPrefabPath);
             Object.DestroyImmediate(player);

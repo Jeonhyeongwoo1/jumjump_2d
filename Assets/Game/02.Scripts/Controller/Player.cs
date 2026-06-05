@@ -6,7 +6,7 @@ using VContainer;
 
 namespace JumJump.Controller
 {
-    public sealed class PlayerJumpController : MonoBehaviour
+    public sealed class Player : MonoBehaviour
     {
         public bool IsJumping => _isJumping;
 
@@ -88,7 +88,7 @@ namespace JumJump.Controller
         {
             if (_eventBus == null)
             {
-                Debug.LogError($"[{nameof(PlayerJumpController)}] Missing dependency: {nameof(_eventBus)}.");
+                Debug.LogError($"[{nameof(Player)}] Missing dependency: {nameof(_eventBus)}.");
                 enabled = false;
                 return;
             }
