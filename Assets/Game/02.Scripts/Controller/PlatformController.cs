@@ -30,6 +30,7 @@ namespace JumJump.Controller
             int platformIndex,
             Vector3 position,
             float width,
+            float height,
             float landingHeight,
             float moveSpeed,
             float leftBound,
@@ -44,12 +45,12 @@ namespace JumJump.Controller
             _moveDirection = 1;
             _isActive = true;
             transform.position = position;
-            transform.localScale = new Vector3(width, 0.32f, 1f);
+            transform.localScale = new Vector3(width, height, 1f);
             gameObject.SetActive(true);
 
             if (_spriteRenderer != null)
             {
-                _spriteRenderer.size = new Vector2(width, 0.32f);
+                _spriteRenderer.size = new Vector2(width, height);
             }
 
             if (_landingCollider != null)

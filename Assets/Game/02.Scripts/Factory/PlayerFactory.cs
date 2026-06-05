@@ -1,5 +1,3 @@
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using JumJump.Controller;
 using JumJump.Data;
 using JumJump.Registry;
@@ -35,14 +33,14 @@ namespace JumJump.Factory
             _configData = configData;
         }
 
-        public async UniTask WarmupAsync(CancellationToken cancellationToken = default)
+        public void Warmup()
         {
             if (_isReady)
             {
                 return;
             }
 
-            var prefab = await _resourceService.LoadPrefabAsync(_configData.PlayerAddressableKey, cancellationToken);
+            var prefab = _resourceService.GetPrefab(_configData.PlayerAddressableKey);
             if (prefab == null)
             {
                 Debug.LogError($"[{nameof(PlayerFactory)}] Failed to load player prefab: {_configData.PlayerAddressableKey}");

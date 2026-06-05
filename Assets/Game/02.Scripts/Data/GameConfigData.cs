@@ -18,6 +18,7 @@ namespace JumJump.Data
         public float PlatformVerticalSpacing => _platformVerticalSpacing;
         public float PlatformXRange => _platformXRange;
         public float PlatformWidth => _platformWidth;
+        public float PlatformHeight => _platformHeight;
         public float PlatformBaseMoveSpeed => _platformBaseMoveSpeed;
         public float PlatformScoreSpeedMaxScore => _platformScoreSpeedMaxScore;
         public int PlatformXPatternMultiplier => _platformXPatternMultiplier;
@@ -51,6 +52,7 @@ namespace JumJump.Data
         [SerializeField] private float _platformVerticalSpacing = 1.8f;
         [SerializeField] private float _platformXRange = 2.2f;
         [SerializeField] private float _platformWidth = 1.25f;
+        [SerializeField] private float _platformHeight = 1f;
         [SerializeField] private float _platformBaseMoveSpeed = 0.45f;
         [SerializeField] private float _platformScoreSpeedMaxScore = 50f;
         [SerializeField] private int _platformXPatternMultiplier = 37;

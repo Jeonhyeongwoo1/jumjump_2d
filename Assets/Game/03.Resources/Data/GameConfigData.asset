@@ -25,6 +25,7 @@ MonoBehaviour:
   _platformVerticalSpacing: 1.8
   _platformXRange: 2.2
   _platformWidth: 1
+  _platformHeight: 1
   _platformBaseMoveSpeed: 0.45
   _platformScoreSpeedMaxScore: 50
   _platformXPatternMultiplier: 37

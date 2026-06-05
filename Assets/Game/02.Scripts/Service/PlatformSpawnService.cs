@@ -100,6 +100,7 @@ namespace JumJump.Service
                 _nextPlatformIndex,
                 position,
                 _configData.PlatformWidth,
+                _configData.PlatformHeight,
                 _configData.PlatformLandingHeight,
                 moveSpeed,
                 -_configData.PlatformXRange,

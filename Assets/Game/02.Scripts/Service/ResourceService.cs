@@ -16,6 +16,7 @@ namespace JumJump.Service
     /// </summary>
     public sealed class ResourceService : IDisposable
     {
+        private readonly Dictionary<string, UnityEngine.Object> _assets = new Dictionary<string, UnityEngine.Object>(16);
         private readonly Dictionary<string, AsyncOperationHandle> _handles = new Dictionary<string, AsyncOperationHandle>(16);
         private readonly GameConfigData _configData;
         private bool _isPreLoaded;
@@ -25,7 +26,12 @@ namespace JumJump.Service
             _configData = configData;
         }
 
-        public async UniTask<GameObject> LoadPrefabAsync(string key, CancellationToken cancellationToken = default)
+        public GameObject GetPrefab(string key)
+        {
+            return GetAsset<GameObject>(key);
+        }
+
+        public T GetAsset<T>(string key) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -33,21 +39,25 @@ namespace JumJump.Service
                 return null;
             }
 
-            if (_handles.TryGetValue(key, out var cachedHandle))
+            if (!_isPreLoaded)
             {
-                return await GetCachedPrefabAsync(key, cachedHandle, cancellationToken);
+                Debug.LogError($"[{nameof(ResourceService)}] Asset requested before preload: {key}");
+                return null;
             }
 
-            var handle = Addressables.LoadAssetAsync<GameObject>(key);
-            _handles.Add(key, handle);
-
-            var asset = await handle.ToUniTask(cancellationToken: cancellationToken);
-            if (asset == null)
+            if (!_assets.TryGetValue(key, out var asset))
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to load prefab: {key}");
+                Debug.LogError($"[{nameof(ResourceService)}] Preloaded asset not found: {key}");
+                return null;
             }
 
-            return asset;
+            if (asset is T typedAsset)
+            {
+                return typedAsset;
+            }
+
+            Debug.LogError($"[{nameof(ResourceService)}] Preloaded asset type mismatch: {key} ({asset.GetType().Name})");
+            return null;
         }
 
         public async UniTask PreLoadAsync(CancellationToken cancellationToken = default)
@@ -92,6 +102,7 @@ namespace JumJump.Service
             }
 
             _handles.Remove(key);
+            _assets.Remove(key);
         }
 
         public void Dispose()
@@ -105,6 +116,8 @@ namespace JumJump.Service
             }
 
             _handles.Clear();
+            _assets.Clear();
+            _isPreLoaded = false;
         }
 
         private async UniTask LoadPreLoadLocationsAsync(IList<IResourceLocation> locations, CancellationToken cancellationToken)
@@ -148,32 +161,10 @@ namespace JumJump.Service
             if (asset == null)
             {
                 Debug.LogError($"[{nameof(ResourceService)}] Failed to preload asset: {location.PrimaryKey}");
-            }
-        }
-
-        private async UniTask<GameObject> GetCachedPrefabAsync(
-            string key,
-            AsyncOperationHandle cachedHandle,
-            CancellationToken cancellationToken)
-        {
-            if (!cachedHandle.IsDone)
-            {
-                await cachedHandle.ToUniTask(cancellationToken: cancellationToken);
+                return;
             }
 
-            if (cachedHandle.Status != AsyncOperationStatus.Succeeded)
-            {
-                Debug.LogError($"[{nameof(ResourceService)}] Cached prefab load failed: {key}");
-                return null;
-            }
-
-            var prefab = cachedHandle.Result as GameObject;
-            if (prefab == null)
-            {
-                Debug.LogError($"[{nameof(ResourceService)}] Cached asset is not a prefab: {key}");
-            }
-
-            return prefab;
+            _assets.Add(location.PrimaryKey, asset);
         }
 
         private void ReleaseLocationHandle(AsyncOperationHandle<IList<IResourceLocation>> handle)

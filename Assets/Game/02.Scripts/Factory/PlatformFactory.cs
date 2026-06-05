@@ -1,5 +1,3 @@
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using JumJump.Controller;
 using JumJump.Data;
 using JumJump.Service;
@@ -29,14 +27,14 @@ namespace JumJump.Factory
             _configData = configData;
         }
 
-        public async UniTask WarmupAsync(CancellationToken cancellationToken = default)
+        public void Warmup()
         {
             if (_isReady)
             {
                 return;
             }
 
-            var prefab = await _resourceService.LoadPrefabAsync(_configData.PlatformAddressableKey, cancellationToken);
+            var prefab = _resourceService.GetPrefab(_configData.PlatformAddressableKey);
             if (prefab == null)
             {
                 Debug.LogError($"[{nameof(PlatformFactory)}] Failed to load platform prefab: {_configData.PlatformAddressableKey}");

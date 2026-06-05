@@ -36,8 +36,8 @@ namespace JumJump.Service
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             await _resourceService.PreLoadAsync(cancellation);
-            await _platformFactory.WarmupAsync(cancellation);
-            await _playerFactory.WarmupAsync(cancellation);
+            _platformFactory.Warmup();
+            _playerFactory.Warmup();
 
             var player = _playerFactory.Spawn();
             if (player == null)
