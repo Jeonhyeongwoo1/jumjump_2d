@@ -19,22 +19,25 @@ MonoBehaviour:
   _playerPrewarmCount: 1
   _platformPoolKey: Platform
   _platformPrewarmCount: 12
-  _initialPlatformCount: 8
-  _platformsAhead: 6
-  _stationaryPlatformCount: 3
-  _platformVerticalSpacing: 1.8
-  _platformXRange: 2.2
+  _platformSpawnDistance: 2.2
+  _platformFirstSpawnDirection: 1
+  _platformAlternatesSpawnSide: 1
+  _platformVerticalStep: 1
   _platformWidth: 1
   _platformHeight: 1
   _platformBaseMoveSpeed: 0.45
+  _platformMaxMoveSpeedBonus: 1
   _platformScoreSpeedMaxScore: 50
-  _platformXPatternMultiplier: 37
-  _platformXPatternModulo: 100
   _platformLandingHeight: 0.48
+  _platformSideHitTopMargin: 0.35
+  _platformCleanupBelowDistance: 2
   _playerJumpDuration: 0.48
   _playerJumpHeight: 1.35
   _playerVerticalOffset: 0.58
   _playerLandingVerticalTolerance: 0.35
+  _playerLandingEnabledNormalizedTime: 0.5
+  _playerContactHalfWidth: 0.22
+  _scorePerLanding: 1
   _highScoreKey: JumJump.HighScore
   _tapActionPath: Player/Attack
   _cameraMinimumY: 0

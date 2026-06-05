@@ -1,4 +1,8 @@
 using System;
+using JumJump.Data;
+using JumJump.Event;
+using JumJump.Interface;
+using JumJump.Registry;
 using UnityEngine;
 
 namespace JumJump.Controller
@@ -14,12 +18,21 @@ namespace JumJump.Controller
         private int _platformIndex;
         private float _halfWidth;
         private float _landingHeight;
+        private float _targetX;
         private float _moveSpeed;
-        private float _leftBound;
-        private float _rightBound;
-        private int _moveDirection = 1;
+        private bool _isResolved;
         private bool _isActive;
         private Action<PlatformController> _onReleaseAction;
+        private IEventBus _eventBus;
+        private PlayerRegistry _playerRegistry;
+        private GameConfigData _configData;
+
+        public void Bind(IEventBus eventBus, PlayerRegistry playerRegistry, GameConfigData configData)
+        {
+            _eventBus = eventBus;
+            _playerRegistry = playerRegistry;
+            _configData = configData;
+        }
 
         public void InjectRelease(Action<PlatformController> onReleaseAction)
         {
@@ -29,20 +42,18 @@ namespace JumJump.Controller
         public void Initialize(
             int platformIndex,
             Vector3 position,
+            float targetX,
             float width,
             float height,
             float landingHeight,
-            float moveSpeed,
-            float leftBound,
-            float rightBound)
+            float moveSpeed)
         {
             _platformIndex = platformIndex;
             _halfWidth = width * 0.5f;
             _landingHeight = landingHeight;
+            _targetX = targetX;
             _moveSpeed = moveSpeed;
-            _leftBound = leftBound;
-            _rightBound = rightBound;
-            _moveDirection = 1;
+            _isResolved = false;
             _isActive = true;
             transform.position = position;
             transform.localScale = new Vector3(width, height, 1f);
@@ -106,26 +117,74 @@ namespace JumJump.Controller
 
         private void Update()
         {
+            if (!_isActive || _isResolved)
+            {
+                return;
+            }
+
+            MoveTowardTarget();
+            EvaluatePlayerContact();
+        }
+
+        private void MoveTowardTarget()
+        {
             if (_moveSpeed <= 0f)
             {
                 return;
             }
 
             var nextPosition = transform.position;
-            nextPosition.x += _moveDirection * _moveSpeed * Time.deltaTime;
-
-            if (nextPosition.x > _rightBound)
-            {
-                nextPosition.x = _rightBound;
-                _moveDirection = -1;
-            }
-            else if (nextPosition.x < _leftBound)
-            {
-                nextPosition.x = _leftBound;
-                _moveDirection = 1;
-            }
-
+            nextPosition.x = Mathf.MoveTowards(nextPosition.x, _targetX, _moveSpeed * Time.deltaTime);
             transform.position = nextPosition;
+        }
+
+        private void EvaluatePlayerContact()
+        {
+            if (_eventBus == null || _playerRegistry == null || _configData == null)
+            {
+                return;
+            }
+
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                return;
+            }
+
+            var playerPosition = player.Position;
+            var contactHalfWidth = Mathf.Max(0f, _halfWidth + _configData.PlayerContactHalfWidth);
+            if (Mathf.Abs(playerPosition.x - transform.position.x) > contactHalfWidth)
+            {
+                return;
+            }
+
+            var landingY = GetLandingPosition(_configData.PlayerVerticalOffset).y;
+            var landingTolerance = Mathf.Max(0f, _configData.PlayerLandingVerticalTolerance);
+
+            if (player.CanLand && Mathf.Abs(playerPosition.y - landingY) <= landingTolerance)
+            {
+                ResolveLanding(player);
+                return;
+            }
+
+            if (playerPosition.y < landingY - Mathf.Max(0f, _configData.PlatformSideHitTopMargin))
+            {
+                ResolveSideHit();
+            }
+        }
+
+        private void ResolveLanding(Player player)
+        {
+            _isResolved = true;
+            _moveSpeed = 0f;
+            player.LandOnPlatform(this);
+        }
+
+        private void ResolveSideHit()
+        {
+            _isResolved = true;
+            _moveSpeed = 0f;
+            _eventBus.Publish(new PlayerMissedLandingEvent());
         }
     }
 }

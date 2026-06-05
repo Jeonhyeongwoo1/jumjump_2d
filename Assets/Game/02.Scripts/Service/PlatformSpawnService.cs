@@ -39,6 +39,7 @@ namespace JumJump.Service
         public void Initialize()
         {
             _eventBus.Subscribe<GameResourcesReadyEvent>(OnResourcesReady);
+            _eventBus.Subscribe<GameStartedEvent>(OnGameStarted);
             _eventBus.Subscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
         }
@@ -46,48 +47,48 @@ namespace JumJump.Service
         public void Dispose()
         {
             _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
+            _eventBus.Unsubscribe<GameStartedEvent>(OnGameStarted);
             _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
         }
 
-        private void ResetPlatforms()
+        private void ResetRound()
         {
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot reset platforms.");
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot reset round.");
                 return;
             }
 
             _platformRegistry.Clear();
             _nextPlatformIndex = 0;
+            player.ResetForRound();
+        }
 
-            var startPlatform = SpawnPlatform(Vector3.zero, 0f);
-            player.PlaceOnPlatform(startPlatform);
-
-            for (var i = 1; i < _configData.InitialPlatformCount; i++)
+        private PlatformController SpawnIncomingPlatform()
+        {
+            var player = _playerRegistry.Player;
+            if (player == null)
             {
-                SpawnNextPlatform();
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn platform.");
+                return null;
             }
 
-            _eventBus.Publish(new PlatformsResetEvent(startPlatform));
-        }
-
-        private PlatformController SpawnNextPlatform()
-        {
-            var nextY = _nextPlatformIndex * _configData.PlatformVerticalSpacing;
-            var xPatternModulo = Mathf.Max(1, _configData.PlatformXPatternModulo);
-            var xStep = ((_nextPlatformIndex * _configData.PlatformXPatternMultiplier) % xPatternModulo) /
-                        (float)xPatternModulo;
-            var x = Mathf.Lerp(-_configData.PlatformXRange, _configData.PlatformXRange, xStep);
+            var targetX = player.Position.x;
+            var spawnSide = ResolveSpawnSide();
+            var spawnX = targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
+            var baseY = player.Position.y - _configData.PlayerVerticalOffset;
+            var platformY = baseY + _configData.PlatformVerticalStep;
             var scoreFactor = Mathf.Clamp01(_scoreService.Score / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
-            var moveSpeed = _nextPlatformIndex < _configData.StationaryPlatformCount
-                ? 0f
-                : _configData.PlatformBaseMoveSpeed + scoreFactor;
-            return SpawnPlatform(new Vector3(x, nextY, 0f), moveSpeed);
+            var moveSpeed = Mathf.Max(
+                0f,
+                _configData.PlatformBaseMoveSpeed + scoreFactor * _configData.PlatformMaxMoveSpeedBonus);
+
+            return SpawnPlatform(new Vector3(spawnX, platformY, 0f), targetX, moveSpeed);
         }
 
-        private PlatformController SpawnPlatform(Vector3 position, float moveSpeed)
+        private PlatformController SpawnPlatform(Vector3 position, float targetX, float moveSpeed)
         {
             var platform = _platformFactory.Get();
             if (platform == null)
@@ -99,31 +100,14 @@ namespace JumJump.Service
             platform.Initialize(
                 _nextPlatformIndex,
                 position,
+                targetX,
                 _configData.PlatformWidth,
                 _configData.PlatformHeight,
                 _configData.PlatformLandingHeight,
-                moveSpeed,
-                -_configData.PlatformXRange,
-                _configData.PlatformXRange);
+                moveSpeed);
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
-        }
-
-        private void EnsurePlatformsAhead(PlatformController landedPlatform)
-        {
-            if (landedPlatform == null)
-            {
-                return;
-            }
-
-            while (_nextPlatformIndex - landedPlatform.PlatformIndex <= _configData.PlatformsAhead)
-            {
-                if (SpawnNextPlatform() == null)
-                {
-                    return;
-                }
-            }
         }
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)
@@ -133,18 +117,34 @@ namespace JumJump.Service
                 return;
             }
 
-            _platformRegistry.ReleaseBelow(ev.Platform.CenterY);
-            EnsurePlatformsAhead(ev.Platform);
+            _platformRegistry.ReleaseBelow(ev.Platform.CenterY - Mathf.Max(0f, _configData.PlatformCleanupBelowDistance));
+            SpawnIncomingPlatform();
+        }
+
+        private float ResolveSpawnSide()
+        {
+            var firstDirection = _configData.PlatformFirstSpawnDirection >= 0 ? 1f : -1f;
+            if (!_configData.PlatformAlternatesSpawnSide)
+            {
+                return firstDirection;
+            }
+
+            return _nextPlatformIndex % 2 == 0 ? firstDirection : -firstDirection;
         }
 
         private void OnResourcesReady(in GameResourcesReadyEvent ev)
         {
-            ResetPlatforms();
+            ResetRound();
+        }
+
+        private void OnGameStarted(in GameStartedEvent ev)
+        {
+            SpawnIncomingPlatform();
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
-            ResetPlatforms();
+            ResetRound();
         }
     }
 }

@@ -39,7 +39,7 @@ namespace JumJump.Service
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)
         {
-            _score++;
+            _score += Mathf.Max(0, _configData.ScorePerLanding);
 
             if (_score > _highScore)
             {

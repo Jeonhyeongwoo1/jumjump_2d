@@ -1,5 +1,7 @@
 using JumJump.Controller;
 using JumJump.Data;
+using JumJump.Interface;
+using JumJump.Registry;
 using JumJump.Service;
 using UnityEngine;
 
@@ -10,6 +12,8 @@ namespace JumJump.Factory
         private readonly Transform _poolRoot;
         private readonly PoolService _poolService;
         private readonly ResourceService _resourceService;
+        private readonly IEventBus _eventBus;
+        private readonly PlayerRegistry _playerRegistry;
         private readonly GameConfigData _configData;
 
         private PlatformController _platformPrefab;
@@ -19,11 +23,15 @@ namespace JumJump.Factory
             Transform poolRoot,
             PoolService poolService,
             ResourceService resourceService,
+            IEventBus eventBus,
+            PlayerRegistry playerRegistry,
             GameConfigData configData)
         {
             _poolRoot = poolRoot;
             _poolService = poolService;
             _resourceService = resourceService;
+            _eventBus = eventBus;
+            _playerRegistry = playerRegistry;
             _configData = configData;
         }
 
@@ -71,6 +79,7 @@ namespace JumJump.Factory
         private PlatformController Create()
         {
             var platform = Object.Instantiate(_platformPrefab, _poolRoot);
+            platform.Bind(_eventBus, _playerRegistry, _configData);
             platform.InjectRelease(Release);
             return platform;
         }
