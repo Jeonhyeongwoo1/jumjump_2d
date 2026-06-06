@@ -75,7 +75,7 @@ namespace JumJump.Service
                 return null;
             }
 
-            var platformY = player.Position.y - _configData.PlayerVerticalOffset + _configData.PlatformVerticalStep;
+            var platformY = player.Position.y;
             return SpawnIncomingPlatformAtY(platformY);
         }
 

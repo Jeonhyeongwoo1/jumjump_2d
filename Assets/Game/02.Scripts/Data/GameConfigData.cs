@@ -31,6 +31,9 @@ namespace JumJump.Data
         public float PlayerLandingVerticalTolerance => _playerLandingVerticalTolerance;
         public float PlayerLandingEnabledNormalizedTime => _playerLandingEnabledNormalizedTime;
         public float PlayerContactHalfWidth => _playerContactHalfWidth;
+        public float PlayerGameOverKnockbackHorizontalSpeed => _playerGameOverKnockbackHorizontalSpeed;
+        public float PlayerGameOverKnockbackUpwardSpeed => _playerGameOverKnockbackUpwardSpeed;
+        public float PlayerGameOverKnockbackGravityScale => _playerGameOverKnockbackGravityScale;
         public int ScorePerLanding => _scorePerLanding;
         public string HighScoreKey => _highScoreKey;
         public string TapActionPath => _tapActionPath;
@@ -71,6 +74,11 @@ namespace JumJump.Data
         [SerializeField] private float _playerLandingVerticalTolerance = 0.35f;
         [SerializeField] private float _playerLandingEnabledNormalizedTime = 0.5f;
         [SerializeField] private float _playerContactHalfWidth = 0.22f;
+
+        [Header("Game Over Knockback")]
+        [SerializeField] private float _playerGameOverKnockbackHorizontalSpeed = 3f;
+        [SerializeField] private float _playerGameOverKnockbackUpwardSpeed = 2f;
+        [SerializeField] private float _playerGameOverKnockbackGravityScale = 2.2f;
 
         [Header("Score")]
         [SerializeField] private int _scorePerLanding = 1;

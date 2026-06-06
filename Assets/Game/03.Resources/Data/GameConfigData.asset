@@ -38,6 +38,9 @@ MonoBehaviour:
   _playerLandingVerticalTolerance: 0.35
   _playerLandingEnabledNormalizedTime: 0.5
   _playerContactHalfWidth: 0.22
+  _playerGameOverKnockbackHorizontalSpeed: 2
+  _playerGameOverKnockbackUpwardSpeed: 3.5
+  _playerGameOverKnockbackGravityScale: 1
   _scorePerLanding: 1
   _highScoreKey: JumJump.HighScore
   _tapActionPath: Player/Attack

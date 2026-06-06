@@ -10,7 +10,8 @@ namespace JumJump
     public enum PlayerStateType
     {
         Idle,
-        Jump
+        Jump,
+        Knockback
     }
 
 }

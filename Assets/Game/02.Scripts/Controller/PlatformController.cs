@@ -22,6 +22,7 @@ namespace JumJump.Controller
         private float _landingHeight;
         private float _targetX;
         private float _moveSpeed;
+        private float _moveDirectionX;
         private bool _isResolved;
         private bool _isActive;
         private Action<PlatformController> _onReleaseAction;
@@ -55,6 +56,7 @@ namespace JumJump.Controller
             _landingHeight = landingHeight;
             _targetX = targetX;
             _moveSpeed = moveSpeed;
+            _moveDirectionX = ResolveMoveDirectionX(position.x, targetX);
             _isResolved = false;
             _isActive = true;
             PlaceRigidbody(position);
@@ -115,7 +117,7 @@ namespace JumJump.Controller
 
             if (player.BottomY < landingY)
             {
-                ResolveSideHit();
+                ResolveSideHit(player);
             }
 
             return false;
@@ -266,7 +268,7 @@ namespace JumJump.Controller
                 player.IsDescending &&
                 player.BottomY < landingY - Mathf.Max(0f, _configData.PlatformSideHitTopMargin))
             {
-                ResolveSideHit();
+                ResolveSideHit(player);
             }
         }
 
@@ -312,11 +314,38 @@ namespace JumJump.Controller
             player.LandOnPlatform(this, landingPosition);
         }
 
-        private void ResolveSideHit()
+        private void ResolveSideHit(Player player)
         {
             _isResolved = true;
             _moveSpeed = 0f;
-            _eventBus.Publish(new PlayerMissedLandingEvent());
+            _eventBus.Publish(new PlayerMissedLandingEvent(ResolveKnockbackDirection(player)));
+        }
+
+        private Vector2 ResolveKnockbackDirection(Player player)
+        {
+            var directionX = _moveDirectionX;
+            if (Mathf.Approximately(directionX, 0f) && player != null)
+            {
+                directionX = Mathf.Sign(player.Position.x - transform.position.x);
+            }
+
+            if (Mathf.Approximately(directionX, 0f))
+            {
+                directionX = 1f;
+            }
+
+            return new Vector2(directionX, 0f);
+        }
+
+        private float ResolveMoveDirectionX(float spawnX, float targetX)
+        {
+            var deltaX = targetX - spawnX;
+            if (Mathf.Approximately(deltaX, 0f))
+            {
+                return 0f;
+            }
+
+            return Mathf.Sign(deltaX);
         }
 
         private void OnTriggerEnter2D(Collider2D other)

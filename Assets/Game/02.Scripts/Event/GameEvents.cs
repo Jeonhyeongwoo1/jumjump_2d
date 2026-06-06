@@ -1,4 +1,5 @@
 using JumJump.Controller;
+using UnityEngine;
 
 namespace JumJump.Event
 {
@@ -62,6 +63,12 @@ namespace JumJump.Event
 
     public struct PlayerMissedLandingEvent
     {
+        public Vector2 KnockbackDirection { get; private set; }
+
+        public PlayerMissedLandingEvent(Vector2 knockbackDirection)
+        {
+            KnockbackDirection = knockbackDirection;
+        }
     }
 
     public struct PlatformsResetEvent

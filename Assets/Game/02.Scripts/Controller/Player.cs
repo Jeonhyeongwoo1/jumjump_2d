@@ -25,8 +25,11 @@ namespace JumJump.Controller
         [SerializeField] private Animator _animator;
 
         private bool _isJumping;
+        private bool _isGameOverKnockback;
         private float _jumpElapsed;
         private int _isJumpingAnimatorParameterHash;
+        private int _isDeadAnimatorParameterHash;
+        private int _idleAnimatorStateHash;
         private PlayerStateType _state;
         private Vector3 _spawnPosition;
         private Vector3 _groundPosition;
@@ -46,6 +49,7 @@ namespace JumJump.Controller
         public void ResetForRound()
         {
             _isJumping = false;
+            _isGameOverKnockback = false;
             _jumpElapsed = 0f;
             _groundPosition = _spawnPosition;
             _previousPosition = _groundPosition;
@@ -88,7 +92,7 @@ namespace JumJump.Controller
 
         private void OnPlayerJumpRequested(in PlayerJumpRequestedEvent ev)
         {
-            if (_isJumping)
+            if (_isJumping || _isGameOverKnockback)
             {
                 return;
             }
@@ -102,9 +106,15 @@ namespace JumJump.Controller
             _eventBus.Publish(new PlayerJumpStartedEvent());
         }
 
+        private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
+        {
+            PlayGameOverKnockback(ev.KnockbackDirection);
+        }
+
         private void PlaceAtGroundPosition(Vector3 groundPosition)
         {
             _isJumping = false;
+            _isGameOverKnockback = false;
             _jumpElapsed = 0f;
             _groundPosition = groundPosition;
             _previousPosition = _groundPosition;
@@ -119,8 +129,14 @@ namespace JumJump.Controller
                 return;
             }
 
+            var previousState = _state;
             _state = state;
             ApplyAnimatorState();
+
+            if (previousState == PlayerStateType.Knockback && state == PlayerStateType.Idle)
+            {
+                PlayIdleAnimatorState();
+            }
         }
 
         private void ApplyAnimatorState()
@@ -130,7 +146,22 @@ namespace JumJump.Controller
                 return;
             }
 
-            _animator.SetBool(_isJumpingAnimatorParameterHash, _state == PlayerStateType.Jump);
+            _animator.SetBool(
+                _isJumpingAnimatorParameterHash,
+                _state == PlayerStateType.Jump);
+            _animator.SetBool(
+                _isDeadAnimatorParameterHash,
+                _state == PlayerStateType.Knockback);
+        }
+
+        private void PlayIdleAnimatorState()
+        {
+            if (_animator == null)
+            {
+                return;
+            }
+
+            _animator.Play(_idleAnimatorStateHash, 0, 0f);
         }
 
         private void PlaceRigidbody(Vector3 position)
@@ -141,7 +172,9 @@ namespace JumJump.Controller
                 return;
             }
 
+            _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
             _rigidbody.linearVelocity = Vector2.zero;
+            _rigidbody.angularVelocity = 0f;
             _rigidbody.gravityScale = 0f;
             _rigidbody.position = position;
             transform.position = position;
@@ -162,6 +195,42 @@ namespace JumJump.Controller
 
             _rigidbody.gravityScale = gravityScale;
             _rigidbody.linearVelocity = new Vector2(0f, jumpVelocity);
+        }
+
+        private void PlayGameOverKnockback(Vector2 knockbackDirection)
+        {
+            if (_isGameOverKnockback)
+            {
+                return;
+            }
+
+            _isJumping = false;
+            _isGameOverKnockback = true;
+            _jumpElapsed = 0f;
+            _previousPosition = transform.position;
+            ChangeState(PlayerStateType.Knockback);
+
+            if (_rigidbody == null)
+            {
+                return;
+            }
+
+            var directionX = ResolveKnockbackDirectionX(knockbackDirection);
+            _rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _rigidbody.gravityScale = Mathf.Max(0f, _configData.PlayerGameOverKnockbackGravityScale);
+            _rigidbody.linearVelocity = new Vector2(
+                directionX * Mathf.Max(0f, _configData.PlayerGameOverKnockbackHorizontalSpeed),
+                Mathf.Max(0f, _configData.PlayerGameOverKnockbackUpwardSpeed));
+        }
+
+        private float ResolveKnockbackDirectionX(Vector2 knockbackDirection)
+        {
+            if (Mathf.Approximately(knockbackDirection.x, 0f))
+            {
+                return 1f;
+            }
+
+            return Mathf.Sign(knockbackDirection.x);
         }
 
         private float ResolveBottomY(Vector3 position)
@@ -189,11 +258,13 @@ namespace JumJump.Controller
             }
 
             _eventBus.Subscribe<PlayerJumpRequestedEvent>(OnPlayerJumpRequested);
+            _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
         }
 
         private void OnDestroy()
         {
             _eventBus?.Unsubscribe<PlayerJumpRequestedEvent>(OnPlayerJumpRequested);
+            _eventBus?.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
         }
 
         private void FixedUpdate()
@@ -236,6 +307,8 @@ namespace JumJump.Controller
             }
 
             _isJumpingAnimatorParameterHash = Animator.StringToHash("IsJumping");
+            _isDeadAnimatorParameterHash = Animator.StringToHash("IsDead");
+            _idleAnimatorStateHash = Animator.StringToHash("Idle");
             _spawnPosition = transform.position;
             _groundPosition = _spawnPosition;
             _previousPosition = _spawnPosition;
