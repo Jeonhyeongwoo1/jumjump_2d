@@ -22,6 +22,7 @@ namespace JumJump.Data
         public float PlatformMaxMoveSpeedBonus => _platformMaxMoveSpeedBonus;
         public float PlatformScoreSpeedMaxScore => _platformScoreSpeedMaxScore;
         public float PlatformLandingHeight => _platformLandingHeight;
+        public float PlatformStackVerticalOffset => _platformStackVerticalOffset;
         public float PlatformSideHitTopMargin => _platformSideHitTopMargin;
         public float PlatformCleanupBelowDistance => _platformCleanupBelowDistance;
         public float PlayerJumpDuration => _playerJumpDuration;
@@ -59,6 +60,7 @@ namespace JumJump.Data
         [SerializeField] private float _platformMaxMoveSpeedBonus = 1f;
         [SerializeField] private float _platformScoreSpeedMaxScore = 50f;
         [SerializeField] private float _platformLandingHeight = 0.48f;
+        [SerializeField] private float _platformStackVerticalOffset = 0.02f;
         [SerializeField] private float _platformSideHitTopMargin = 0.35f;
         [SerializeField] private float _platformCleanupBelowDistance = 2f;
 

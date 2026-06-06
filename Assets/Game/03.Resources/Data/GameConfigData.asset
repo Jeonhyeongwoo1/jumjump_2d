@@ -25,10 +25,11 @@ MonoBehaviour:
   _platformVerticalStep: 1
   _platformWidth: 1
   _platformHeight: 1
-  _platformBaseMoveSpeed: 1
+  _platformBaseMoveSpeed: 2
   _platformMaxMoveSpeedBonus: 1
   _platformScoreSpeedMaxScore: 50
   _platformLandingHeight: 0.48
+  _platformStackVerticalOffset: 0
   _platformSideHitTopMargin: 0.35
   _platformCleanupBelowDistance: 2
   _playerJumpDuration: 0.8

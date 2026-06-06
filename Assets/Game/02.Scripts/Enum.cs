@@ -7,4 +7,10 @@ namespace JumJump
         GameOver
     }
 
+    public enum PlayerStateType
+    {
+        Idle,
+        Jump
+    }
+
 }
