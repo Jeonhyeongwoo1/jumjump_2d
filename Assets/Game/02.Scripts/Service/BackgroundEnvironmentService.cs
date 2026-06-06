@@ -16,6 +16,10 @@ namespace JumJump.Service
             public Transform Transform;
             public SpriteRenderer Renderer;
             public float ParallaxFactor;
+            public float BaseX;
+            public float DriftPhase;
+            public float DriftSpeed;
+            public float DriftAmplitude;
         }
 
         private readonly IEventBus _eventBus;
@@ -30,6 +34,7 @@ namespace JumJump.Service
         private UnityEngine.Camera _camera;
         private float _lastGradientT = -1f;
         private float _previousCameraY;
+        private float _elapsedTime;
         private bool _isInitialized;
 
         public BackgroundEnvironmentService(
@@ -69,6 +74,7 @@ namespace JumJump.Service
                 return;
             }
 
+            _elapsedTime += Time.deltaTime;
             var cameraY = ResolveCameraY();
             var cameraDeltaY = cameraY - _previousCameraY;
             _previousCameraY = cameraY;
@@ -197,13 +203,17 @@ namespace JumJump.Service
                 }
 
                 ApplyParallax(i, cameraDeltaY);
+                ApplyDrift(i);
             }
         }
 
         private void RepositionItem(int index, float y)
         {
             var item = _items[index];
-            var sprite = ResolveThemeSprite(y);
+            var layerIndex = ResolveDepthLayerIndex(y);
+            var sprite = layerIndex < 0
+                ? null
+                : PickSprite(_configData.BackgroundDepthLayers[layerIndex].Sprites);
             if (sprite == null)
             {
                 item.Renderer.gameObject.SetActive(false);
@@ -212,16 +222,44 @@ namespace JumJump.Service
 
             item.Renderer.gameObject.SetActive(true);
             item.Renderer.sprite = sprite;
-            item.Renderer.color = ResolveObjectColor(y);
+            item.Renderer.color = ResolveObjectColor(y, layerIndex);
 
             var scale = UnityEngine.Random.Range(
                 _configData.BackgroundObjectMinScale,
                 _configData.BackgroundObjectMaxScale);
             item.Transform.localScale = new Vector3(scale, scale, 1f);
-            item.Transform.position = new Vector3(
-                UnityEngine.Random.Range(-_configData.BackgroundObjectXRange, _configData.BackgroundObjectXRange),
-                y,
-                _configData.BackgroundObjectZ);
+            var rotation = UnityEngine.Random.Range(
+                -_configData.BackgroundObjectMaxRotation,
+                _configData.BackgroundObjectMaxRotation);
+            item.Transform.localRotation = Quaternion.Euler(0f, 0f, rotation);
+
+            item.BaseX = UnityEngine.Random.Range(
+                -_configData.BackgroundObjectXRange,
+                _configData.BackgroundObjectXRange);
+            item.DriftPhase = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+            item.DriftSpeed = UnityEngine.Random.Range(
+                _configData.BackgroundObjectMinDriftSpeed,
+                _configData.BackgroundObjectMaxDriftSpeed);
+            item.DriftAmplitude = UnityEngine.Random.Range(
+                _configData.BackgroundObjectDriftAmplitude * 0.5f,
+                _configData.BackgroundObjectDriftAmplitude);
+            item.Transform.position = new Vector3(item.BaseX, y, _configData.BackgroundObjectZ);
+
+            _items[index] = item;
+        }
+
+        private void ApplyDrift(int index)
+        {
+            var item = _items[index];
+            if (item.DriftAmplitude <= 0f)
+            {
+                return;
+            }
+
+            var position = item.Transform.position;
+            position.x = item.BaseX
+                + Mathf.Sin(_elapsedTime * item.DriftSpeed + item.DriftPhase) * item.DriftAmplitude;
+            item.Transform.position = position;
         }
 
         private void ApplyParallax(int index, float cameraDeltaY)
@@ -237,19 +275,24 @@ namespace JumJump.Service
             item.Transform.position = position;
         }
 
-        private Sprite ResolveThemeSprite(float height)
+        private int ResolveDepthLayerIndex(float height)
         {
-            if (height >= _configData.BackgroundNightThemeStartHeight)
+            var layers = _configData.BackgroundDepthLayers;
+            if (layers == null || layers.Length == 0)
             {
-                return PickSprite(_configData.BackgroundNightSprites);
+                return -1;
             }
 
-            if (height >= _configData.BackgroundSkyThemeStartHeight)
+            var selected = 0;
+            for (var i = 0; i < layers.Length; i++)
             {
-                return PickSprite(_configData.BackgroundSkySprites);
+                if (height >= layers[i].StartHeight)
+                {
+                    selected = i;
+                }
             }
 
-            return PickSprite(_configData.BackgroundGroundSprites);
+            return selected;
         }
 
         private Sprite PickSprite(Sprite[] sprites)
@@ -262,12 +305,19 @@ namespace JumJump.Service
             return sprites[UnityEngine.Random.Range(0, sprites.Length)];
         }
 
-        private Color ResolveObjectColor(float height)
+        private Color ResolveObjectColor(float height, int layerIndex)
         {
-            return Color.Lerp(
+            var color = Color.Lerp(
                 Color.white,
                 _configData.BackgroundHighObjectTint,
                 ResolveHeightT(height));
+
+            color.a = layerIndex >= _configData.BackgroundObjectAlphaFromDepthIndex
+                ? UnityEngine.Random.Range(
+                    _configData.BackgroundObjectMinAlpha,
+                    _configData.BackgroundObjectMaxAlpha)
+                : 1f;
+            return color;
         }
 
         private float ResolveHeightT(float height)
