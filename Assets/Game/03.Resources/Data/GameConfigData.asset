@@ -48,7 +48,7 @@ MonoBehaviour:
   _cameraSmoothSpeed: 8
   _cameraVerticalOffset: 1.2
   _backgroundGradientMinHeight: -2
-  _backgroundGradientMaxHeight: 10
+  _backgroundGradientMaxHeight: 80
   _backgroundLowBottomColor: {r: 0.47, g: 0.82, b: 1, a: 1}
   _backgroundLowTopColor: {r: 0.18, g: 0.55, b: 0.95, a: 1}
   _backgroundHighBottomColor: {r: 0.34, g: 0.22, b: 0.75, a: 1}
@@ -59,18 +59,18 @@ MonoBehaviour:
   _backgroundGradientZ: 10
   _backgroundGradientSortingOrder: -1000
   _backgroundObjectSortingOrder: -900
-  _backgroundObjectPoolCount: 24
+  _backgroundObjectPoolCount: 12
   _backgroundObjectXRange: 3.2
-  _backgroundObjectRecycleBelowY: 4
-  _backgroundObjectSpawnAheadY: 4
+  _backgroundObjectRecycleBelowY: 8
+  _backgroundObjectSpawnAheadY: 11
   _backgroundObjectMinScale: 0.35
   _backgroundObjectMaxScale: 1.3
   _backgroundObjectMinAlpha: 0.3
   _backgroundObjectMaxAlpha: 0.7
-  _backgroundObjectMaxRotation: 30
+  _backgroundObjectMaxRotation: 10
   _backgroundObjectDriftAmplitude: 0.4
-  _backgroundObjectMinDriftSpeed: 0.3
-  _backgroundObjectMaxDriftSpeed: 0.8
+  _backgroundObjectMinDriftSpeed: 0.1
+  _backgroundObjectMaxDriftSpeed: 0.3
   _backgroundObjectAlphaFromDepthIndex: 1
   _backgroundObjectMinParallax: 0.3
   _backgroundObjectMaxParallax: 0.75
@@ -84,7 +84,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 31916b215618c3149a44e84de2bdbc22, type: 3}
     - {fileID: 21300000, guid: f557563ce826b364dbbee3ec4dd47e58, type: 3}
     - {fileID: 21300000, guid: 7fe2538ff337ae443b43e4ed35d8c959, type: 3}
-  - _startHeight: 2
+  - _startHeight: 16
     _sprites:
     - {fileID: 21300000, guid: a6a1fa693bb447a49ae5378e026dcb65, type: 3}
     - {fileID: 21300000, guid: e8e97bcbfbd31904ab5dddc3cff0e7de, type: 3}
@@ -95,7 +95,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: acb42ccd49dbda740b5fc48b53a80f47, type: 3}
     - {fileID: 21300000, guid: b26de446058bc2d4aa1050adbf6f102b, type: 3}
     - {fileID: 21300000, guid: 22284324466d6354ab93eb04980c1dba, type: 3}
-  - _startHeight: 4
+  - _startHeight: 34
     _sprites:
     - {fileID: 21300000, guid: 1f38311382d32564a92b896bb91dec42, type: 3}
     - {fileID: 21300000, guid: d6d057c5049b52843a2e60fe41d12bc7, type: 3}
@@ -106,7 +106,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: fc69635a042a664418abe6decb52a64c, type: 3}
     - {fileID: 21300000, guid: 44e35803005af48449fe4cba3518f7f2, type: 3}
     - {fileID: 21300000, guid: 20b017ab52fa88e4b9b9f1f24cfc9ac8, type: 3}
-  - _startHeight: 6
+  - _startHeight: 52
     _sprites:
     - {fileID: 21300000, guid: 10331a6b50b4c6747a01e1cecc7934a6, type: 3}
     - {fileID: 21300000, guid: 87cca1b7cee581742b153eb9aac4e44d, type: 3}
@@ -117,7 +117,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 78ca534dd23f1b449bd7450869086802, type: 3}
     - {fileID: 21300000, guid: 90e6d4bfe8ee3bc4eb8de71229a32919, type: 3}
     - {fileID: 21300000, guid: c7e677aac282ca34eb2d5aaa9a9ca634, type: 3}
-  - _startHeight: 8
+  - _startHeight: 70
     _sprites:
     - {fileID: 21300000, guid: 09cedde1c521c2b4a955bb1c33a663a9, type: 3}
     - {fileID: 21300000, guid: 7d26e8666a5cf0e49aa6c77d05cc989a, type: 3}
