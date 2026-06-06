@@ -76,6 +76,18 @@ namespace JumJump.Controller
             return new Vector3(platformPosition.x, platformPosition.y + characterVerticalOffset, platformPosition.z);
         }
 
+        public Vector3 GetLandingPosition(Player player)
+        {
+            var platformPosition = transform.position;
+            var groundContactOffset = player == null ? 0f : player.GroundContactOffset;
+            return new Vector3(platformPosition.x, GetLandingSurfaceY() + groundContactOffset, platformPosition.z);
+        }
+
+        public float GetStackedNextCenterY()
+        {
+            return transform.position.y + ResolveStackHeight();
+        }
+
         public bool IsLandingPointInside(Vector3 characterPosition, float characterVerticalOffset, float verticalTolerance)
         {
             var platformPosition = transform.position;
@@ -158,26 +170,60 @@ namespace JumJump.Controller
                 return;
             }
 
-            var landingY = GetLandingPosition(_configData.PlayerVerticalOffset).y;
-            var landingTolerance = Mathf.Max(0f, _configData.PlayerLandingVerticalTolerance);
+            var landingY = GetLandingSurfaceY();
 
-            if (player.CanLand && Mathf.Abs(playerPosition.y - landingY) <= landingTolerance)
+            if (player.CanLand && player.IsDescending && HasCrossedLandingLine(player, landingY))
             {
-                ResolveLanding(player);
+                ResolveLanding(player, landingY);
                 return;
             }
 
-            if (playerPosition.y < landingY - Mathf.Max(0f, _configData.PlatformSideHitTopMargin))
+            if (player.IsJumping &&
+                player.IsDescending &&
+                player.BottomY < landingY - Mathf.Max(0f, _configData.PlatformSideHitTopMargin))
             {
                 ResolveSideHit();
             }
         }
 
-        private void ResolveLanding(Player player)
+        private float GetLandingSurfaceY()
+        {
+            if (_landingCollider != null)
+            {
+                return _landingCollider.bounds.max.y;
+            }
+
+            return transform.position.y + _landingHeight * 0.5f;
+        }
+
+        private float ResolveStackHeight()
+        {
+            if (_spriteRenderer != null)
+            {
+                return Mathf.Max(0f, _spriteRenderer.bounds.size.y);
+            }
+
+            if (_landingCollider != null)
+            {
+                return Mathf.Max(0f, _landingCollider.bounds.size.y);
+            }
+
+            return _configData == null ? 0f : Mathf.Max(0f, _configData.PlatformHeight);
+        }
+
+        private bool HasCrossedLandingLine(Player player, float landingY)
+        {
+            return player.PreviousBottomY >= landingY && player.BottomY <= landingY;
+        }
+
+        private void ResolveLanding(Player player, float landingY)
         {
             _isResolved = true;
             _moveSpeed = 0f;
-            player.LandOnPlatform(this);
+
+            var landingPosition = player.Position;
+            landingPosition.y = landingY + player.GroundContactOffset;
+            player.LandOnPlatform(this, landingPosition);
         }
 
         private void ResolveSideHit()

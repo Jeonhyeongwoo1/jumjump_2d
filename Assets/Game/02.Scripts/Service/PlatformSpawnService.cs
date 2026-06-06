@@ -75,11 +75,22 @@ namespace JumJump.Service
                 return null;
             }
 
+            var platformY = player.Position.y - _configData.PlayerVerticalOffset + _configData.PlatformVerticalStep;
+            return SpawnIncomingPlatformAtY(platformY);
+        }
+
+        private PlatformController SpawnIncomingPlatformAtY(float platformY)
+        {
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn platform.");
+                return null;
+            }
+
             var targetX = player.Position.x;
             var spawnSide = ResolveSpawnSide();
             var spawnX = targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
-            var baseY = player.Position.y - _configData.PlayerVerticalOffset;
-            var platformY = baseY + _configData.PlatformVerticalStep;
             var scoreFactor = Mathf.Clamp01(_scoreService.Score / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
             var moveSpeed = Mathf.Max(
                 0f,
@@ -118,7 +129,7 @@ namespace JumJump.Service
             }
 
             _platformRegistry.ReleaseBelow(ev.Platform.CenterY - Mathf.Max(0f, _configData.PlatformCleanupBelowDistance));
-            SpawnIncomingPlatform();
+            SpawnIncomingPlatformAtY(ev.Platform.GetStackedNextCenterY());
         }
 
         private float ResolveSpawnSide()
