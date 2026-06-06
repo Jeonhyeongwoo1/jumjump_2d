@@ -36,6 +36,7 @@ namespace JumJump
             builder.Register<PlayerRegistry>(Lifetime.Scoped);
             builder.RegisterInstance(_inputActions);
             builder.RegisterInstance(_platformPoolRoot);
+            builder.Register<BackgroundEnvironmentFactory>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);
             builder.Register<ReadyGameFlowState>(Lifetime.Scoped);
@@ -44,6 +45,7 @@ namespace JumJump
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<BackgroundEnvironmentService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<PlatformSpawnService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameBootstrapService>(Lifetime.Scoped).AsSelf();
 

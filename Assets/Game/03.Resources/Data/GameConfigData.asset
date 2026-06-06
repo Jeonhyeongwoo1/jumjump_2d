@@ -47,3 +47,33 @@ MonoBehaviour:
   _cameraMinimumY: 0
   _cameraSmoothSpeed: 8
   _cameraVerticalOffset: 1.2
+  _backgroundGradientMinHeight: -2
+  _backgroundGradientMaxHeight: 80
+  _backgroundLowBottomColor: {r: 0.47, g: 0.82, b: 1, a: 1}
+  _backgroundLowTopColor: {r: 0.18, g: 0.55, b: 0.95, a: 1}
+  _backgroundHighBottomColor: {r: 0.34, g: 0.22, b: 0.75, a: 1}
+  _backgroundHighTopColor: {r: 0.1, g: 0.05, b: 0.32, a: 1}
+  _backgroundHighObjectTint: {r: 0.86, g: 0.78, b: 1, a: 1}
+  _backgroundGradientUpdateThreshold: 0.005
+  _backgroundGradientScreenPadding: 1.15
+  _backgroundGradientZ: 10
+  _backgroundGradientSortingOrder: -1000
+  _backgroundObjectSortingOrder: -900
+  _backgroundObjectPoolCount: 12
+  _backgroundObjectXRange: 3.2
+  _backgroundObjectRecycleBelowY: 8
+  _backgroundObjectSpawnAheadY: 11
+  _backgroundObjectMinScale: 0.45
+  _backgroundObjectMaxScale: 0.9
+  _backgroundObjectMinParallax: 0.3
+  _backgroundObjectMaxParallax: 0.75
+  _backgroundObjectZ: 9
+  _backgroundSkyThemeStartHeight: 18
+  _backgroundNightThemeStartHeight: 52
+  _backgroundGroundSprites: []
+  _backgroundSkySprites:
+  - {fileID: 21300000, guid: ebf16f68d92abe249a0df5165049aeba, type: 3}
+  - {fileID: 21300000, guid: 8ffa027332baccc4f99123341fb353e8, type: 3}
+  _backgroundNightSprites:
+  - {fileID: 21300000, guid: ebf16f68d92abe249a0df5165049aeba, type: 3}
+  - {fileID: 21300000, guid: 0c258232060343e4e9cde10225a8ca78, type: 3}

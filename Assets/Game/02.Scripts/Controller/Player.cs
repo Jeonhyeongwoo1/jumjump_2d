@@ -34,6 +34,7 @@ namespace JumJump.Controller
         private Vector3 _spawnPosition;
         private Vector3 _groundPosition;
         private Vector3 _previousPosition;
+        private Vector3 _defaultLocalScale;
         private IEventBus _eventBus;
         private GameConfigData _configData;
 
@@ -53,6 +54,7 @@ namespace JumJump.Controller
             _jumpElapsed = 0f;
             _groundPosition = _spawnPosition;
             _previousPosition = _groundPosition;
+            ApplyFacingScale(1f);
             PlaceRigidbody(_groundPosition);
             ChangeState(PlayerStateType.Idle);
         }
@@ -216,6 +218,7 @@ namespace JumJump.Controller
             }
 
             var directionX = ResolveKnockbackDirectionX(knockbackDirection);
+            ApplyFacingScale(directionX);
             _rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
             _rigidbody.gravityScale = Mathf.Max(0f, _configData.PlayerGameOverKnockbackGravityScale);
             _rigidbody.linearVelocity = new Vector2(
@@ -231,6 +234,14 @@ namespace JumJump.Controller
             }
 
             return Mathf.Sign(knockbackDirection.x);
+        }
+
+        private void ApplyFacingScale(float directionX)
+        {
+            var nextScale = transform.localScale;
+            var scaleX = Mathf.Max(0.0001f, Mathf.Abs(_defaultLocalScale.x));
+            nextScale.x = ResolveKnockbackDirectionX(new Vector2(directionX, 0f)) * scaleX;
+            transform.localScale = nextScale;
         }
 
         private float ResolveBottomY(Vector3 position)
@@ -309,6 +320,7 @@ namespace JumJump.Controller
             _isJumpingAnimatorParameterHash = Animator.StringToHash("IsJumping");
             _isDeadAnimatorParameterHash = Animator.StringToHash("IsDead");
             _idleAnimatorStateHash = Animator.StringToHash("Idle");
+            _defaultLocalScale = transform.localScale;
             _spawnPosition = transform.position;
             _groundPosition = _spawnPosition;
             _previousPosition = _spawnPosition;
