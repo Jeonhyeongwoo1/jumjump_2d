@@ -17,6 +17,9 @@ namespace JumJump
     public enum PlatformGimmickType
     {
         Normal,
-        Small
+        Small,
+        Fast,
+        Slow,
+        SmallAndFast
     }
 }

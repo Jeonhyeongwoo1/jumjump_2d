@@ -19,6 +19,7 @@ namespace JumJump.Service
         private readonly PlayerRegistry _playerRegistry;
         private readonly ScoreService _scoreService;
         private readonly GameConfigData _configData;
+        private readonly PlatformCheatData _platformCheatData;
 
         public PlatformSpawnService(
             IEventBus eventBus,
@@ -26,7 +27,8 @@ namespace JumJump.Service
             PlatformRegistry platformRegistry,
             PlayerRegistry playerRegistry,
             ScoreService scoreService,
-            GameConfigData configData)
+            GameConfigData configData,
+            PlatformCheatData platformCheatData)
         {
             _eventBus = eventBus;
             _platformFactory = platformFactory;
@@ -34,6 +36,7 @@ namespace JumJump.Service
             _playerRegistry = playerRegistry;
             _scoreService = scoreService;
             _configData = configData;
+            _platformCheatData = platformCheatData;
         }
 
         public void Initialize()
@@ -109,16 +112,17 @@ namespace JumJump.Service
             }
 
             var gimmickSetting = ResolvePlatformGimmickSetting();
-            var platformWidth = ResolvePlatformWidth(gimmickSetting);
+            var platformWidthScale = ResolvePlatformWidthScale(gimmickSetting);
+            var platformMoveSpeed = moveSpeed * ResolvePlatformMoveSpeedScale(gimmickSetting);
             platform.Initialize(
                 _nextPlatformIndex,
                 gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type,
                 position,
                 targetX,
-                platformWidth,
-                _configData.PlatformHeight,
+                platformWidthScale,
+                1f,
                 _configData.PlatformLandingHeight,
-                moveSpeed);
+                platformMoveSpeed);
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
@@ -128,11 +132,18 @@ namespace JumJump.Service
         {
             var settings = _configData.PlatformGimmickSettings;
             var normalSetting = FindPlatformGimmickSetting(settings, PlatformGimmickType.Normal);
+            if (_platformCheatData != null && _platformCheatData.ForcePlatformGimmick)
+            {
+                var forcedSetting = FindPlatformGimmickSetting(settings, _platformCheatData.ForcedPlatformGimmickType);
+                return forcedSetting ?? normalSetting;
+            }
+
             if (settings == null || settings.Length == 0)
             {
                 return normalSetting;
             }
 
+            var totalChance = 0f;
             for (var i = 0; i < settings.Length; i++)
             {
                 var setting = settings[i];
@@ -146,7 +157,33 @@ namespace JumJump.Service
                     continue;
                 }
 
-                if (UnityEngine.Random.value <= Mathf.Clamp01(setting.SpawnChance))
+                totalChance += Mathf.Clamp01(setting.SpawnChance);
+            }
+
+            if (totalChance <= 0f)
+            {
+                return normalSetting;
+            }
+
+            var roll = totalChance <= 1f
+                ? UnityEngine.Random.value
+                : UnityEngine.Random.Range(0f, totalChance);
+            var cumulativeChance = 0f;
+            for (var i = 0; i < settings.Length; i++)
+            {
+                var setting = settings[i];
+                if (setting == null || setting.Type == PlatformGimmickType.Normal)
+                {
+                    continue;
+                }
+
+                if (_scoreService.Score <= setting.StartScore)
+                {
+                    continue;
+                }
+
+                cumulativeChance += Mathf.Clamp01(setting.SpawnChance);
+                if (roll <= cumulativeChance)
                 {
                     return setting;
                 }
@@ -176,12 +213,11 @@ namespace JumJump.Service
             return null;
         }
 
-        private float ResolvePlatformWidth(PlatformGimmickSetting setting)
+        private float ResolvePlatformWidthScale(PlatformGimmickSetting setting)
         {
-            var baseWidth = Mathf.Max(0.01f, _configData.PlatformWidth);
             if (setting == null)
             {
-                return baseWidth;
+                return 1f;
             }
 
             var minWidthScale = Mathf.Clamp01(setting.MinWidthScale);
@@ -192,7 +228,25 @@ namespace JumJump.Service
             }
 
             var widthScale = UnityEngine.Random.Range(minWidthScale, maxWidthScale);
-            return baseWidth * Mathf.Max(0.01f, widthScale);
+            return Mathf.Max(0.01f, widthScale);
+        }
+
+        private float ResolvePlatformMoveSpeedScale(PlatformGimmickSetting setting)
+        {
+            if (setting == null)
+            {
+                return 1f;
+            }
+
+            var minMoveSpeedScale = Mathf.Max(0f, setting.MinMoveSpeedScale);
+            var maxMoveSpeedScale = Mathf.Max(0f, setting.MaxMoveSpeedScale);
+            if (maxMoveSpeedScale < minMoveSpeedScale)
+            {
+                maxMoveSpeedScale = minMoveSpeedScale;
+            }
+
+            var moveSpeedScale = UnityEngine.Random.Range(minMoveSpeedScale, maxMoveSpeedScale);
+            return Mathf.Max(0f, moveSpeedScale);
         }
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)

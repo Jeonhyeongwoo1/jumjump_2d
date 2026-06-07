@@ -16,6 +16,7 @@ namespace JumJump
     public sealed class GameSceneLifeScope : LifetimeScope
     {
         [UnityEngine.SerializeField] private GameConfigData _gameConfigData;
+        [UnityEngine.SerializeField] private PlatformCheatData _platformCheatData;
         [UnityEngine.SerializeField] private InputActionAsset _inputActions;
         [UnityEngine.SerializeField] private VerticalFollowCamera _followCamera;
         [UnityEngine.SerializeField] private UnityEngine.Transform _platformPoolRoot;
@@ -29,6 +30,7 @@ namespace JumJump
             }
 
             builder.RegisterInstance(_gameConfigData);
+            builder.RegisterInstance(_platformCheatData);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);

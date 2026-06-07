@@ -1503,6 +1503,7 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   _gameConfigData: {fileID: 11400000, guid: f006c368b7594d159df654b86f350640, type: 2}
+  _platformCheatData: {fileID: 11400000, guid: c66d90c5ae1747f19dc8b578a6df80c4, type: 2}
   _inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   _followCamera: {fileID: 134098829}
   _platformPoolRoot: {fileID: 1587108056}

@@ -27,6 +27,7 @@ namespace JumJump.Editor
         private const string PlatformPrefabPath = PrefabFolderPath + "/Platform.prefab";
         private const string PlayerPrefabPath = PrefabFolderPath + "/Player.prefab";
         private const string GameConfigPath = DataFolderPath + "/GameConfigData.asset";
+        private const string PlatformCheatDataPath = DataFolderPath + "/PlatformCheatData.asset";
 
         [MenuItem("JumJump/Setup/Rebuild Game Scene")]
         public static void RebuildGameScene()
@@ -34,6 +35,7 @@ namespace JumJump.Editor
             EnsureFolders();
 
             var configData = EnsureGameConfigData();
+            var platformCheatData = EnsurePlatformCheatData();
             CreatePlatformPrefab();
             CreatePlayerPrefab();
             RegisterAddressable(PlatformPrefabPath, configData.PlatformAddressableKey, configData.PreLoadLabel);
@@ -50,6 +52,7 @@ namespace JumJump.Editor
 
             var lifeScope = systems.GetComponent<GameSceneLifeScope>();
             SetObjectField(lifeScope, "_gameConfigData", configData);
+            SetObjectField(lifeScope, "_platformCheatData", platformCheatData);
             SetObjectField(lifeScope, "_inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
             SetObjectField(lifeScope, "_followCamera", followCamera);
             SetObjectField(lifeScope, "_platformPoolRoot", systems.transform.Find("PlatformPoolRoot"));
@@ -103,6 +106,20 @@ namespace JumJump.Editor
             AssetDatabase.CreateAsset(configData, GameConfigPath);
             AssetDatabase.SaveAssets();
             return configData;
+        }
+
+        private static PlatformCheatData EnsurePlatformCheatData()
+        {
+            var platformCheatData = AssetDatabase.LoadAssetAtPath<PlatformCheatData>(PlatformCheatDataPath);
+            if (platformCheatData != null)
+            {
+                return platformCheatData;
+            }
+
+            platformCheatData = ScriptableObject.CreateInstance<PlatformCheatData>();
+            AssetDatabase.CreateAsset(platformCheatData, PlatformCheatDataPath);
+            AssetDatabase.SaveAssets();
+            return platformCheatData;
         }
 
         private static PlatformController CreatePlatformPrefab()

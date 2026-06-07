@@ -14,12 +14,18 @@ namespace JumJump.Controller
         public PlatformGimmickType GimmickType => _gimmickType;
         public float CenterY => transform.position.y;
 
+        private const float MinimumColliderDimension = 0.01f;
+
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
         [SerializeField] private Rigidbody2D _rigidbody;
 
         private int _platformIndex;
         private PlatformGimmickType _gimmickType;
+        private Vector3 _baseLocalScale;
+        private Vector3 _baseSpriteLocalScale;
+        private Vector2 _baseSpriteSize;
+        private Vector2 _baseColliderSize;
         private float _halfWidth;
         private float _landingHeight;
         private float _targetX;
@@ -27,6 +33,7 @@ namespace JumJump.Controller
         private float _moveDirectionX;
         private bool _isResolved;
         private bool _isActive;
+        private bool _hasCachedBaseSize;
         private Action<PlatformController> _onReleaseAction;
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
@@ -37,6 +44,7 @@ namespace JumJump.Controller
             _eventBus = eventBus;
             _playerRegistry = playerRegistry;
             _configData = configData;
+            CacheBaseSize();
         }
 
         public void InjectRelease(Action<PlatformController> onReleaseAction)
@@ -49,25 +57,26 @@ namespace JumJump.Controller
             PlatformGimmickType gimmickType,
             Vector3 position,
             float targetX,
-            float width,
-            float height,
+            float widthScale,
+            float heightScale,
             float landingHeight,
             float moveSpeed)
         {
-            var safeWidth = Mathf.Max(0.01f, width);
-            var safeHeight = Mathf.Max(0.01f, height);
+            var safeWidthScale = Mathf.Max(0.01f, widthScale);
+            var safeHeightScale = Mathf.Max(0.01f, heightScale);
 
             _platformIndex = platformIndex;
             _gimmickType = gimmickType;
-            _halfWidth = safeWidth * 0.5f;
             _landingHeight = Mathf.Max(0.01f, landingHeight);
             _targetX = targetX;
             _moveSpeed = moveSpeed;
             _moveDirectionX = ResolveMoveDirectionX(position.x, targetX);
             _isResolved = false;
             _isActive = true;
+            CacheBaseSize();
             PlaceRigidbody(position);
-            ApplyPlatformSize(safeWidth, safeHeight);
+            ApplyPlatformScale(safeWidthScale, safeHeightScale);
+            _halfWidth = ResolveLandingHalfWidth();
             gameObject.SetActive(true);
         }
 
@@ -227,25 +236,91 @@ namespace JumJump.Controller
             transform.position = position;
         }
 
-        private void ApplyPlatformSize(float width, float height)
+        private void CacheBaseSize()
         {
-            transform.localScale = new Vector3(width, height, 1f);
+            if (_hasCachedBaseSize)
+            {
+                return;
+            }
+
+            _baseLocalScale = transform.localScale;
+            _baseSpriteLocalScale = _spriteRenderer.transform.localScale;
+            _baseSpriteSize = _spriteRenderer.size;
+            _baseColliderSize = ResolveBaseColliderSize();
+            _hasCachedBaseSize = true;
+        }
+
+        private Vector2 ResolveBaseColliderSize()
+        {
+            var colliderSize = _landingCollider.size;
+            if (colliderSize.x < MinimumColliderDimension)
+            {
+                colliderSize.x =  Mathf.Max(MinimumColliderDimension, _configData.PlatformWidth);
+            }
+
+            if (colliderSize.y < MinimumColliderDimension)
+            {
+                colliderSize.y = Mathf.Max(MinimumColliderDimension, _configData.PlatformLandingHeight);
+            }
+
+            return colliderSize;
+        }
+
+        private void ApplyPlatformScale(float widthScale, float heightScale)
+        {
+            var spriteOnRoot = _spriteRenderer != null && _spriteRenderer.transform == transform;
+            transform.localScale = spriteOnRoot
+                ? new Vector3(_baseLocalScale.x * widthScale, _baseLocalScale.y * heightScale, _baseLocalScale.z)
+                : _baseLocalScale;
 
             if (_spriteRenderer != null)
             {
-                _spriteRenderer.drawMode = SpriteDrawMode.Sliced;
-                _spriteRenderer.size = Vector2.one;
-                if (_spriteRenderer.transform != transform)
+                if (_spriteRenderer.drawMode == SpriteDrawMode.Sliced ||
+                    _spriteRenderer.drawMode == SpriteDrawMode.Tiled)
                 {
-                    _spriteRenderer.transform.localScale = Vector3.one;
+                    _spriteRenderer.size = spriteOnRoot
+                        ? _baseSpriteSize
+                        : new Vector2(
+                            _baseSpriteSize.x * widthScale,
+                            _baseSpriteSize.y * heightScale);
+                    if (!spriteOnRoot)
+                    {
+                        _spriteRenderer.transform.localScale = _baseSpriteLocalScale;
+                    }
+                }
+                else if (!spriteOnRoot)
+                {
+                    _spriteRenderer.transform.localScale = new Vector3(
+                        _baseSpriteLocalScale.x * widthScale,
+                        _baseSpriteLocalScale.y * heightScale,
+                        _baseSpriteLocalScale.z);
                 }
             }
 
             if (_landingCollider != null)
             {
-                _landingCollider.size = new Vector2(1f, _landingHeight / height);
+                var colliderWidthScale = spriteOnRoot ? 1f : widthScale;
+                var colliderHeightScale = spriteOnRoot ? 1f : heightScale;
+                _landingCollider.size = new Vector2(
+                    _baseColliderSize.x * colliderWidthScale,
+                    _baseColliderSize.y * colliderHeightScale);
                 _landingCollider.isTrigger = true;
             }
+        }
+
+        private float ResolveLandingHalfWidth()
+        {
+            if (_landingCollider != null)
+            {
+                return Mathf.Max(0.01f, _landingCollider.bounds.size.x * 0.5f);
+            }
+
+            if (_spriteRenderer != null)
+            {
+                return Mathf.Max(0.01f, _spriteRenderer.bounds.size.x * 0.5f);
+            }
+
+            return _configData == null ? 0.01f : Mathf.Max(0.01f, _configData.PlatformWidth * 0.5f);
         }
 
         private void MoveRigidbody(Vector3 position)

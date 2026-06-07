@@ -92,7 +92,10 @@ namespace JumJump.Data
         [SerializeField] private PlatformGimmickSetting[] _platformGimmickSettings =
         {
             new PlatformGimmickSetting(PlatformGimmickType.Normal, 0, 1f, 1f, 1f),
-            new PlatformGimmickSetting(PlatformGimmickType.Small, 10, 0.2f, 0.8f, 0.9f)
+            new PlatformGimmickSetting(PlatformGimmickType.Small, 10, 0.2f, 0.7f, 0.7f),
+            new PlatformGimmickSetting(PlatformGimmickType.Fast, 10, 0.2f, 1f, 1f, 1.3f, 1.3f),
+            new PlatformGimmickSetting(PlatformGimmickType.Slow, 10, 0.2f, 1f, 1f, 0.85f, 0.85f),
+            new PlatformGimmickSetting(PlatformGimmickType.SmallAndFast, 10, 0.2f, 0.7f, 0.7f, 1.3f, 1.3f)
         };
         [SerializeField] private float _platformBaseMoveSpeed = 0.45f;
         [SerializeField] private float _platformMaxMoveSpeedBonus = 1f;
