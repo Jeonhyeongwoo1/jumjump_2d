@@ -15,6 +15,7 @@ MonoBehaviour:
   _preLoadLabel: PreLoad
   _playerAddressableKey: Player
   _platformAddressableKey: Platform
+  _gameSceneUiAddressableKey: UI_GameScene
   _playerPoolKey: Player
   _playerPrewarmCount: 1
   _platformPoolKey: Platform
@@ -174,6 +175,8 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 78ca534dd23f1b449bd7450869086802, type: 3}
     - {fileID: 21300000, guid: 90e6d4bfe8ee3bc4eb8de71229a32919, type: 3}
     - {fileID: 21300000, guid: c7e677aac282ca34eb2d5aaa9a9ca634, type: 3}
+    - {fileID: 21300000, guid: 1ec81ec819b43c94da634e784cf176ca, type: 3}
+    - {fileID: 21300000, guid: 70d7e86688f33e2479af85addb26ce14, type: 3}
   - _startHeight: 70
     _sprites:
     - {fileID: 21300000, guid: 09cedde1c521c2b4a955bb1c33a663a9, type: 3}
@@ -185,3 +188,5 @@ MonoBehaviour:
     - {fileID: 21300000, guid: a8afccc19fa930641abe255708a48f46, type: 3}
     - {fileID: 21300000, guid: f44e4eaf0a5227640a7f1e378491d559, type: 3}
     - {fileID: 21300000, guid: b894cbc1ba92a2f448ac5a13d2aa2ba1, type: 3}
+    - {fileID: 21300000, guid: 95bf1d8fc30c67049bc738cd36fcf922, type: 3}
+    - {fileID: 21300000, guid: 0122166152a5cfa4797f83eb688b1562, type: 3}

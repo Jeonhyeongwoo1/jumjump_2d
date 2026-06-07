@@ -26,6 +26,7 @@ namespace JumJump.Editor
         private const string DataFolderPath = ResourceFolderPath + "/Data";
         private const string PlatformPrefabPath = PrefabFolderPath + "/Platform.prefab";
         private const string PlayerPrefabPath = PrefabFolderPath + "/Player.prefab";
+        private const string GameSceneUiPrefabPath = PrefabFolderPath + "/UI/UI_GameScene.prefab";
         private const string GameConfigPath = DataFolderPath + "/GameConfigData.asset";
         private const string PlatformCheatDataPath = DataFolderPath + "/PlatformCheatData.asset";
 
@@ -40,13 +41,13 @@ namespace JumJump.Editor
             CreatePlayerPrefab();
             RegisterAddressable(PlatformPrefabPath, configData.PlatformAddressableKey, configData.PreLoadLabel);
             RegisterAddressable(PlayerPrefabPath, configData.PlayerAddressableKey, configData.PreLoadLabel);
+            RegisterAddressable(GameSceneUiPrefabPath, configData.GameSceneUiAddressableKey, configData.PreLoadLabel);
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "GameScene";
 
             var camera = CreateCamera();
             var systems = CreateSystems();
-            var hud = CreateHud();
 
             var followCamera = camera.GetComponent<VerticalFollowCamera>();
 
@@ -56,7 +57,6 @@ namespace JumJump.Editor
             SetObjectField(lifeScope, "_inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
             SetObjectField(lifeScope, "_followCamera", followCamera);
             SetObjectField(lifeScope, "_platformPoolRoot", systems.transform.Find("PlatformPoolRoot"));
-            SetObjectField(lifeScope, "_gameHudPresenter", hud.GetComponent<GameHudPresenter>());
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             Selection.activeObject = AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath);
@@ -194,40 +194,6 @@ namespace JumJump.Editor
             var poolRoot = new GameObject("PlatformPoolRoot");
             poolRoot.transform.SetParent(systems.transform);
             return systems;
-        }
-
-        private static GameObject CreateHud()
-        {
-            var canvasObject = new GameObject("HudCanvas");
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1080f, 1920f);
-            canvasObject.AddComponent<GraphicRaycaster>();
-
-            var presenter = canvasObject.AddComponent<GameHudPresenter>();
-
-            var scoreText = CreateText(canvasObject.transform, "ScoreText", "0", 96, TextAnchor.UpperCenter);
-            Anchor(scoreText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -72f), new Vector2(320f, 120f));
-
-            var highScoreText = CreateText(canvasObject.transform, "HighScoreText", "0", 42, TextAnchor.UpperRight);
-            Anchor(highScoreText.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-48f, -48f), new Vector2(260f, 80f));
-
-            var panel = CreatePanel(canvasObject.transform);
-            var finalScoreText = CreateText(panel.transform, "FinalScoreText", "0", 84, TextAnchor.MiddleCenter);
-            Anchor(finalScoreText.rectTransform, new Vector2(0.5f, 0.62f), new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(360f, 110f));
-
-            var restartButton = CreateButton(panel.transform);
-
-            SetObjectField(presenter, "_scoreText", scoreText);
-            SetObjectField(presenter, "_highScoreText", highScoreText);
-            SetObjectField(presenter, "_gameOverPanel", panel);
-            SetObjectField(presenter, "_finalScoreText", finalScoreText);
-            SetObjectField(presenter, "_restartButton", restartButton);
-
-            CreateEventSystem();
-            panel.SetActive(false);
-            return canvasObject;
         }
 
         private static GameObject CreatePanel(Transform parent)

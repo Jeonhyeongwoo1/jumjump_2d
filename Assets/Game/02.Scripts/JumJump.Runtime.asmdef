@@ -5,6 +5,7 @@
         "VContainer",
         "Unity.InputSystem",
         "UnityEngine.UI",
+        "Unity.TextMeshPro",
         "Unity.Addressables",
         "Unity.ResourceManager",
         "UniTask",

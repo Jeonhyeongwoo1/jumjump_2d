@@ -7,6 +7,7 @@ namespace JumJump.Data
     {
         public string PreLoadLabel => _preLoadLabel;
         public string PlayerAddressableKey => _playerAddressableKey;
+        public string GameSceneUiAddressableKey => _gameSceneUiAddressableKey;
         public string PlayerPoolKey => _playerPoolKey;
         public int PlayerPrewarmCount => _playerPrewarmCount;
         public string PlatformAddressableKey => _platformAddressableKey;
@@ -77,6 +78,7 @@ namespace JumJump.Data
         [SerializeField] private string _preLoadLabel = "PreLoad";
         [SerializeField] private string _playerAddressableKey = "Player";
         [SerializeField] private string _platformAddressableKey = "Platform";
+        [SerializeField] private string _gameSceneUiAddressableKey = "UI_GameScene";
 
         [Header("Pooling")]
         [SerializeField] private string _playerPoolKey = "Player";

@@ -3,7 +3,6 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
-using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Service.GameFlowState;
@@ -20,7 +19,6 @@ namespace JumJump
         [UnityEngine.SerializeField] private InputActionAsset _inputActions;
         [UnityEngine.SerializeField] private VerticalFollowCamera _followCamera;
         [UnityEngine.SerializeField] private UnityEngine.Transform _platformPoolRoot;
-        [UnityEngine.SerializeField] private GameHudPresenter _gameHudPresenter;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -39,6 +37,8 @@ namespace JumJump
             builder.RegisterInstance(_inputActions);
             builder.RegisterInstance(_platformPoolRoot);
             builder.Register<BackgroundEnvironmentFactory>(Lifetime.Scoped);
+            builder.Register<UIFactory>(Lifetime.Scoped);
+            builder.Register<UIService>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);
@@ -55,11 +55,6 @@ namespace JumJump
             if (_followCamera != null)
             {
                 builder.RegisterComponent(_followCamera);
-            }
-
-            if (_gameHudPresenter != null)
-            {
-                builder.RegisterComponent(_gameHudPresenter);
             }
         }
     }

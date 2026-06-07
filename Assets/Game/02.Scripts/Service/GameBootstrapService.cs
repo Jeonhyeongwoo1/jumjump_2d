@@ -1,9 +1,10 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using JumJump.Controller;
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
+using JumJump.Presenter;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -18,17 +19,23 @@ namespace JumJump.Service
     {
         private readonly IEventBus _eventBus;
         private readonly ResourceService _resourceService;
+        private readonly UIService _uiService;
+        private readonly GameConfigData _configData;
         private readonly PlatformFactory _platformFactory;
         private readonly PlayerFactory _playerFactory;
 
         public GameBootstrapService(
             IEventBus eventBus,
             ResourceService resourceService,
+            UIService uiService,
+            GameConfigData configData,
             PlatformFactory platformFactory,
             PlayerFactory playerFactory)
         {
             _eventBus = eventBus;
             _resourceService = resourceService;
+            _uiService = uiService;
+            _configData = configData;
             _platformFactory = platformFactory;
             _playerFactory = playerFactory;
         }
@@ -36,6 +43,7 @@ namespace JumJump.Service
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             await _resourceService.PreLoadAsync(cancellation);
+            _uiService.Create<UI_GameScene>(_configData.GameSceneUiAddressableKey);
             _platformFactory.Warmup();
             _playerFactory.Warmup();
 
