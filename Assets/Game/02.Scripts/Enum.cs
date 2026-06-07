@@ -14,4 +14,9 @@ namespace JumJump
         Knockback
     }
 
+    public enum PlatformGimmickType
+    {
+        Normal,
+        Small
+    }
 }

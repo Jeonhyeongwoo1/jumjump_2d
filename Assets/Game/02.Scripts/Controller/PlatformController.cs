@@ -11,6 +11,7 @@ namespace JumJump.Controller
     public sealed class PlatformController : MonoBehaviour
     {
         public int PlatformIndex => _platformIndex;
+        public PlatformGimmickType GimmickType => _gimmickType;
         public float CenterY => transform.position.y;
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -18,6 +19,7 @@ namespace JumJump.Controller
         [SerializeField] private Rigidbody2D _rigidbody;
 
         private int _platformIndex;
+        private PlatformGimmickType _gimmickType;
         private float _halfWidth;
         private float _landingHeight;
         private float _targetX;
@@ -44,6 +46,7 @@ namespace JumJump.Controller
 
         public void Initialize(
             int platformIndex,
+            PlatformGimmickType gimmickType,
             Vector3 position,
             float targetX,
             float width,
@@ -51,28 +54,21 @@ namespace JumJump.Controller
             float landingHeight,
             float moveSpeed)
         {
+            var safeWidth = Mathf.Max(0.01f, width);
+            var safeHeight = Mathf.Max(0.01f, height);
+
             _platformIndex = platformIndex;
-            _halfWidth = width * 0.5f;
-            _landingHeight = landingHeight;
+            _gimmickType = gimmickType;
+            _halfWidth = safeWidth * 0.5f;
+            _landingHeight = Mathf.Max(0.01f, landingHeight);
             _targetX = targetX;
             _moveSpeed = moveSpeed;
             _moveDirectionX = ResolveMoveDirectionX(position.x, targetX);
             _isResolved = false;
             _isActive = true;
             PlaceRigidbody(position);
-            transform.localScale = new Vector3(width, height, 1f);
+            ApplyPlatformSize(safeWidth, safeHeight);
             gameObject.SetActive(true);
-
-            if (_spriteRenderer != null)
-            {
-                _spriteRenderer.size = new Vector2(width, height);
-            }
-
-            if (_landingCollider != null)
-            {
-                // _landingCollider.size = new Vector2(_landingCollider.size.x, _landingHeight);
-                _landingCollider.isTrigger = true;
-            }
         }
 
         public Vector3 GetLandingPosition(float characterVerticalOffset)
@@ -229,6 +225,27 @@ namespace JumJump.Controller
 
             _rigidbody.position = position;
             transform.position = position;
+        }
+
+        private void ApplyPlatformSize(float width, float height)
+        {
+            transform.localScale = new Vector3(width, height, 1f);
+
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.drawMode = SpriteDrawMode.Sliced;
+                _spriteRenderer.size = Vector2.one;
+                if (_spriteRenderer.transform != transform)
+                {
+                    _spriteRenderer.transform.localScale = Vector3.one;
+                }
+            }
+
+            if (_landingCollider != null)
+            {
+                _landingCollider.size = new Vector2(1f, _landingHeight / height);
+                _landingCollider.isTrigger = true;
+            }
         }
 
         private void MoveRigidbody(Vector3 position)

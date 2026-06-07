@@ -108,17 +108,91 @@ namespace JumJump.Service
                 return null;
             }
 
+            var gimmickSetting = ResolvePlatformGimmickSetting();
+            var platformWidth = ResolvePlatformWidth(gimmickSetting);
             platform.Initialize(
                 _nextPlatformIndex,
+                gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type,
                 position,
                 targetX,
-                _configData.PlatformWidth,
+                platformWidth,
                 _configData.PlatformHeight,
                 _configData.PlatformLandingHeight,
                 moveSpeed);
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
+        }
+
+        private PlatformGimmickSetting ResolvePlatformGimmickSetting()
+        {
+            var settings = _configData.PlatformGimmickSettings;
+            var normalSetting = FindPlatformGimmickSetting(settings, PlatformGimmickType.Normal);
+            if (settings == null || settings.Length == 0)
+            {
+                return normalSetting;
+            }
+
+            for (var i = 0; i < settings.Length; i++)
+            {
+                var setting = settings[i];
+                if (setting == null || setting.Type == PlatformGimmickType.Normal)
+                {
+                    continue;
+                }
+
+                if (_scoreService.Score <= setting.StartScore)
+                {
+                    continue;
+                }
+
+                if (UnityEngine.Random.value <= Mathf.Clamp01(setting.SpawnChance))
+                {
+                    return setting;
+                }
+            }
+
+            return normalSetting;
+        }
+
+        private PlatformGimmickSetting FindPlatformGimmickSetting(
+            PlatformGimmickSetting[] settings,
+            PlatformGimmickType type)
+        {
+            if (settings == null)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < settings.Length; i++)
+            {
+                var setting = settings[i];
+                if (setting != null && setting.Type == type)
+                {
+                    return setting;
+                }
+            }
+
+            return null;
+        }
+
+        private float ResolvePlatformWidth(PlatformGimmickSetting setting)
+        {
+            var baseWidth = Mathf.Max(0.01f, _configData.PlatformWidth);
+            if (setting == null)
+            {
+                return baseWidth;
+            }
+
+            var minWidthScale = Mathf.Clamp01(setting.MinWidthScale);
+            var maxWidthScale = Mathf.Clamp01(setting.MaxWidthScale);
+            if (maxWidthScale < minWidthScale)
+            {
+                maxWidthScale = minWidthScale;
+            }
+
+            var widthScale = UnityEngine.Random.Range(minWidthScale, maxWidthScale);
+            return baseWidth * Mathf.Max(0.01f, widthScale);
         }
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)
