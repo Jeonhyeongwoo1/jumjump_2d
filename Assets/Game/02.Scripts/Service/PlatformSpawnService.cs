@@ -97,10 +97,7 @@ namespace JumJump.Service
             var targetX = player.Position.x;
             var spawnSide = ResolveSpawnSide();
             var spawnX = targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
-            var scoreFactor = Mathf.Clamp01(_scoreService.Score / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
-            var moveSpeed = Mathf.Max(
-                0f,
-                _configData.PlatformBaseMoveSpeed + scoreFactor * _configData.PlatformMaxMoveSpeedBonus);
+            var moveSpeed = ResolveBaseMoveSpeed();
 
             return SpawnPlatform(new Vector3(spawnX, platformY, 0f), targetX, moveSpeed);
         }
@@ -129,6 +126,22 @@ namespace JumJump.Service
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
+        }
+
+        private float ResolveBaseMoveSpeed()
+        {
+            var scoreFactor = Mathf.Clamp01(_scoreService.Score / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
+            var baseMoveSpeed = Mathf.Max(
+                0f,
+                _configData.PlatformBaseMoveSpeed + scoreFactor * _configData.PlatformMaxMoveSpeedBonus);
+            var minScale = Mathf.Max(0f, _configData.PlatformBaseMoveSpeedMinScale);
+            var maxScale = Mathf.Max(0f, _configData.PlatformBaseMoveSpeedMaxScale);
+            if (maxScale < minScale)
+            {
+                maxScale = minScale;
+            }
+
+            return baseMoveSpeed * UnityEngine.Random.Range(minScale, maxScale);
         }
 
         private PlatformGimmickSetting ResolvePlatformGimmickSetting()

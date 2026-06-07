@@ -15,6 +15,7 @@ namespace JumJump.Controller
         public float CenterY => transform.position.y;
 
         private const float MinimumColliderDimension = 0.01f;
+        private const float MoveTargetEpsilon = 0.001f;
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
@@ -273,8 +274,8 @@ namespace JumJump.Controller
         internal void StartPreparedGimmickTimer()
         {
             _gimmickTimerElapsed = 0f;
-            _isGimmickTimerRunning = _gimmickTimerDuration > 0f;
-            _shouldTickGimmick = _isGimmickTimerRunning && _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
+            _isGimmickTimerRunning = true;
+            _shouldTickGimmick = _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
         }
 
         internal void EnableGimmickTick()
@@ -293,8 +294,9 @@ namespace JumJump.Controller
             return Mathf.Clamp01(_gimmickTimerElapsed / _gimmickTimerDuration);
         }
 
-        internal bool IsGimmickTimerComplete => _gimmickTimerDuration > 0f && _gimmickTimerElapsed >= _gimmickTimerDuration;
+        internal bool IsGimmickTimerComplete => _gimmickTimerDuration <= 0f || _gimmickTimerElapsed >= _gimmickTimerDuration;
         internal bool IsGimmickTimerRunning => _isGimmickTimerRunning;
+        internal bool HasReachedMoveTarget => Mathf.Abs(transform.position.x - _targetX) <= MoveTargetEpsilon;
 
         internal void StopGimmickTick()
         {

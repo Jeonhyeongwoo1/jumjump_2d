@@ -78,9 +78,11 @@ MonoBehaviour:
     _maxWidthScale: 1
     _minMoveSpeedScale: 1
     _maxMoveSpeedScale: 1
-    _minGhostFadeDuration: 1.2
-    _maxGhostFadeDuration: 1.6
+    _minGhostFadeDuration: 0.1
+    _maxGhostFadeDuration: 0.3
   _platformBaseMoveSpeed: 2
+  _platformBaseMoveSpeedMinScale: 1
+  _platformBaseMoveSpeedMaxScale: 1.15
   _platformMaxMoveSpeedBonus: 1
   _platformScoreSpeedMaxScore: 50
   _platformLandingHeight: 0.48

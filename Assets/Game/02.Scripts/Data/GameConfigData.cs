@@ -20,6 +20,8 @@ namespace JumJump.Data
         public float PlatformHeight => _platformHeight;
         public PlatformGimmickSetting[] PlatformGimmickSettings => _platformGimmickSettings;
         public float PlatformBaseMoveSpeed => _platformBaseMoveSpeed;
+        public float PlatformBaseMoveSpeedMinScale => _platformBaseMoveSpeedMinScale;
+        public float PlatformBaseMoveSpeedMaxScale => _platformBaseMoveSpeedMaxScale;
         public float PlatformMaxMoveSpeedBonus => _platformMaxMoveSpeedBonus;
         public float PlatformScoreSpeedMaxScore => _platformScoreSpeedMaxScore;
         public float PlatformLandingHeight => _platformLandingHeight;
@@ -99,6 +101,8 @@ namespace JumJump.Data
             new PlatformGimmickSetting(PlatformGimmickType.Ghost, 10, 0.16f, 1f, 1f, 1f, 1f, 1.2f, 1.6f)
         };
         [SerializeField] private float _platformBaseMoveSpeed = 0.45f;
+        [SerializeField] private float _platformBaseMoveSpeedMinScale = 1f;
+        [SerializeField] private float _platformBaseMoveSpeedMaxScale = 1.15f;
         [SerializeField] private float _platformMaxMoveSpeedBonus = 1f;
         [SerializeField] private float _platformScoreSpeedMaxScore = 50f;
         [SerializeField] private float _platformLandingHeight = 0.48f;

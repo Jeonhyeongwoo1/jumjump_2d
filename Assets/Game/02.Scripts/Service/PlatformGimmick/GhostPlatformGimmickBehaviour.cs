@@ -1,5 +1,6 @@
 using JumJump.Controller;
 using JumJump.Data;
+using UnityEngine;
 
 namespace JumJump.Service.PlatformGimmick
 {
@@ -30,13 +31,13 @@ namespace JumJump.Service.PlatformGimmick
                 }
 
                 platform.StartPreparedGimmickTimer();
-                return;
             }
 
-            var fadeRatio = platform.AdvanceGimmickTimer(deltaTime);
-            platform.SetPlatformAlpha(1f - fadeRatio);
+            var fadeRatio = platform.HasReachedMoveTarget ? 1f : platform.AdvanceGimmickTimer(deltaTime);
+            var alpha = Mathf.Lerp(1f, 0f, fadeRatio);
+            platform.SetPlatformAlpha(alpha);
 
-            if (!platform.IsGimmickTimerComplete)
+            if (fadeRatio < 1f)
             {
                 return;
             }
