@@ -90,7 +90,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3860472131711948188}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -146,6 +146,7 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 1592748717023723788}
   _landingCollider: {fileID: 9043882273822907714}
   _rigidbody: {fileID: 8961027262382404682}
+  _animator: {fileID: 0}
 --- !u!1 &4454547963678434718
 GameObject:
   m_ObjectHideFlags: 0

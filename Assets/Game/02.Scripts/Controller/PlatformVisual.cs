@@ -113,7 +113,7 @@ namespace JumJump.Controller
 
         public float ResolveLandingHalfWidth()
         {
-            return Mathf.Max(0.01f, _landingCollider.bounds.size.x * 0.5f);
+            return Mathf.Max(GameConst.Platform.MinimumColliderDimension, _landingCollider.bounds.size.x * 0.5f);
         }
 
         public float GetLandingSurfaceY(float fallbackLandingHeight)

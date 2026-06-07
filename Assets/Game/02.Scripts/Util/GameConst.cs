@@ -12,7 +12,9 @@ namespace JumJump.Util
         public static class Platform
         {
             public const float MinimumColliderDimension = 0.01f;
+            public const float MinimumWidthScale = 0.01f;
             public const float MoveTargetEpsilon = 0.001f;
+            public const float CleanupYMargin = 0.05f;
         }
 
         public static class Environment

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JumJump.Controller;
+using JumJump.Util;
 
 namespace JumJump.Registry
 {
@@ -43,7 +44,7 @@ namespace JumJump.Registry
                     continue;
                 }
 
-                if (platform.CenterY >= y - 0.05f)
+                if (platform.CenterY >= y - GameConst.Platform.CleanupYMargin)
                 {
                     continue;
                 }

@@ -3,6 +3,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Controller
@@ -17,9 +18,6 @@ namespace JumJump.Controller
         [SerializeField] private Rigidbody2D _rigidbody;
         [SerializeField] private Animator _animator;
 
-        private float _gimmickTimerDuration;
-        private float _gimmickTimerElapsed;
-        private bool _isGimmickTimerRunning;
         private bool _isResolved;
         private bool _isActive;
         private bool _isInteractionEnabled;
@@ -28,6 +26,7 @@ namespace JumJump.Controller
         private IPlatformGimmickBehaviour _gimmickBehaviour;
         private PlatformVisual _visual;
         private PlatformMotion _motion;
+        private PlatformGimmickTimer _gimmickTimer;
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
         private GameConfigData _configData;
@@ -165,40 +164,6 @@ namespace JumJump.Controller
 
         private void Awake()
         {
-            if (_spriteRenderer == null)
-            {
-                _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            }
-
-            if (_landingCollider == null)
-            {
-                _landingCollider = GetComponent<BoxCollider2D>();
-            }
-
-            if (_rigidbody == null)
-            {
-                _rigidbody = GetComponent<Rigidbody2D>();
-            }
-
-            if (_animator == null)
-            {
-                _animator = GetComponent<Animator>();
-            }
-
-            if (_spriteRenderer == null || _landingCollider == null || _rigidbody == null || _animator == null)
-            {
-                Debug.LogError($"[{nameof(PlatformController)}] Missing required component.");
-                enabled = false;
-                return;
-            }
-
-            _rigidbody.bodyType = RigidbodyType2D.Kinematic;
-            _rigidbody.gravityScale = 0f;
-            _rigidbody.linearVelocity = Vector2.zero;
-            _rigidbody.angularVelocity = 0f;
-            _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
-            _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
-
             _visual.BindComponents(_spriteRenderer, _landingCollider, _animator);
         }
 
@@ -223,54 +188,25 @@ namespace JumJump.Controller
             _gimmickBehaviour.Tick(this, Time.deltaTime);
         }
 
-        internal void ApplyWidthScale(float widthScale)
-        {
-            _visual.ApplyScale(Mathf.Max(0.01f, widthScale), 1f);
-        }
+        internal void ApplyWidthScale(float widthScale) =>
+            _visual.ApplyScale(Mathf.Max(GameConst.Platform.MinimumWidthScale, widthScale), 1f);
 
-        internal void ApplyMoveSpeedScale(float moveSpeedScale)
-        {
-            _motion.ApplySpeedScale(moveSpeedScale);
-        }
+        internal void ApplyMoveSpeedScale(float moveSpeedScale) => _motion.ApplySpeedScale(moveSpeedScale);
 
-        internal void StartGimmickTimer(float duration)
-        {
-            PrepareGimmickTimer(duration);
-            StartPreparedGimmickTimer();
-        }
-
-        internal void PrepareGimmickTimer(float duration)
-        {
-            _gimmickTimerDuration = Mathf.Max(0f, duration);
-            _gimmickTimerElapsed = 0f;
-            _isGimmickTimerRunning = false;
-        }
+        internal void PrepareGimmickTimer(float duration) => _gimmickTimer.Prepare(duration);
 
         internal void StartPreparedGimmickTimer()
         {
-            _gimmickTimerElapsed = 0f;
-            _isGimmickTimerRunning = true;
+            _gimmickTimer.Start();
+            EnableGimmickTick();
+        }
+
+        internal void EnableGimmickTick() =>
             _shouldTickGimmick = _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
-        }
 
-        internal void EnableGimmickTick()
-        {
-            _shouldTickGimmick = _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
-        }
+        internal float AdvanceGimmickTimer(float deltaTime) => _gimmickTimer.Advance(deltaTime);
 
-        internal float AdvanceGimmickTimer(float deltaTime)
-        {
-            if (_gimmickTimerDuration <= 0f)
-            {
-                return 1f;
-            }
-
-            _gimmickTimerElapsed = Mathf.Min(_gimmickTimerDuration, _gimmickTimerElapsed + Mathf.Max(0f, deltaTime));
-            return Mathf.Clamp01(_gimmickTimerElapsed / _gimmickTimerDuration);
-        }
-
-        internal bool IsGimmickTimerComplete => _gimmickTimerDuration <= 0f || _gimmickTimerElapsed >= _gimmickTimerDuration;
-        internal bool IsGimmickTimerRunning => _isGimmickTimerRunning;
+        internal bool IsGimmickTimerRunning => _gimmickTimer.IsRunning;
         internal bool HasReachedMoveTarget => _motion.HasReachedTarget(transform.position.x);
 
         internal void SetInteractionEnabled(bool isEnabled)
@@ -296,7 +232,7 @@ namespace JumJump.Controller
         internal void StopGimmickTick()
         {
             _shouldTickGimmick = false;
-            _isGimmickTimerRunning = false;
+            _gimmickTimer.Stop();
         }
 
         internal void RevealPlatformVisual()
@@ -305,20 +241,9 @@ namespace JumJump.Controller
             SetPlatformAlpha(1f);
         }
 
-        internal void SetPlatformAlpha(float alpha)
-        {
-            _visual.SetAlpha(alpha);
-        }
-
-        internal bool IsFullyInGameCameraView()
-        {
-            return _visual.IsFullyInGameCameraView();
-        }
-
-        internal bool IsMostlyInGameCameraView(float visibleRatio)
-        {
-            return _visual.IsMostlyInGameCameraView(visibleRatio);
-        }
+        internal void SetPlatformAlpha(float alpha) => _visual.SetAlpha(alpha);
+        internal bool IsFullyInGameCameraView() => _visual.IsFullyInGameCameraView();
+        internal bool IsMostlyInGameCameraView(float visibleRatio) => _visual.IsMostlyInGameCameraView(visibleRatio);
 
         private void ResetForSpawn()
         {
@@ -334,9 +259,7 @@ namespace JumJump.Controller
 
         private void ResetGimmickRuntime()
         {
-            _gimmickTimerDuration = 0f;
-            _gimmickTimerElapsed = 0f;
-            _isGimmickTimerRunning = false;
+            _gimmickTimer.Reset();
             _shouldTickGimmick = false;
         }
 
@@ -371,15 +294,8 @@ namespace JumJump.Controller
             }
         }
 
-        private float GetLandingSurfaceY()
-        {
-            return _visual.GetLandingSurfaceY(_configData.PlatformLandingHeight);
-        }
-
-        private float ResolveStackHeight()
-        {
-            return _visual.ResolveStackHeight(_configData.PlatformHeight);
-        }
+        private float GetLandingSurfaceY() => _visual.GetLandingSurfaceY(_configData.PlatformLandingHeight);
+        private float ResolveStackHeight() => _visual.ResolveStackHeight(_configData.PlatformHeight);
 
         private void ResolveLanding(Player player, float landingY)
         {
@@ -388,25 +304,24 @@ namespace JumJump.Controller
             _gimmickBehaviour?.OnLanding(this);
             SetLandingColliderTrigger(false);
             PlayJumpAnimation();
-
-            var landingPosition = player.Position;
-            landingPosition.y = landingY + player.GroundContactOffset;
-            player.LandOnPlatform(this, landingPosition);
+            player.LandOnPlatform(this, BuildLandingPosition(player, landingY));
         }
 
         private void ResolveStackedLanding(Player player, float landingY)
         {
-            var landingPosition = player.Position;
-            landingPosition.y = landingY + player.GroundContactOffset;
             _gimmickBehaviour?.OnLanding(this);
             PlayJumpAnimation();
-            player.LandOnStackedPlatform(this, landingPosition);
+            player.LandOnStackedPlatform(this, BuildLandingPosition(player, landingY));
         }
 
-        private void PlayJumpAnimation()
+        private Vector3 BuildLandingPosition(Player player, float landingY)
         {
-            _visual.PlayJumpAnimation();
+            var landingPosition = player.Position;
+            landingPosition.y = landingY + player.GroundContactOffset;
+            return landingPosition;
         }
+
+        private void PlayJumpAnimation() => _visual.PlayJumpAnimation();
 
         private void ResolveSideHit(Player player)
         {
@@ -420,56 +335,14 @@ namespace JumJump.Controller
             _eventBus.Publish(new PlayerMissedLandingEvent(knockbackDirection));
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
-        {
-            TryResolvePlayerTrigger(other);
-        }
+        private void OnTriggerEnter2D(Collider2D other) => TryResolveLanding(ResolvePlayerFromCollider(other));
+        private void OnTriggerStay2D(Collider2D other) => TryResolveLanding(ResolvePlayerFromCollider(other));
+        private void OnCollisionEnter2D(Collision2D collision) => TryResolveStackedLanding(ResolvePlayerFromCollider(collision.collider));
+        private void OnCollisionStay2D(Collision2D collision) => TryResolveStackedLanding(ResolvePlayerFromCollider(collision.collider));
 
-        private void OnTriggerStay2D(Collider2D other)
-        {
-            TryResolvePlayerTrigger(other);
-        }
+        private Player ResolvePlayerFromCollider(Collider2D other) =>
+            PlatformLandingResolver.ResolvePlayerFromCollider(other, _playerRegistry.Player);
 
-        private void OnCollisionEnter2D(Collision2D collision)
-        {
-            TryResolvePlayerCollision(collision.collider);
-        }
-
-        private void OnCollisionStay2D(Collision2D collision)
-        {
-            TryResolvePlayerCollision(collision.collider);
-        }
-
-        private void TryResolvePlayerTrigger(Collider2D other)
-        {
-            var player = ResolvePlayerFromCollider(other);
-            if (player == null)
-            {
-                return;
-            }
-
-            TryResolveLanding(player);
-        }
-
-        private void TryResolvePlayerCollision(Collider2D other)
-        {
-            var player = ResolvePlayerFromCollider(other);
-            if (player == null)
-            {
-                return;
-            }
-
-            TryResolveStackedLanding(player);
-        }
-
-        private Player ResolvePlayerFromCollider(Collider2D other)
-        {
-            return PlatformLandingResolver.ResolvePlayerFromCollider(other, _playerRegistry.Player);
-        }
-
-        private void SetLandingColliderTrigger(bool isTrigger)
-        {
-            _visual.SetLandingColliderTrigger(isTrigger);
-        }
+        private void SetLandingColliderTrigger(bool isTrigger) => _visual.SetLandingColliderTrigger(isTrigger);
     }
 }
