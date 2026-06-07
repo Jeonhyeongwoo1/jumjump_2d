@@ -1,5 +1,19 @@
 # AGENTS.md
 
+## Highest Priority: Required Dependency Null Checks
+
+- Required dependencies resolved through DI, constructors, `Construct`, `Bind`, `Awake`, or `Initialize` must be validated once at that boundary and then used directly.
+- Do not add repeated defensive null checks for required dependencies in gameplay logic, event handlers, `Update`, `FixedUpdate`, or `Tick`.
+- If a required dependency is missing, fail fast in the initialization boundary with `Debug.LogError` and disable/abort that component or service setup.
+- Keep null checks only for runtime state that can legitimately be absent, such as the current player before spawn, an optional camera, nullable event payload objects, or pooled objects returned from a factory.
+- Before finishing code changes, search touched files for repeated required dependency checks such as `_eventBus == null`, `_configData == null`, `_playerRegistry == null`, `_platformFactory == null`, and replace them with initialization-time validation unless the dependency is explicitly optional.
+
+Recommended check:
+
+```powershell
+rg -n "_eventBus == null|_configData == null|_playerRegistry == null|_platformFactory == null" Assets\Game\02.Scripts
+```
+
 ## JumJump Mobile WebGL 작업 기준
 
 - JumJump의 최종 목표 플랫폼은 **모바일 브라우저용 Unity WebGL 빌드**다.

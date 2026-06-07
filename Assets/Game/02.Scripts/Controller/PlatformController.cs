@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace JumJump.Controller
 {
-    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Rigidbody2D), typeof(Animator))]
     public sealed class PlatformController : MonoBehaviour
     {
         public int PlatformIndex => _platformIndex;
@@ -20,9 +20,11 @@ namespace JumJump.Controller
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
         [SerializeField] private Rigidbody2D _rigidbody;
+        [SerializeField] private Animator _animator;
 
         private int _platformIndex;
         private PlatformGimmickType _gimmickType;
+        private int _jumpAnimationStateHash;
         private Vector3 _baseLocalScale;
         private Vector3 _baseSpriteLocalScale;
         private Color _baseSpriteColor;
@@ -38,6 +40,7 @@ namespace JumJump.Controller
         private bool _isGimmickTimerRunning;
         private bool _isResolved;
         private bool _isActive;
+        private bool _isInteractionEnabled;
         private bool _hasCachedBaseSize;
         private bool _shouldTickGimmick;
         private Action<PlatformController> _onReleaseAction;
@@ -57,6 +60,13 @@ namespace JumJump.Controller
             _playerRegistry = playerRegistry;
             _configData = configData;
             _gameCamera = gameCamera;
+            if (_eventBus == null || _playerRegistry == null || _configData == null)
+            {
+                Debug.LogError($"[{nameof(PlatformController)}] Missing required dependency.");
+                enabled = false;
+                return;
+            }
+
             CacheBaseSize();
         }
 
@@ -106,13 +116,12 @@ namespace JumJump.Controller
 
         public float GetStackedNextCenterY()
         {
-            var stackOffset = _configData == null ? 0f : _configData.PlatformStackVerticalOffset;
-            return transform.position.y + ResolveStackHeight() + stackOffset;
+            return transform.position.y + ResolveStackHeight() + _configData.PlatformStackVerticalOffset;
         }
 
         public bool TryResolveLanding(Player player)
         {
-            if (!_isActive || _isResolved || _configData == null || player == null)
+            if (!_isActive || !_isInteractionEnabled || _isResolved || player == null)
             {
                 return false;
             }
@@ -141,7 +150,8 @@ namespace JumJump.Controller
 
         public bool TryResolveStackedLanding(Player player)
         {
-            if (!_isActive || !_isResolved || _configData == null || player == null || !player.CanLand || !player.IsDescending)
+            if (!_isActive || !_isInteractionEnabled || !_isResolved || player == null ||
+                !player.CanLand || !player.IsDescending)
             {
                 return false;
             }
@@ -155,6 +165,7 @@ namespace JumJump.Controller
             var landingPosition = player.Position;
             landingPosition.y = landingY + player.GroundContactOffset;
             _gimmickBehaviour?.OnLanding(this);
+            PlayJumpAnimation();
             player.LandOnStackedPlatform(this, landingPosition);
             return true;
         }
@@ -204,6 +215,11 @@ namespace JumJump.Controller
                 _rigidbody = gameObject.AddComponent<Rigidbody2D>();
             }
 
+            if (_animator == null)
+            {
+                _animator = GetComponent<Animator>();
+            }
+
             if (_rigidbody != null)
             {
                 _rigidbody.bodyType = RigidbodyType2D.Kinematic;
@@ -213,6 +229,15 @@ namespace JumJump.Controller
                 _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
                 _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
             }
+
+            if (_animator == null)
+            {
+                Debug.LogError($"[{nameof(PlatformController)}] Missing required component: {nameof(_animator)}.");
+                enabled = false;
+                return;
+            }
+
+            _jumpAnimationStateHash = Animator.StringToHash("JumpAnimation");
         }
 
         private void FixedUpdate()
@@ -298,6 +323,15 @@ namespace JumJump.Controller
         internal bool IsGimmickTimerRunning => _isGimmickTimerRunning;
         internal bool HasReachedMoveTarget => Mathf.Abs(transform.position.x - _targetX) <= GameConst.Platform.MoveTargetEpsilon;
 
+        internal void SetInteractionEnabled(bool isEnabled)
+        {
+            _isInteractionEnabled = isEnabled;
+            if (_landingCollider != null)
+            {
+                _landingCollider.enabled = isEnabled;
+            }
+        }
+
         internal void StopGimmickTick()
         {
             _shouldTickGimmick = false;
@@ -360,9 +394,15 @@ namespace JumJump.Controller
         {
             _isResolved = false;
             _isActive = true;
+            _isInteractionEnabled = true;
             ResetGimmickRuntime();
             SetPlatformAlpha(1f);
             ApplyPlatformScale(1f, 1f);
+            if (_landingCollider != null)
+            {
+                _landingCollider.enabled = true;
+            }
+
             SetLandingColliderTrigger(true);
         }
 
@@ -459,7 +499,7 @@ namespace JumJump.Controller
                 return Mathf.Max(0.01f, _spriteRenderer.bounds.size.x * 0.5f);
             }
 
-            return _configData == null ? 0.01f : Mathf.Max(0.01f, _configData.PlatformWidth * 0.5f);
+            return Mathf.Max(0.01f, _configData.PlatformWidth * 0.5f);
         }
 
         private void MoveRigidbody(Vector3 position)
@@ -475,7 +515,7 @@ namespace JumJump.Controller
 
         private void EvaluateMissedPlayer()
         {
-            if (_eventBus == null || _playerRegistry == null || _configData == null)
+            if (!_isInteractionEnabled)
             {
                 return;
             }
@@ -520,7 +560,7 @@ namespace JumJump.Controller
                 return Mathf.Max(0f, _landingCollider.bounds.size.y);
             }
 
-            return _configData == null ? 0f : Mathf.Max(0f, _configData.PlatformHeight);
+            return Mathf.Max(0f, _configData.PlatformHeight);
         }
 
         private bool HasCrossedLandingSurface(Player player, float landingY)
@@ -540,10 +580,16 @@ namespace JumJump.Controller
             _moveSpeed = 0f;
             _gimmickBehaviour?.OnLanding(this);
             SetLandingColliderTrigger(false);
+            PlayJumpAnimation();
 
             var landingPosition = player.Position;
             landingPosition.y = landingY + player.GroundContactOffset;
             player.LandOnPlatform(this, landingPosition);
+        }
+
+        private void PlayJumpAnimation()
+        {
+            _animator.Play(_jumpAnimationStateHash, 0, 0f);
         }
 
         private void ResolveSideHit(Player player)
@@ -625,8 +671,13 @@ namespace JumJump.Controller
 
         private Player ResolvePlayerFromCollider(Collider2D other)
         {
-            var player = _playerRegistry == null ? null : _playerRegistry.Player;
-            if (player == null || other == null)
+            if (other == null)
+            {
+                return null;
+            }
+
+            var player = _playerRegistry.Player;
+            if (player == null)
             {
                 return null;
             }

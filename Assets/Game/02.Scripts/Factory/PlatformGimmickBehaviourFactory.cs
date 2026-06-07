@@ -5,7 +5,7 @@ namespace JumJump.Factory
 {
     public sealed class PlatformGimmickBehaviourFactory
     {
-        private const int GimmickTypeCount = (int)PlatformGimmickType.Ghost + 1;
+        private const int GimmickTypeCount = (int)PlatformGimmickType.Double + 1;
 
         private readonly IPlatformGimmickBehaviour[] _behaviours;
 

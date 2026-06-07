@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3827746261428653461}
   - component: {fileID: 9043882273822907714}
-  - component: {fileID: 1260710135915493064}
   - component: {fileID: 8961027262382404682}
+  - component: {fileID: 6869374928661739540}
+  - component: {fileID: 1260710135915493064}
   m_Layer: 0
   m_Name: Platform
   m_TagString: Untagged
@@ -81,21 +82,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.1, y: 0.58}
   m_EdgeRadius: 0
---- !u!114 &1260710135915493064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3860472131711948188}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05a2304d0a5945648936892a6096e9ea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: JumJump.Runtime::JumJump.Controller.PlatformController
-  _spriteRenderer: {fileID: 1592748717023723788}
-  _landingCollider: {fileID: 9043882273822907714}
-  _rigidbody: {fileID: 8961027262382404682}
 --- !u!50 &8961027262382404682
 Rigidbody2D:
   serializedVersion: 5
@@ -123,6 +109,43 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!95 &6869374928661739540
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3860472131711948188}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2c1aa7a10f8705149a79ac6cfb8d5762, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1260710135915493064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3860472131711948188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a2304d0a5945648936892a6096e9ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JumJump.Runtime::JumJump.Controller.PlatformController
+  _spriteRenderer: {fileID: 1592748717023723788}
+  _landingCollider: {fileID: 9043882273822907714}
+  _rigidbody: {fileID: 8961027262382404682}
 --- !u!1 &4454547963678434718
 GameObject:
   m_ObjectHideFlags: 0

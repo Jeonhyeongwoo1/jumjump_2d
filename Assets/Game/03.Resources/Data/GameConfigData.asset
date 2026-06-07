@@ -24,6 +24,7 @@ MonoBehaviour:
   _platformSpawnDistance: 3
   _platformFirstSpawnDirection: 1
   _platformAlternatesSpawnSide: 1
+  _platformRandomSpawnSideStartCount: 10
   _platformVerticalStep: 1
   _platformWidth: 0.85
   _platformHeight: 1
@@ -82,17 +83,27 @@ MonoBehaviour:
     _maxMoveSpeedScale: 1
     _minGhostFadeDuration: 0.1
     _maxGhostFadeDuration: 0.3
-  _platformBaseMoveSpeed: 2
+  - _type: 6
+    _startScore: 20
+    _spawnChance: 0.1
+    _minWidthScale: 1
+    _maxWidthScale: 1
+    _minMoveSpeedScale: 1
+    _maxMoveSpeedScale: 1
+    _minGhostFadeDuration: 0
+    _maxGhostFadeDuration: 0
+  _platformBaseMoveSpeed: 2.8
   _platformBaseMoveSpeedMinScale: 1
   _platformBaseMoveSpeedMaxScale: 1.15
   _platformMaxMoveSpeedBonus: 1
   _platformScoreSpeedMaxScore: 50
   _platformLandingHeight: 0.48
   _platformStackVerticalOffset: 0
+  _platformDoublePreSpawnDelay: 0.25
   _platformSideHitTopMargin: 0.35
   _platformCleanupBelowDistance: 2
   _playerJumpDuration: 0.8
-  _playerJumpHeight: 1.35
+  _playerJumpHeight: 1
   _playerVerticalOffset: 0.58
   _playerLandingVerticalTolerance: 0.35
   _playerLandingEnabledNormalizedTime: 0.5
