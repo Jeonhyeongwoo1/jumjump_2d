@@ -258,6 +258,8 @@ public void InjectDependencies(ITargetable target, IMonsterBehavior brain, IEven
 ### 널 처리 & 가드
 
 중첩 `if` 대신 null-conditional 연산자와 얼리 리턴 선호:
+- `return;`으로 예외/방어 처리를 하는 경우에는 반드시 `Debug.LogWarning` 또는 `Debug.LogError`를 먼저 남긴다.
+- 단순 필터링이나 정상 흐름의 값 반환(`return 0`, `return false` 등)이 아니라, 예상치 못한 상태·누락된 의존성·잘못된 설정 때문에 `void` 메서드를 중단하는 경우가 대상이다.
 ```csharp
 // 프로퍼티 폴백
 public int CreatureId => _creatureData?.Id ?? 0;
@@ -277,6 +279,13 @@ if (!_stats.TryGetValue(type, out var stat))
 {
     Debug.LogError($"Failed type error {type}");
     return 0;
+}
+
+// void 메서드에서 예외/방어 처리로 중단할 때는 로그 필수
+if (_player == null)
+{
+    Debug.LogError($"[{GetType().Name}] Missing dependency: {nameof(_player)}");
+    return;
 }
 ```
 

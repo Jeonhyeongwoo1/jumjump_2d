@@ -15,12 +15,24 @@ namespace JumJump.Service.PlatformGimmick
 
         public override void Apply(PlatformController platform, PlatformGimmickSetting setting)
         {
-            platform.StartGimmickTimer(ResolveGhostFadeDuration(setting));
+            platform.PrepareGimmickTimer(ResolveGhostFadeDuration(setting));
             platform.SetPlatformAlpha(1f);
+            platform.EnableGimmickTick();
         }
 
         public override void Tick(PlatformController platform, float deltaTime)
         {
+            if (!platform.IsGimmickTimerRunning)
+            {
+                if (!platform.IsFullyInGameCameraView())
+                {
+                    return;
+                }
+
+                platform.StartPreparedGimmickTimer();
+                return;
+            }
+
             var fadeRatio = platform.AdvanceGimmickTimer(deltaTime);
             platform.SetPlatformAlpha(1f - fadeRatio);
 

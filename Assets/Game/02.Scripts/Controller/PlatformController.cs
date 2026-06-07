@@ -34,6 +34,7 @@ namespace JumJump.Controller
         private float _moveDirectionX;
         private float _gimmickTimerDuration;
         private float _gimmickTimerElapsed;
+        private bool _isGimmickTimerRunning;
         private bool _isResolved;
         private bool _isActive;
         private bool _hasCachedBaseSize;
@@ -43,12 +44,18 @@ namespace JumJump.Controller
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
         private GameConfigData _configData;
+        private UnityEngine.Camera _gameCamera;
 
-        public void Bind(IEventBus eventBus, PlayerRegistry playerRegistry, GameConfigData configData)
+        public void Bind(
+            IEventBus eventBus,
+            PlayerRegistry playerRegistry,
+            GameConfigData configData,
+            UnityEngine.Camera gameCamera)
         {
             _eventBus = eventBus;
             _playerRegistry = playerRegistry;
             _configData = configData;
+            _gameCamera = gameCamera;
             CacheBaseSize();
         }
 
@@ -252,9 +259,27 @@ namespace JumJump.Controller
 
         internal void StartGimmickTimer(float duration)
         {
+            PrepareGimmickTimer(duration);
+            StartPreparedGimmickTimer();
+        }
+
+        internal void PrepareGimmickTimer(float duration)
+        {
             _gimmickTimerDuration = Mathf.Max(0f, duration);
             _gimmickTimerElapsed = 0f;
-            _shouldTickGimmick = _gimmickTimerDuration > 0f && _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
+            _isGimmickTimerRunning = false;
+        }
+
+        internal void StartPreparedGimmickTimer()
+        {
+            _gimmickTimerElapsed = 0f;
+            _isGimmickTimerRunning = _gimmickTimerDuration > 0f;
+            _shouldTickGimmick = _isGimmickTimerRunning && _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
+        }
+
+        internal void EnableGimmickTick()
+        {
+            _shouldTickGimmick = _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
         }
 
         internal float AdvanceGimmickTimer(float deltaTime)
@@ -269,10 +294,12 @@ namespace JumJump.Controller
         }
 
         internal bool IsGimmickTimerComplete => _gimmickTimerDuration > 0f && _gimmickTimerElapsed >= _gimmickTimerDuration;
+        internal bool IsGimmickTimerRunning => _isGimmickTimerRunning;
 
         internal void StopGimmickTick()
         {
             _shouldTickGimmick = false;
+            _isGimmickTimerRunning = false;
         }
 
         internal void RevealPlatformVisual()
@@ -291,6 +318,28 @@ namespace JumJump.Controller
             var color = _baseSpriteColor;
             color.a *= Mathf.Clamp01(alpha);
             _spriteRenderer.color = color;
+        }
+
+        internal bool IsFullyInGameCameraView()
+        {
+            if (_gameCamera == null || _spriteRenderer == null)
+            {
+                return false;
+            }
+
+            var bounds = _spriteRenderer.bounds;
+            var viewportMin = _gameCamera.WorldToViewportPoint(bounds.min);
+            var viewportMax = _gameCamera.WorldToViewportPoint(bounds.max);
+
+            if (viewportMin.z < 0f || viewportMax.z < 0f)
+            {
+                return false;
+            }
+
+            return viewportMin.x >= 0f &&
+                   viewportMax.x <= 1f &&
+                   viewportMin.y >= 0f &&
+                   viewportMax.y <= 1f;
         }
 
         private void PlaceRigidbody(Vector3 position)
@@ -319,6 +368,7 @@ namespace JumJump.Controller
         {
             _gimmickTimerDuration = 0f;
             _gimmickTimerElapsed = 0f;
+            _isGimmickTimerRunning = false;
             _shouldTickGimmick = false;
         }
 
