@@ -18,6 +18,7 @@ namespace JumJump.Service
         private readonly PlatformRegistry _platformRegistry;
         private readonly PlayerRegistry _playerRegistry;
         private readonly ScoreService _scoreService;
+        private readonly PlatformGimmickBehaviourFactory _platformGimmickBehaviourFactory;
         private readonly GameConfigData _configData;
         private readonly PlatformCheatData _platformCheatData;
 
@@ -27,6 +28,7 @@ namespace JumJump.Service
             PlatformRegistry platformRegistry,
             PlayerRegistry playerRegistry,
             ScoreService scoreService,
+            PlatformGimmickBehaviourFactory platformGimmickBehaviourFactory,
             GameConfigData configData,
             PlatformCheatData platformCheatData)
         {
@@ -35,6 +37,7 @@ namespace JumJump.Service
             _platformRegistry = platformRegistry;
             _playerRegistry = playerRegistry;
             _scoreService = scoreService;
+            _platformGimmickBehaviourFactory = platformGimmickBehaviourFactory;
             _configData = configData;
             _platformCheatData = platformCheatData;
         }
@@ -112,17 +115,17 @@ namespace JumJump.Service
             }
 
             var gimmickSetting = ResolvePlatformGimmickSetting();
-            var platformWidthScale = ResolvePlatformWidthScale(gimmickSetting);
-            var platformMoveSpeed = moveSpeed * ResolvePlatformMoveSpeedScale(gimmickSetting);
+            var gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
+            var gimmickBehaviour = _platformGimmickBehaviourFactory.Get(gimmickType);
             platform.Initialize(
                 _nextPlatformIndex,
-                gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type,
+                gimmickType,
                 position,
                 targetX,
-                platformWidthScale,
-                1f,
                 _configData.PlatformLandingHeight,
-                platformMoveSpeed);
+                moveSpeed,
+                gimmickBehaviour,
+                gimmickSetting);
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
@@ -211,42 +214,6 @@ namespace JumJump.Service
             }
 
             return null;
-        }
-
-        private float ResolvePlatformWidthScale(PlatformGimmickSetting setting)
-        {
-            if (setting == null)
-            {
-                return 1f;
-            }
-
-            var minWidthScale = Mathf.Clamp01(setting.MinWidthScale);
-            var maxWidthScale = Mathf.Clamp01(setting.MaxWidthScale);
-            if (maxWidthScale < minWidthScale)
-            {
-                maxWidthScale = minWidthScale;
-            }
-
-            var widthScale = UnityEngine.Random.Range(minWidthScale, maxWidthScale);
-            return Mathf.Max(0.01f, widthScale);
-        }
-
-        private float ResolvePlatformMoveSpeedScale(PlatformGimmickSetting setting)
-        {
-            if (setting == null)
-            {
-                return 1f;
-            }
-
-            var minMoveSpeedScale = Mathf.Max(0f, setting.MinMoveSpeedScale);
-            var maxMoveSpeedScale = Mathf.Max(0f, setting.MaxMoveSpeedScale);
-            if (maxMoveSpeedScale < minMoveSpeedScale)
-            {
-                maxMoveSpeedScale = minMoveSpeedScale;
-            }
-
-            var moveSpeedScale = UnityEngine.Random.Range(minMoveSpeedScale, maxMoveSpeedScale);
-            return Mathf.Max(0f, moveSpeedScale);
         }
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)

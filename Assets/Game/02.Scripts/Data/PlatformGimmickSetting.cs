@@ -12,6 +12,8 @@ namespace JumJump.Data
         public float MaxWidthScale => _maxWidthScale;
         public float MinMoveSpeedScale => _minMoveSpeedScale;
         public float MaxMoveSpeedScale => _maxMoveSpeedScale;
+        public float MinGhostFadeDuration => _minGhostFadeDuration;
+        public float MaxGhostFadeDuration => _maxGhostFadeDuration;
 
         [SerializeField] private PlatformGimmickType _type;
         [SerializeField] private int _startScore;
@@ -20,6 +22,8 @@ namespace JumJump.Data
         [SerializeField] private float _maxWidthScale = 1f;
         [SerializeField] private float _minMoveSpeedScale = 1f;
         [SerializeField] private float _maxMoveSpeedScale = 1f;
+        [SerializeField] private float _minGhostFadeDuration;
+        [SerializeField] private float _maxGhostFadeDuration;
 
         public PlatformGimmickSetting()
         {
@@ -32,7 +36,9 @@ namespace JumJump.Data
             float minWidthScale,
             float maxWidthScale,
             float minMoveSpeedScale = 1f,
-            float maxMoveSpeedScale = 1f)
+            float maxMoveSpeedScale = 1f,
+            float minGhostFadeDuration = 0f,
+            float maxGhostFadeDuration = 0f)
         {
             _type = type;
             _startScore = startScore;
@@ -41,6 +47,8 @@ namespace JumJump.Data
             _maxWidthScale = maxWidthScale;
             _minMoveSpeedScale = minMoveSpeedScale;
             _maxMoveSpeedScale = maxMoveSpeedScale;
+            _minGhostFadeDuration = minGhostFadeDuration;
+            _maxGhostFadeDuration = maxGhostFadeDuration;
         }
     }
 }

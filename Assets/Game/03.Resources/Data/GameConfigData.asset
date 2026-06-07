@@ -33,34 +33,53 @@ MonoBehaviour:
     _maxWidthScale: 1
     _minMoveSpeedScale: 1
     _maxMoveSpeedScale: 1
+    _minGhostFadeDuration: 0
+    _maxGhostFadeDuration: 0
   - _type: 1
     _startScore: 10
-    _spawnChance: 0.2
+    _spawnChance: 0.16
     _minWidthScale: 0.7
     _maxWidthScale: 0.7
     _minMoveSpeedScale: 1
     _maxMoveSpeedScale: 1
+    _minGhostFadeDuration: 0
+    _maxGhostFadeDuration: 0
   - _type: 2
     _startScore: 10
-    _spawnChance: 0.2
+    _spawnChance: 0.16
     _minWidthScale: 1
     _maxWidthScale: 1
     _minMoveSpeedScale: 1.3
     _maxMoveSpeedScale: 1.3
+    _minGhostFadeDuration: 0
+    _maxGhostFadeDuration: 0
   - _type: 3
     _startScore: 10
-    _spawnChance: 0.2
+    _spawnChance: 0.16
     _minWidthScale: 1
     _maxWidthScale: 1
     _minMoveSpeedScale: 0.85
     _maxMoveSpeedScale: 0.85
+    _minGhostFadeDuration: 0
+    _maxGhostFadeDuration: 0
   - _type: 4
     _startScore: 10
-    _spawnChance: 0.2
+    _spawnChance: 0.16
     _minWidthScale: 0.7
     _maxWidthScale: 0.7
     _minMoveSpeedScale: 1.3
     _maxMoveSpeedScale: 1.3
+    _minGhostFadeDuration: 0
+    _maxGhostFadeDuration: 0
+  - _type: 5
+    _startScore: 10
+    _spawnChance: 0.16
+    _minWidthScale: 1
+    _maxWidthScale: 1
+    _minMoveSpeedScale: 1
+    _maxMoveSpeedScale: 1
+    _minGhostFadeDuration: 0.2
+    _maxGhostFadeDuration: 0.3
   _platformBaseMoveSpeed: 2
   _platformMaxMoveSpeedBonus: 1
   _platformScoreSpeedMaxScore: 50

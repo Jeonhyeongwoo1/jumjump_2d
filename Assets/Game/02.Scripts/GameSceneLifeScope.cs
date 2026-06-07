@@ -40,6 +40,7 @@ namespace JumJump
             builder.RegisterInstance(_platformPoolRoot);
             builder.Register<BackgroundEnvironmentFactory>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
+            builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);
             builder.Register<ReadyGameFlowState>(Lifetime.Scoped);
             builder.Register<PlayingGameFlowState>(Lifetime.Scoped);

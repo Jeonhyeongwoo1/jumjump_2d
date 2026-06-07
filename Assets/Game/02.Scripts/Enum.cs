@@ -20,6 +20,7 @@ namespace JumJump
         Small,
         Fast,
         Slow,
-        SmallAndFast
+        SmallAndFast,
+        Ghost
     }
 }

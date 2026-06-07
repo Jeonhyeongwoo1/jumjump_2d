@@ -24,6 +24,7 @@ namespace JumJump.Controller
         private PlatformGimmickType _gimmickType;
         private Vector3 _baseLocalScale;
         private Vector3 _baseSpriteLocalScale;
+        private Color _baseSpriteColor;
         private Vector2 _baseSpriteSize;
         private Vector2 _baseColliderSize;
         private float _halfWidth;
@@ -31,10 +32,14 @@ namespace JumJump.Controller
         private float _targetX;
         private float _moveSpeed;
         private float _moveDirectionX;
+        private float _gimmickTimerDuration;
+        private float _gimmickTimerElapsed;
         private bool _isResolved;
         private bool _isActive;
         private bool _hasCachedBaseSize;
+        private bool _shouldTickGimmick;
         private Action<PlatformController> _onReleaseAction;
+        private IPlatformGimmickBehaviour _gimmickBehaviour;
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
         private GameConfigData _configData;
@@ -57,25 +62,23 @@ namespace JumJump.Controller
             PlatformGimmickType gimmickType,
             Vector3 position,
             float targetX,
-            float widthScale,
-            float heightScale,
             float landingHeight,
-            float moveSpeed)
+            float moveSpeed,
+            IPlatformGimmickBehaviour gimmickBehaviour,
+            PlatformGimmickSetting gimmickSetting)
         {
-            var safeWidthScale = Mathf.Max(0.01f, widthScale);
-            var safeHeightScale = Mathf.Max(0.01f, heightScale);
-
             _platformIndex = platformIndex;
             _gimmickType = gimmickType;
             _landingHeight = Mathf.Max(0.01f, landingHeight);
             _targetX = targetX;
             _moveSpeed = moveSpeed;
             _moveDirectionX = ResolveMoveDirectionX(position.x, targetX);
-            _isResolved = false;
-            _isActive = true;
+            _gimmickBehaviour = gimmickBehaviour;
             CacheBaseSize();
+            ResetForSpawn();
             PlaceRigidbody(position);
-            ApplyPlatformScale(safeWidthScale, safeHeightScale);
+            _gimmickBehaviour?.Reset(this);
+            _gimmickBehaviour?.Apply(this, gimmickSetting);
             _halfWidth = ResolveLandingHalfWidth();
             gameObject.SetActive(true);
         }
@@ -143,6 +146,7 @@ namespace JumJump.Controller
 
             var landingPosition = player.Position;
             landingPosition.y = landingY + player.GroundContactOffset;
+            _gimmickBehaviour?.OnLanding(this);
             player.LandOnStackedPlatform(this, landingPosition);
             return true;
         }
@@ -169,6 +173,8 @@ namespace JumJump.Controller
             }
 
             _isActive = false;
+            _gimmickBehaviour?.Reset(this);
+            ResetGimmickRuntime();
             gameObject.SetActive(false);
             _onReleaseAction?.Invoke(this);
         }
@@ -212,6 +218,16 @@ namespace JumJump.Controller
             EvaluateMissedPlayer();
         }
 
+        private void Update()
+        {
+            if (!_isActive || _isResolved || !_shouldTickGimmick || _gimmickBehaviour == null)
+            {
+                return;
+            }
+
+            _gimmickBehaviour.Tick(this, Time.deltaTime);
+        }
+
         private void MoveTowardTarget()
         {
             if (_moveSpeed <= 0f)
@@ -222,6 +238,59 @@ namespace JumJump.Controller
             var nextPosition = transform.position;
             nextPosition.x = Mathf.MoveTowards(nextPosition.x, _targetX, _moveSpeed * Time.fixedDeltaTime);
             MoveRigidbody(nextPosition);
+        }
+
+        internal void ApplyWidthScale(float widthScale)
+        {
+            ApplyPlatformScale(Mathf.Max(0.01f, widthScale), 1f);
+        }
+
+        internal void ApplyMoveSpeedScale(float moveSpeedScale)
+        {
+            _moveSpeed *= Mathf.Max(0f, moveSpeedScale);
+        }
+
+        internal void StartGimmickTimer(float duration)
+        {
+            _gimmickTimerDuration = Mathf.Max(0f, duration);
+            _gimmickTimerElapsed = 0f;
+            _shouldTickGimmick = _gimmickTimerDuration > 0f && _gimmickBehaviour != null && _gimmickBehaviour.RequiresTick;
+        }
+
+        internal float AdvanceGimmickTimer(float deltaTime)
+        {
+            if (_gimmickTimerDuration <= 0f)
+            {
+                return 1f;
+            }
+
+            _gimmickTimerElapsed = Mathf.Min(_gimmickTimerDuration, _gimmickTimerElapsed + Mathf.Max(0f, deltaTime));
+            return Mathf.Clamp01(_gimmickTimerElapsed / _gimmickTimerDuration);
+        }
+
+        internal bool IsGimmickTimerComplete => _gimmickTimerDuration > 0f && _gimmickTimerElapsed >= _gimmickTimerDuration;
+
+        internal void StopGimmickTick()
+        {
+            _shouldTickGimmick = false;
+        }
+
+        internal void RevealPlatformVisual()
+        {
+            ResetGimmickRuntime();
+            SetPlatformAlpha(1f);
+        }
+
+        internal void SetPlatformAlpha(float alpha)
+        {
+            if (_spriteRenderer == null)
+            {
+                return;
+            }
+
+            var color = _baseSpriteColor;
+            color.a *= Mathf.Clamp01(alpha);
+            _spriteRenderer.color = color;
         }
 
         private void PlaceRigidbody(Vector3 position)
@@ -236,6 +305,23 @@ namespace JumJump.Controller
             transform.position = position;
         }
 
+        private void ResetForSpawn()
+        {
+            _isResolved = false;
+            _isActive = true;
+            ResetGimmickRuntime();
+            SetPlatformAlpha(1f);
+            ApplyPlatformScale(1f, 1f);
+            SetLandingColliderTrigger(true);
+        }
+
+        private void ResetGimmickRuntime()
+        {
+            _gimmickTimerDuration = 0f;
+            _gimmickTimerElapsed = 0f;
+            _shouldTickGimmick = false;
+        }
+
         private void CacheBaseSize()
         {
             if (_hasCachedBaseSize)
@@ -245,6 +331,7 @@ namespace JumJump.Controller
 
             _baseLocalScale = transform.localScale;
             _baseSpriteLocalScale = _spriteRenderer.transform.localScale;
+            _baseSpriteColor = _spriteRenderer.color;
             _baseSpriteSize = _spriteRenderer.size;
             _baseColliderSize = ResolveBaseColliderSize();
             _hasCachedBaseSize = true;
@@ -399,6 +486,7 @@ namespace JumJump.Controller
         {
             _isResolved = true;
             _moveSpeed = 0f;
+            _gimmickBehaviour?.OnLanding(this);
             SetLandingColliderTrigger(false);
 
             var landingPosition = player.Position;
@@ -410,6 +498,7 @@ namespace JumJump.Controller
         {
             _isResolved = true;
             _moveSpeed = 0f;
+            StopGimmickTick();
             _eventBus.Publish(new PlayerMissedLandingEvent(ResolveKnockbackDirection(player)));
         }
 
