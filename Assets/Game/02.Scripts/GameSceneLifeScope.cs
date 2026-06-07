@@ -20,14 +20,11 @@ namespace JumJump
         [UnityEngine.SerializeField] private InputActionAsset _inputActions;
         [UnityEngine.SerializeField] private VerticalFollowCamera _followCamera;
         [UnityEngine.SerializeField] private UnityEngine.Transform _platformPoolRoot;
+        [UnityEngine.SerializeField] private UIDynamicFont _dynamicFontRoot;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            if (_gameConfigData == null)
-            {
-                UnityEngine.Debug.LogError($"[{nameof(GameSceneLifeScope)}] Missing {nameof(GameConfigData)}.");
-            }
-
+            builder.RegisterComponent(_dynamicFontRoot);
             builder.RegisterInstance(_gameConfigData);
             builder.RegisterInstance(_platformCheatData);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
@@ -43,6 +40,7 @@ namespace JumJump
             builder.Register<PopupService>(Lifetime.Scoped);
             builder.Register<UIGameScenePresenter>(Lifetime.Scoped);
             builder.Register<UIGameOverPopupPresenter>(Lifetime.Scoped);
+            builder.Register<UIDynamicFontPresenter>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);

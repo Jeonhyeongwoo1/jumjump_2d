@@ -9,8 +9,11 @@ namespace JumJump.Data
         public string PlayerAddressableKey => _playerAddressableKey;
         public string GameSceneUiAddressableKey => _gameSceneUiAddressableKey;
         public string GameOverPopupAddressableKey => _gameOverPopupAddressableKey;
+        public string DynamicFontAddressableKey => _dynamicFontAddressableKey;
         public string PlayerPoolKey => _playerPoolKey;
         public int PlayerPrewarmCount => _playerPrewarmCount;
+        public string DynamicFontPoolKey => _dynamicFontPoolKey;
+        public int DynamicFontPrewarmCount => _dynamicFontPrewarmCount;
         public string PlatformAddressableKey => _platformAddressableKey;
         public string PlatformPoolKey => _platformPoolKey;
         public int PlatformPrewarmCount => _platformPrewarmCount;
@@ -86,12 +89,15 @@ namespace JumJump.Data
         [SerializeField] private string _platformAddressableKey = "Platform";
         [SerializeField] private string _gameSceneUiAddressableKey = "UI_GameScene";
         [SerializeField] private string _gameOverPopupAddressableKey = "UI_GameOverPopup";
+        [SerializeField] private string _dynamicFontAddressableKey = "UI_DynamicFont";
 
         [Header("Pooling")]
         [SerializeField] private string _playerPoolKey = "Player";
         [SerializeField] private int _playerPrewarmCount = 1;
         [SerializeField] private string _platformPoolKey = "Platform";
         [SerializeField] private int _platformPrewarmCount = 12;
+        [SerializeField] private string _dynamicFontPoolKey = "UI_DynamicFont";
+        [SerializeField] private int _dynamicFontPrewarmCount = 5;
 
         [Header("Platform")]
         [SerializeField] private float _platformSpawnDistance = 2.2f;

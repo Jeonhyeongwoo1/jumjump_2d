@@ -240,11 +240,8 @@ namespace JumJump.Service
             var gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
             var gimmickBehaviour = _platformGimmickBehaviourFactory.Get(gimmickType);
             platform.Initialize(
-                _nextPlatformIndex,
-                gimmickType,
                 position,
                 targetX,
-                _configData.PlatformLandingHeight,
                 moveSpeed,
                 gimmickBehaviour,
                 gimmickSetting);

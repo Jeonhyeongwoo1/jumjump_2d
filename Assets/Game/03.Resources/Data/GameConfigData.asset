@@ -115,7 +115,7 @@ MonoBehaviour:
   _platformSideHitTopMargin: 0.35
   _platformCleanupBelowDistance: 2
   _playerJumpDuration: 0.8
-  _playerJumpHeight: 0.8
+  _playerJumpHeight: 0.9
   _playerVerticalOffset: 0.58
   _playerLandingVerticalTolerance: 0.35
   _playerLandingEnabledNormalizedTime: 0.5
