@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: PlatformCheatData
   m_EditorClassIdentifier: 
   _forcePlatformGimmick: 1
-  _forcedPlatformGimmickType: 2
+  _forcedPlatformGimmickType: 4
