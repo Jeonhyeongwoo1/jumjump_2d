@@ -3,6 +3,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Controller
@@ -14,8 +15,7 @@ namespace JumJump.Controller
         public PlatformGimmickType GimmickType => _gimmickType;
         public float CenterY => transform.position.y;
 
-        private const float MinimumColliderDimension = 0.01f;
-        private const float MoveTargetEpsilon = 0.001f;
+
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
@@ -296,7 +296,7 @@ namespace JumJump.Controller
 
         internal bool IsGimmickTimerComplete => _gimmickTimerDuration <= 0f || _gimmickTimerElapsed >= _gimmickTimerDuration;
         internal bool IsGimmickTimerRunning => _isGimmickTimerRunning;
-        internal bool HasReachedMoveTarget => Mathf.Abs(transform.position.x - _targetX) <= MoveTargetEpsilon;
+        internal bool HasReachedMoveTarget => Mathf.Abs(transform.position.x - _targetX) <= GameConst.Platform.MoveTargetEpsilon;
 
         internal void StopGimmickTick()
         {
@@ -392,14 +392,14 @@ namespace JumJump.Controller
         private Vector2 ResolveBaseColliderSize()
         {
             var colliderSize = _landingCollider.size;
-            if (colliderSize.x < MinimumColliderDimension)
+            if (colliderSize.x < GameConst.Platform.MinimumColliderDimension)
             {
-                colliderSize.x =  Mathf.Max(MinimumColliderDimension, _configData.PlatformWidth);
+                colliderSize.x =  Mathf.Max(GameConst.Platform.MinimumColliderDimension, _configData.PlatformWidth);
             }
 
-            if (colliderSize.y < MinimumColliderDimension)
+            if (colliderSize.y < GameConst.Platform.MinimumColliderDimension)
             {
-                colliderSize.y = Mathf.Max(MinimumColliderDimension, _configData.PlatformLandingHeight);
+                colliderSize.y = Mathf.Max(GameConst.Platform.MinimumColliderDimension, _configData.PlatformLandingHeight);
             }
 
             return colliderSize;

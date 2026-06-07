@@ -1,3 +1,4 @@
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Presenter
@@ -15,7 +16,10 @@ namespace JumJump.Presenter
             if (Canvas == null)
             {
                 Debug.LogError($"[{GetType().Name}] Missing Canvas component on root GameObject.");
+                return;
             }
+
+            Canvas.sortingOrder = GameConst.UI.PopupSortingOrder;
         }
     }
 }

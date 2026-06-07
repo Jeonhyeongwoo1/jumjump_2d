@@ -16,6 +16,7 @@ MonoBehaviour:
   _playerAddressableKey: Player
   _platformAddressableKey: Platform
   _gameSceneUiAddressableKey: UI_GameScene
+  _gameOverPopupAddressableKey: UI_GameOverPopup
   _playerPoolKey: Player
   _playerPrewarmCount: 1
   _platformPoolKey: Platform
@@ -24,7 +25,7 @@ MonoBehaviour:
   _platformFirstSpawnDirection: 1
   _platformAlternatesSpawnSide: 1
   _platformVerticalStep: 1
-  _platformWidth: 1
+  _platformWidth: 0.85
   _platformHeight: 1
   _platformGimmickSettings:
   - _type: 0

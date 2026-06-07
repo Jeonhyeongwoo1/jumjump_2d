@@ -1,11 +1,10 @@
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Factory
 {
     public sealed class BackgroundEnvironmentFactory
     {
-        private const int GradientTextureWidth = 32;
-        private const int GradientTextureHeight = 32;
 
         public Transform CreateRoot(string name)
         {
@@ -26,7 +25,7 @@ namespace JumJump.Factory
 
         public Sprite CreateGradientSprite()
         {
-            var texture = new Texture2D(GradientTextureWidth, GradientTextureHeight, TextureFormat.RGBA32, false)
+            var texture = new Texture2D(GameConst.Environment.GradientTextureWidth, GameConst.Environment.GradientTextureHeight, TextureFormat.RGBA32, false)
             {
                 filterMode = FilterMode.Bilinear,
                 wrapMode = TextureWrapMode.Clamp
@@ -34,9 +33,9 @@ namespace JumJump.Factory
 
             return Sprite.Create(
                 texture,
-                new Rect(0f, 0f, GradientTextureWidth, GradientTextureHeight),
+                new Rect(0f, 0f, GameConst.Environment.GradientTextureWidth, GameConst.Environment.GradientTextureHeight),
                 new Vector2(0.5f, 0.5f),
-                GradientTextureHeight);
+                GameConst.Environment.GradientTextureHeight);
         }
     }
 }

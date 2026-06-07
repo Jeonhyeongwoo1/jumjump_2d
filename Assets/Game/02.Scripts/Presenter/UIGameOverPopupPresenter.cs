@@ -4,6 +4,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Service;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Presenter
@@ -16,7 +17,6 @@ namespace JumJump.Presenter
 
         private UI_GameOverPopup _view;
         private CancellationTokenSource _countdownCts;
-        private const int CountdownSeconds = 5;
 
         public bool IsShowing => _view != null && _view.gameObject.activeSelf;
 
@@ -32,7 +32,7 @@ namespace JumJump.Presenter
             var view = _popupService.Push<UI_GameOverPopup>(_configData.GameOverPopupAddressableKey);
             _view = view;
             _view.AddEvents(OnAdClicked, OnCloseClicked);
-            
+
             _countdownCts?.Cancel();
             _countdownCts?.Dispose();
             _countdownCts = new CancellationTokenSource();
@@ -47,13 +47,13 @@ namespace JumJump.Presenter
 
         private async UniTask RunCountdownAsync(CancellationToken ct)
         {
-            var remaining = (float)CountdownSeconds;
+            var remaining = (float)GameConst.UI.GameOverCountdownSeconds;
 
             while (remaining > 0f && !ct.IsCancellationRequested)
             {
                 remaining -= Time.deltaTime;
                 remaining = Mathf.Max(0f, remaining);
-                _view?.SetCountdown(remaining / CountdownSeconds, Mathf.CeilToInt(remaining));
+                _view?.SetCountdown(remaining / GameConst.UI.GameOverCountdownSeconds, Mathf.CeilToInt(remaining));
                 await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
