@@ -41,10 +41,60 @@ This file provides guidance to Claude Code (claude.com/claude-code) when working
 - **이벤트 타입은 `struct`**: `where T : struct` 제약 준수
 - **`[SerializeField]` 필드는 `private`**: `public` 선언 금지
 - **주입 의존성은 `private readonly`**: 생성 후 재할당 금지
-- **필수 컴포넌트 / 의존성 null 체크 반복 금지**: `_animator == null` 같은 방어 코드를 각 메서드마다 반복하지 않는다. `Awake`, `Initialize`, `Construct`, `Bind` 단계에서 한 번 resolve / validate 하고, 실패 시 `Debug.LogError`로 fail-fast 한다.
+- **`[SerializeField]` 참조는 null 체크 없이 직접 접근**: 미연결 시 Unity의 NullReferenceException이 즉시 드러나도록 `if (_ref == null)` 방어 코드나 `?.` 연산자를 쓰지 않는다. 프리팹에서 반드시 연결해야 하는 참조에 방어 코드를 넣으면 버그가 숨겨진다.
+- **주입 의존성 null 체크 반복 금지**: `_animator == null` 같은 방어 코드를 각 메서드마다 반복하지 않는다. `Awake`, `Initialize`, `Construct`, `Bind` 단계에서 한 번 resolve / validate 하고, 실패 시 `Debug.LogError`로 fail-fast 한다.
 - **`AddComponent` / `GetComponent` 남발 금지**: 컴포넌트 참조는 `Awake`, `Initialize`, `Construct`, `Bind` 단계에서 한 번만 resolve / cache 하고 재사용한다. 런타임 중 반복 탐색이나 조건부 `AddComponent`는 책임이 분명한 예외적인 경우에만 허용한다.
 - **일반 클래스의 `static` 사용 제한**: `Utils`, `Helper`처럼 타입 자체가 `static class`인 경우가 아니면 `static` 멤버를 추가하지 않는다. 공용 동작이 필요하면 전용 `static class`로 분리하거나 인스턴스 책임으로 유지한다.
 - **행동별 예외 규칙은 행동 객체가 책임진다**: 공용 상태 전이 함수(`SetState`, `ChangeCondition`, `RefreshCrowdControlState`)에는 모든 개체에 공통인 기본 규칙만 둔다. 특정 행동(`Charge`, `Dash`, 패턴 캐스팅 등) 동안에만 달라지는 상태 면역, 군중제어 무시, 입력 잠금, 슈퍼아머 같은 예외는 해당 행동을 구현한 Behaviour/Pattern이 직접 활성화·해제하고, 종료 시 공용 상태를 재평가한다.
+
+### UI MVP 패턴 규칙
+
+UI는 **MVP(Model-View-Presenter)** 패턴을 따른다.
+
+| 역할 | 클래스 | 설명 |
+|---|---|---|
+| **View** | `UI_Xxx : BaseSceneUI` / `BasePopup` | MonoBehaviour. SerializeField로 UI 요소 보유. 데이터 표시 메서드 + C# 이벤트 발사만 담당. 비즈니스 로직 없음. |
+| **Presenter** | `UIXxxPresenter` | 순수 C# 클래스. VContainer Scoped 등록. EventBus 구독, 상태 판단, View 메서드 호출. |
+
+#### View-Prefab-Addressable 매핑
+
+`UIFactory.Create<T>()` / `PopupService.Push<T>()` 는 Addressable 키로 프리팹을 로드한 뒤 루트 오브젝트의 `GetComponent<T>()` 로 View 컴포넌트를 탐색한다.
+
+| 항목 | 규칙 | 예시 |
+|---|---|---|
+| View 클래스명 | 프리팹명과 동일 | `UI_GameScene` |
+| 프리팹 루트 컴포넌트 | View MonoBehaviour 부착 | 루트에 `UI_GameScene` 컴포넌트 |
+| Addressable 키 | 프리팹명과 동일 | `"UI_GameScene"` |
+| Presenter 클래스명 | View명 + `Presenter` | `UIGameScenePresenter` |
+
+#### Presenter Bind 패턴
+
+```csharp
+// View 생성 후 Presenter에 Bind
+var view = _uiService.Create<UI_GameScene>(key);
+_scenePresenter.Bind(view);
+
+// Popup: Push 후 Presenter.Show()가 내부에서 Push+Bind 처리
+_popupPresenter.Show();
+```
+
+**Scene UI** (`BaseSceneUI` 상속) — `UIService.Create<T>(key)` 로 생성·관리  
+**Popup UI** (`BasePopup` 상속) — `PopupService.Push<T>(key)` / `Pop()` 으로 스택 관리
+
+신규 Scene UI 추가 절차:
+1. `BaseSceneUI` 파생 View 클래스 생성 (`Presenter/` 폴더, 이름 = 프리팹명)
+2. `UIXxxPresenter` 클래스 생성 (`Presenter/` 폴더) — VContainer에 Scoped 등록
+3. 프리팹 루트에 View 컴포넌트 부착 + Canvas 확인
+4. Addressable 그룹에 등록 (키 = View 클래스명)
+5. 적절한 시점에 `UIService.Create<T>(key)` → `presenter.Bind(view)` 호출
+
+신규 Popup 추가 절차:
+1. `BasePopup` 파생 View 클래스 생성 (`Presenter/` 폴더)
+2. `UIXxxPresenter` 클래스 생성 — VContainer에 Scoped 등록
+3. 프리팹 루트에 View 컴포넌트 부착 + Canvas 확인 (Sort Order 관리)
+4. Addressable 그룹에 등록 (키 = View 클래스명)
+5. `GameConfigData` 에 어드레서블 키 프로퍼티 추가
+6. 적절한 시점에 `presenter.Show()` 호출 (내부에서 PopupService.Push + Bind 처리)
 
 ### 파일 생성 규칙
 - 파일명 = 클래스명 (예: `WeaponService.cs`)

@@ -1,5 +1,6 @@
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Presenter;
 
 namespace JumJump.Service.GameFlowState
 {
@@ -9,34 +10,38 @@ namespace JumJump.Service.GameFlowState
 
         private readonly IEventBus _eventBus;
         private readonly ScoreService _scoreService;
+        private readonly UIGameOverPopupPresenter _popupPresenter;
 
-        public GameOverGameFlowState(IEventBus eventBus, ScoreService scoreService)
+        public GameOverGameFlowState(
+            IEventBus eventBus,
+            ScoreService scoreService,
+            UIGameOverPopupPresenter popupPresenter)
         {
             _eventBus = eventBus;
             _scoreService = scoreService;
+            _popupPresenter = popupPresenter;
         }
 
         public void OnEnter()
         {
             _eventBus.Publish(new GameOverEvent(_scoreService.Score, _scoreService.HighScore));
+            _popupPresenter.Show();
         }
 
-        public void OnUpdate()
-        {
-        }
+        public void OnUpdate() { }
 
         public void OnExit()
         {
+            _popupPresenter.Hide();
         }
 
         public void OnTapRequested(IGameFlowStateContext context)
         {
+            if (_popupPresenter.IsShowing) return;
             _eventBus.Publish(new RestartRequestedEvent());
         }
 
-        public void OnPlayerMissedLanding(IGameFlowStateContext context)
-        {
-        }
+        public void OnPlayerMissedLanding(IGameFlowStateContext context) { }
 
         public void OnRestartRequested(IGameFlowStateContext context)
         {

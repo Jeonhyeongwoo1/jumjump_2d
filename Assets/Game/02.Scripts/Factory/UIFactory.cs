@@ -1,4 +1,3 @@
-using JumJump.Presenter;
 using JumJump.Service;
 using UnityEngine;
 using VContainer;
@@ -17,7 +16,7 @@ namespace JumJump.Factory
             _resolver = resolver;
         }
 
-        public T Create<T>(string addressableKey) where T : BaseSceneUI
+        public T Create<T>(string addressableKey) where T : MonoBehaviour
         {
             var prefab = _resourceService.GetPrefab(addressableKey);
             if (prefab == null)

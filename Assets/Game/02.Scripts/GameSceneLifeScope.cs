@@ -3,6 +3,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
+using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Service.GameFlowState;
@@ -39,6 +40,9 @@ namespace JumJump
             builder.Register<BackgroundEnvironmentFactory>(Lifetime.Scoped);
             builder.Register<UIFactory>(Lifetime.Scoped);
             builder.Register<UIService>(Lifetime.Scoped);
+            builder.Register<PopupService>(Lifetime.Scoped);
+            builder.Register<UIGameScenePresenter>(Lifetime.Scoped);
+            builder.Register<UIGameOverPopupPresenter>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);

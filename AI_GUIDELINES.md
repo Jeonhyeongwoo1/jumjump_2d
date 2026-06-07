@@ -109,7 +109,7 @@ ReadyGameState → SelectCharacterState → GameWaveState → WaveEndCollectCurr
 | Factory | `Factory/` | 오브젝트 생성 (직접 `new` 금지, 반드시 Factory 경유) |
 | Registry | `Registry/` | 활성 오브젝트 인메모리 추적 (소유권 없음) |
 | Component | `Component/` | 재사용 가능한 MonoBehaviour 조각 |
-| Presenter | `Presenter/` | UI ↔ 게임 로직 브릿지 |
+| Presenter | `Presenter/` | UI MVP 패턴. View(`BaseSceneUI`/`BasePopup` 파생) + Presenter(순수 C# 클래스) 쌍으로 구성 |
 | Effect | `Effect/` | 상태 이상 구현체 |
 | Event | `Event/` | EventBus + 이벤트 struct 정의 |
 | Interface | `Interface/` | 모든 인터페이스 (파일 1개 = 인터페이스 1개) |
@@ -148,6 +148,69 @@ ReadyGameState → SelectCharacterState → GameWaveState → WaveEndCollectCurr
 - `StackValue` — 중첩마다 강도 증가
 
 모든 이펙트는 `GamePlayEffectService` 경유, `GamePlayEffectRegistry` 에서 추적.
+
+### UI 시스템 (MVP 패턴)
+
+#### 역할 분리
+
+| 역할 | 클래스 | 책임 |
+|---|---|---|
+| **View** | `UI_Xxx : BaseSceneUI` / `BasePopup` | SerializeField로 UI 요소 보유. 데이터 표시 메서드(`SetScore`, `SetCountdown` 등) + 사용자 입력을 C# 이벤트(`event Action`)로 발사. 비즈니스 로직 없음. |
+| **Presenter** | `UIXxxPresenter` | 순수 C# 클래스. VContainer Scoped 등록. EventBus 구독, 상태 판단, View 메서드 호출. `Bind(view)` / `Unbind()` 로 View 수명 관리. |
+
+#### 구조
+
+```
+BaseSceneUI (abstract MonoBehaviour)  ← 씬 루트 View (Canvas 필수)
+  └─ UI_GameScene                     ← 게임 씬 HUD View
+
+BasePopup (abstract MonoBehaviour)   ← 팝업 View (Canvas 필수, Sort Order 관리)
+  └─ UI_GameOverPopup                 ← 게임오버 팝업 View
+
+UIGameScenePresenter                  ← UI_GameScene 전용 Presenter
+UIGameOverPopupPresenter              ← UI_GameOverPopup 전용 Presenter
+```
+
+#### 생성·관리
+
+| 타입 | 생성 주체 | 관리 서비스 |
+|---|---|---|
+| `BaseSceneUI` 파생 (View) | `UIFactory.Create<T>(key)` | `UIService` (타입별 캐시) |
+| `BasePopup` 파생 (View) | `UIFactory.Create<T>(key)` | `PopupService` (스택 + 타입별 캐시) |
+| `UIXxxPresenter` | VContainer 생성자 주입 | 해당 GameFlowState가 보유 |
+
+- `UIFactory.Create<T>()` — Addressable 프리팹 로드 → 인스턴스화 → **루트의 `GetComponent<T>()`** 로 View 반환
+- View 생성 후 **Presenter.Bind(view)** 를 호출하여 이벤트 구독과 초기화를 수행한다
+
+#### Bind 패턴
+
+```csharp
+// Scene UI: 생성 후 명시적으로 Bind
+var view = _uiService.Create<UI_GameScene>(configData.GameSceneUiAddressableKey);
+_scenePresenter.Bind(view);
+
+// Popup: Presenter가 Show() 내부에서 Push + Bind 일괄 처리
+_popupPresenter.Show();  // 내부: Push → Bind(최초 1회) → 카운트다운 시작
+_popupPresenter.Hide();  // 내부: 카운트다운 취소 → PopAll
+```
+
+#### PopupService 스택 동작
+
+```csharp
+_popupService.Push<UI_GameOverPopup>(key);  // 생성(최초 1회) → SetActive(true) → OnShown()
+_popupService.Pop();                         // OnHidden() → SetActive(false) → 스택에서 제거
+_popupService.PopAll();                      // 상태 이탈 시 전체 정리
+```
+
+- 팝업은 최초 Push 시 1회 생성되어 내부 캐시에 유지된다 (Addressable 재로드 없음).
+- `OnShown()` / `OnHidden()` 은 `BasePopup` 가상 메서드 — 애니메이션 훅용. 비즈니스 로직은 Presenter가 담당.
+- 상태(`IGameFlowState`)가 팝업 Presenter를 통해 열고 닫는다: `OnEnter()` → `presenter.Show()`, `OnExit()` → `presenter.Hide()`.
+
+#### 프리팹 ↔ View 매핑 3원칙
+
+1. **View 클래스명 = 프리팹명 = Addressable 키** (예: `UI_GameOverPopup`)
+2. **프리팹 루트에 Canvas 컴포넌트** — 없으면 렌더링 불가 (`BaseSceneUI`/`BasePopup.Awake()`에서 오류 출력)
+3. **프리팹 루트에 View 컴포넌트 부착** — `UIFactory`가 `GetComponent<T>()` 로 탐색
 
 ### 이벤트 시스템 (EventBus)
 
