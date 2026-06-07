@@ -146,7 +146,7 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 1592748717023723788}
   _landingCollider: {fileID: 9043882273822907714}
   _rigidbody: {fileID: 8961027262382404682}
-  _animator: {fileID: 0}
+  _animator: {fileID: 6869374928661739540}
 --- !u!1 &4454547963678434718
 GameObject:
   m_ObjectHideFlags: 0

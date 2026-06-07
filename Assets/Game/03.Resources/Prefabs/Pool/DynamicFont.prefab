@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5746224931749038758}
   - component: {fileID: 5431755445882892244}
   - component: {fileID: 1777009908403743889}
+  - component: {fileID: 1573707322647964002}
   m_Layer: 0
   m_Name: DynamicFont
   m_TagString: Untagged
@@ -139,3 +140,16 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1573707322647964002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234406578710696470}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ff02f0368cb87c42bc97efdc45a3807, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JumJump.Runtime::JumJump.Presenter.UI_DynamicFont
+  _text: {fileID: 1777009908403743889}
