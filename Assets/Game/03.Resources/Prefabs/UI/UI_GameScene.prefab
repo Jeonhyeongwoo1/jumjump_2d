@@ -227,11 +227,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b60cd69f119ee54c9233b683631cb3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Presenter.UI_GameScene
-  _scoreText: {fileID: 0}
-  _highScoreText: {fileID: 0}
-  _gameOverPanel: {fileID: 0}
-  _finalScoreText: {fileID: 0}
-  _restartButton: {fileID: 0}
+  _scoreText: {fileID: 8385033982540604471}
+  _goldText: {fileID: 1173040715953218547}
 --- !u!1 &5159704086037290239
 GameObject:
   m_ObjectHideFlags: 0
@@ -584,6 +581,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d36591cb023c44490abab04824979a76, type: 3}
+--- !u!114 &1173040715953218547 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4819963814387292270, guid: d36591cb023c44490abab04824979a76, type: 3}
+  m_PrefabInstance: {fileID: 5955036192385579933}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &3091818079969660866 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8668534229640180831, guid: d36591cb023c44490abab04824979a76, type: 3}
