@@ -337,7 +337,7 @@ namespace JumJump.Controller
         internal void EnterPreview(float alpha)
         {
             PauseMovement();
-            SetInteractionEnabled(false);
+            SetInteractionEnabled(true);
             SetPlatformAlpha(alpha);
         }
 
@@ -392,6 +392,34 @@ namespace JumJump.Controller
                    viewportMax.x <= 1f &&
                    viewportMin.y >= 0f &&
                    viewportMax.y <= 1f;
+        }
+
+        internal bool IsMostlyInGameCameraView(float visibleRatio)
+        {
+            if (_gameCamera == null || _spriteRenderer == null)
+            {
+                return false;
+            }
+
+            var bounds = _spriteRenderer.bounds;
+            var viewportMin = _gameCamera.WorldToViewportPoint(bounds.min);
+            var viewportMax = _gameCamera.WorldToViewportPoint(bounds.max);
+
+            if (viewportMin.z < 0f || viewportMax.z < 0f)
+            {
+                return false;
+            }
+
+            if (viewportMax.y < 0f || viewportMin.y > 1f)
+            {
+                return false;
+            }
+
+            var width = Mathf.Max(0.0001f, viewportMax.x - viewportMin.x);
+            var visibleMinX = Mathf.Clamp01(viewportMin.x);
+            var visibleMaxX = Mathf.Clamp01(viewportMax.x);
+            var visibleWidth = Mathf.Max(0f, visibleMaxX - visibleMinX);
+            return visibleWidth / width >= Mathf.Clamp01(visibleRatio);
         }
 
         private void PlaceRigidbody(Vector3 position)

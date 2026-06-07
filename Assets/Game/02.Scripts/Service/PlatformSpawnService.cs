@@ -145,8 +145,8 @@ namespace JumJump.Service
             var targetX = player.Position.x;
             var spawnSide = ResolveSpawnSide();
             var spawnX = targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
-            var moveSpeed = ResolveBaseMoveSpeed();
             var gimmickSetting = ResolvePlatformGimmickSetting();
+            var moveSpeed = ResolveMoveSpeed(gimmickSetting);
             if (gimmickSetting != null && gimmickSetting.Type == PlatformGimmickType.Double)
             {
                 var normalSetting = FindPlatformGimmickSetting(
@@ -268,6 +268,16 @@ namespace JumJump.Service
             return UnityEngine.Random.value < 0.5f
                 ? smallSetting ?? fastSetting
                 : fastSetting ?? smallSetting;
+        }
+
+        private float ResolveMoveSpeed(PlatformGimmickSetting gimmickSetting)
+        {
+            if (gimmickSetting != null && gimmickSetting.Type == PlatformGimmickType.Reveal)
+            {
+                return Mathf.Max(0f, _configData.PlatformBaseMoveSpeed);
+            }
+
+            return ResolveBaseMoveSpeed();
         }
 
         private void ClearPendingDoubleSpawn()

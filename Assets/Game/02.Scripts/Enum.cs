@@ -22,6 +22,7 @@ namespace JumJump
         Slow,
         SmallAndFast,
         Ghost,
-        Double
+        Double,
+        Reveal
     }
 }
