@@ -3,6 +3,7 @@ using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Service;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Presenter
@@ -77,7 +78,8 @@ namespace JumJump.Presenter
                 return;
             }
 
-            var spawnPosition = player.Position + new Vector3(0.5f, 0.3f, 0f);
+            var spawnPosition = player.Position +
+                                new Vector3(GameConst.DynamicFont.SpawnOffsetX, GameConst.DynamicFont.SpawnOffsetY, 0f);
 
             var view = _poolService.Get<UI_DynamicFont>(_configData.DynamicFontPoolKey);
             if (view == null)

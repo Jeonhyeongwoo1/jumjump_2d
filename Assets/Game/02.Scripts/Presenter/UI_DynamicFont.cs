@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JumJump.Util;
 using TMPro;
 using UnityEngine;
 
@@ -9,9 +10,6 @@ namespace JumJump.Presenter
     public sealed class UI_DynamicFont : MonoBehaviour
     {
         [SerializeField] private TMP_Text _text;
-
-        private const float Duration = 1f;
-        private const float RiseHeight = 0.8f;
 
         private Action<UI_DynamicFont> _onRelease;
         private CancellationTokenSource _cts;
@@ -34,11 +32,11 @@ namespace JumJump.Presenter
             var startPos = transform.position;
             var elapsed = 0f;
 
-            while (elapsed < Duration && !ct.IsCancellationRequested)
+            while (elapsed < GameConst.DynamicFont.AnimationDuration && !ct.IsCancellationRequested)
             {
                 elapsed += Time.deltaTime;
-                var t = Mathf.Clamp01(elapsed / Duration);
-                transform.position = startPos + Vector3.up * (RiseHeight * t);
+                var t = Mathf.Clamp01(elapsed / GameConst.DynamicFont.AnimationDuration);
+                transform.position = startPos + Vector3.up * (GameConst.DynamicFont.RiseHeight * t);
                 _text.alpha = 1f - t;
                 await UniTask.Yield(PlayerLoopTiming.Update, ct);
             }

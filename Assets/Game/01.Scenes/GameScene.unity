@@ -1015,6 +1015,7 @@ GameObject:
   - component: {fileID: 1267083284}
   - component: {fileID: 1267083283}
   - component: {fileID: 1267083282}
+  - component: {fileID: 1267083286}
   m_Layer: 0
   m_Name: '@UIDynamicUI'
   m_TagString: Untagged
@@ -1104,6 +1105,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1267083286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1267083281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 435e21bc16e0ca54c98c3a0a726d75cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JumJump.Runtime::JumJump.Presenter.UIDynamicFont
 --- !u!1 &1329410247
 GameObject:
   m_ObjectHideFlags: 0
@@ -1450,6 +1463,7 @@ MonoBehaviour:
   _inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   _followCamera: {fileID: 134098829}
   _platformPoolRoot: {fileID: 1587108056}
+  _dynamicFontRoot: {fileID: 1267083286}
 --- !u!4 &1656395199
 Transform:
   m_ObjectHideFlags: 0

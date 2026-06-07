@@ -143,11 +143,6 @@ namespace JumJump.Controller
 
         private void ApplyAnimatorState()
         {
-            if (_animator == null)
-            {
-                return;
-            }
-
             _animator.SetBool(
                 _isJumpingAnimatorParameterHash,
                 _state == PlayerStateType.Jump);
@@ -158,22 +153,11 @@ namespace JumJump.Controller
 
         private void PlayIdleAnimatorState()
         {
-            if (_animator == null)
-            {
-                return;
-            }
-
             _animator.Play(_idleAnimatorStateHash, 0, 0f);
         }
 
         private void PlaceRigidbody(Vector3 position)
         {
-            if (_rigidbody == null)
-            {
-                transform.position = position;
-                return;
-            }
-
             _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
             _rigidbody.linearVelocity = Vector2.zero;
             _rigidbody.angularVelocity = 0f;
@@ -184,11 +168,6 @@ namespace JumJump.Controller
 
         private void ApplyJumpVelocity()
         {
-            if (_rigidbody == null)
-            {
-                return;
-            }
-
             var halfDuration = Mathf.Max(0.01f, _configData.PlayerJumpDuration * 0.5f);
             var jumpHeight = Mathf.Max(0.01f, _configData.PlayerJumpHeight);
             var gravityMagnitude = Mathf.Max(0.01f, -Physics2D.gravity.y);
@@ -211,11 +190,6 @@ namespace JumJump.Controller
             _jumpElapsed = 0f;
             _previousPosition = transform.position;
             ChangeState(PlayerStateType.Knockback);
-
-            if (_rigidbody == null)
-            {
-                return;
-            }
 
             var directionX = ResolveKnockbackDirectionX(knockbackDirection);
             ApplyFacingScale(directionX);
@@ -251,11 +225,6 @@ namespace JumJump.Controller
 
         private float ResolveGroundContactOffset()
         {
-            if (_bodyCollider == null)
-            {
-                return _configData == null ? 0f : Mathf.Max(0f, _configData.PlayerVerticalOffset);
-            }
-
             return transform.position.y - _bodyCollider.bounds.min.y;
         }
 
@@ -296,26 +265,30 @@ namespace JumJump.Controller
                 _bodyCollider = GetComponentInChildren<Collider2D>();
             }
 
-            if (_rigidbody == null && !TryGetComponent(out _rigidbody))
+            if (_rigidbody == null)
             {
-                _rigidbody = gameObject.AddComponent<Rigidbody2D>();
-            }
-
-            if (_rigidbody != null)
-            {
-                _rigidbody.bodyType = RigidbodyType2D.Dynamic;
-                _rigidbody.gravityScale = 0f;
-                _rigidbody.linearVelocity = Vector2.zero;
-                _rigidbody.angularVelocity = 0f;
-                _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
-                _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
-                _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+                _rigidbody = GetComponent<Rigidbody2D>();
             }
 
             if (_animator == null)
             {
                 _animator = GetComponent<Animator>();
             }
+
+            if (_bodyCollider == null || _rigidbody == null || _animator == null)
+            {
+                Debug.LogError($"[{nameof(Player)}] Missing required component.");
+                enabled = false;
+                return;
+            }
+
+            _rigidbody.bodyType = RigidbodyType2D.Dynamic;
+            _rigidbody.gravityScale = 0f;
+            _rigidbody.linearVelocity = Vector2.zero;
+            _rigidbody.angularVelocity = 0f;
+            _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+            _rigidbody.interpolation = RigidbodyInterpolation2D.Interpolate;
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
             _isJumpingAnimatorParameterHash = Animator.StringToHash("IsJumping");
             _isDeadAnimatorParameterHash = Animator.StringToHash("IsDead");
