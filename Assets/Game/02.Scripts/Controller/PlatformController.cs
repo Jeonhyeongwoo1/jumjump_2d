@@ -34,6 +34,7 @@ namespace JumJump.Controller
         private float _landingHeight;
         private float _targetX;
         private float _moveSpeed;
+        private float _pausedMoveSpeed;
         private float _moveDirectionX;
         private float _gimmickTimerDuration;
         private float _gimmickTimerElapsed;
@@ -41,6 +42,7 @@ namespace JumJump.Controller
         private bool _isResolved;
         private bool _isActive;
         private bool _isInteractionEnabled;
+        private bool _hasPausedMoveSpeed;
         private bool _hasCachedBaseSize;
         private bool _shouldTickGimmick;
         private Action<PlatformController> _onReleaseAction;
@@ -332,6 +334,20 @@ namespace JumJump.Controller
             }
         }
 
+        internal void EnterPreview(float alpha)
+        {
+            PauseMovement();
+            SetInteractionEnabled(false);
+            SetPlatformAlpha(alpha);
+        }
+
+        internal void ActivateFromPreview()
+        {
+            SetPlatformAlpha(1f);
+            SetInteractionEnabled(true);
+            ResumeMovement();
+        }
+
         internal void StopGimmickTick()
         {
             _shouldTickGimmick = false;
@@ -395,6 +411,8 @@ namespace JumJump.Controller
             _isResolved = false;
             _isActive = true;
             _isInteractionEnabled = true;
+            _hasPausedMoveSpeed = false;
+            _pausedMoveSpeed = 0f;
             ResetGimmickRuntime();
             SetPlatformAlpha(1f);
             ApplyPlatformScale(1f, 1f);
@@ -511,6 +529,30 @@ namespace JumJump.Controller
             }
 
             _rigidbody.MovePosition(position);
+        }
+
+        private void PauseMovement()
+        {
+            if (_hasPausedMoveSpeed)
+            {
+                return;
+            }
+
+            _pausedMoveSpeed = _moveSpeed;
+            _moveSpeed = 0f;
+            _hasPausedMoveSpeed = true;
+        }
+
+        private void ResumeMovement()
+        {
+            if (!_hasPausedMoveSpeed)
+            {
+                return;
+            }
+
+            _moveSpeed = _pausedMoveSpeed;
+            _pausedMoveSpeed = 0f;
+            _hasPausedMoveSpeed = false;
         }
 
         private void EvaluateMissedPlayer()

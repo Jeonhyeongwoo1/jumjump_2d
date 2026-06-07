@@ -15,8 +15,11 @@ namespace JumJump.Service
         private int _nextPlatformIndex;
         private float _pendingDoublePreSpawnElapsed;
         private float _pendingDoublePreSpawnDelay;
+        private float _pendingDoubleActivationElapsed;
+        private float _pendingDoubleActivationDelay;
         private float _pendingDoublePlatformY;
         private bool _hasPendingDoublePreSpawn;
+        private bool _hasPendingDoubleActivation;
         private PlatformController _doubleSourcePlatform;
         private PlatformController _prefetchedDoublePlatform;
         private readonly IEventBus _eventBus;
@@ -58,6 +61,20 @@ namespace JumJump.Service
 
         public void Tick()
         {
+            TickPendingDoublePreSpawn();
+            TickPendingDoubleActivation();
+        }
+
+        public void Dispose()
+        {
+            _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
+            _eventBus.Unsubscribe<GameStartedEvent>(OnGameStarted);
+            _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
+            _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+        }
+
+        private void TickPendingDoublePreSpawn()
+        {
             if (!_hasPendingDoublePreSpawn)
             {
                 return;
@@ -72,12 +89,20 @@ namespace JumJump.Service
             SpawnPendingDoublePlatform();
         }
 
-        public void Dispose()
+        private void TickPendingDoubleActivation()
         {
-            _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
-            _eventBus.Unsubscribe<GameStartedEvent>(OnGameStarted);
-            _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
-            _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+            if (!_hasPendingDoubleActivation)
+            {
+                return;
+            }
+
+            _pendingDoubleActivationElapsed += Time.deltaTime;
+            if (_pendingDoubleActivationElapsed < _pendingDoubleActivationDelay)
+            {
+                return;
+            }
+
+            ActivatePendingDoublePlatform();
         }
 
         private void ResetRound()
@@ -173,15 +198,30 @@ namespace JumJump.Service
 
             var targetX = player.Position.x;
             var spawnSide = ResolveSpawnSide();
-            var spawnX = targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
-            var moveSpeed = ResolveBaseMoveSpeed();
+            var spawnX = ResolveDoublePreviewSpawnX(targetX, spawnSide);
+            var moveSpeed = ResolveBaseMoveSpeed() *
+                            Mathf.Max(0f, _configData.PlatformDoubleFollowUpMoveSpeedScale);
             var gimmickSetting = ResolveDoubleFollowUpGimmickSetting();
             _prefetchedDoublePlatform = SpawnPlatform(
                 new Vector3(spawnX, _pendingDoublePlatformY, 0f),
                 targetX,
                 moveSpeed,
                 gimmickSetting);
-            _prefetchedDoublePlatform?.SetInteractionEnabled(false);
+            _prefetchedDoublePlatform?.EnterPreview(_configData.PlatformDoublePreviewAlpha);
+        }
+
+        private float ResolveDoublePreviewSpawnX(float targetX, float spawnSide)
+        {
+            var gameCamera = UnityEngine.Camera.main;
+            if (gameCamera == null)
+            {
+                return targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
+            }
+
+            var viewportX = spawnSide < 0f ? 0f : 1f;
+            var cameraDepth = Mathf.Abs(gameCamera.transform.position.z);
+            var edgePosition = gameCamera.ViewportToWorldPoint(new Vector3(viewportX, 0.5f, cameraDepth));
+            return edgePosition.x;
         }
 
         private PlatformController SpawnPlatform(
@@ -235,14 +275,40 @@ namespace JumJump.Service
             _hasPendingDoublePreSpawn = false;
             _pendingDoublePreSpawnElapsed = 0f;
             _pendingDoublePreSpawnDelay = 0f;
+            _pendingDoubleActivationElapsed = 0f;
+            _pendingDoubleActivationDelay = 0f;
             _pendingDoublePlatformY = 0f;
+            _hasPendingDoubleActivation = false;
             _doubleSourcePlatform = null;
             _prefetchedDoublePlatform = null;
         }
 
-        private void EnablePrefetchedDoublePlatform()
+        private void SchedulePrefetchedDoubleActivation()
         {
-            _prefetchedDoublePlatform?.SetInteractionEnabled(true);
+            if (_prefetchedDoublePlatform == null)
+            {
+                return;
+            }
+
+            _pendingDoubleActivationDelay = Mathf.Max(0f, _configData.PlatformDoubleActivationDelay);
+            _pendingDoubleActivationElapsed = 0f;
+            _hasPendingDoubleActivation = true;
+
+            if (_pendingDoubleActivationDelay <= 0f)
+            {
+                ActivatePendingDoublePlatform();
+            }
+        }
+
+        private void ActivatePendingDoublePlatform()
+        {
+            if (!_hasPendingDoubleActivation)
+            {
+                return;
+            }
+
+            _hasPendingDoubleActivation = false;
+            _prefetchedDoublePlatform?.ActivateFromPreview();
             _prefetchedDoublePlatform = null;
         }
 
@@ -358,7 +424,7 @@ namespace JumJump.Service
             if (ev.Platform == _doubleSourcePlatform)
             {
                 SpawnPendingDoublePlatform();
-                EnablePrefetchedDoublePlatform();
+                SchedulePrefetchedDoubleActivation();
                 _doubleSourcePlatform = null;
                 return;
             }

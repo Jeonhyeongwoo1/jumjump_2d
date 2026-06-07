@@ -30,6 +30,9 @@ namespace JumJump.Data
         public float PlatformLandingHeight => _platformLandingHeight;
         public float PlatformStackVerticalOffset => _platformStackVerticalOffset;
         public float PlatformDoublePreSpawnDelay => _platformDoublePreSpawnDelay;
+        public float PlatformDoubleActivationDelay => _platformDoubleActivationDelay;
+        public float PlatformDoublePreviewAlpha => _platformDoublePreviewAlpha;
+        public float PlatformDoubleFollowUpMoveSpeedScale => _platformDoubleFollowUpMoveSpeedScale;
         public float PlatformSideHitTopMargin => _platformSideHitTopMargin;
         public float PlatformCleanupBelowDistance => _platformCleanupBelowDistance;
         public float PlayerJumpDuration => _playerJumpDuration;
@@ -116,6 +119,9 @@ namespace JumJump.Data
         [SerializeField] private float _platformLandingHeight = 0.48f;
         [SerializeField] private float _platformStackVerticalOffset = 0.02f;
         [SerializeField] private float _platformDoublePreSpawnDelay = 0.25f;
+        [SerializeField] private float _platformDoubleActivationDelay = 0.18f;
+        [SerializeField] private float _platformDoublePreviewAlpha = 0.35f;
+        [SerializeField] private float _platformDoubleFollowUpMoveSpeedScale = 0.8f;
         [SerializeField] private float _platformSideHitTopMargin = 0.35f;
         [SerializeField] private float _platformCleanupBelowDistance = 2f;
 

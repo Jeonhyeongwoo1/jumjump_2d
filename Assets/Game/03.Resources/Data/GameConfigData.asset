@@ -99,7 +99,10 @@ MonoBehaviour:
   _platformScoreSpeedMaxScore: 50
   _platformLandingHeight: 0.48
   _platformStackVerticalOffset: 0
-  _platformDoublePreSpawnDelay: 0.25
+  _platformDoublePreSpawnDelay: 0
+  _platformDoubleActivationDelay: 0
+  _platformDoublePreviewAlpha: 0.35
+  _platformDoubleFollowUpMoveSpeedScale: 0.8
   _platformSideHitTopMargin: 0.35
   _platformCleanupBelowDistance: 2
   _playerJumpDuration: 0.8
