@@ -35,6 +35,8 @@ namespace JumJump.Controller
         private Vector3 _groundPosition;
         private Vector3 _previousPosition;
         private Vector3 _defaultLocalScale;
+        private Vector3 _landingSinkBasePosition;
+        private float _landingSinkElapsed;
         private IEventBus _eventBus;
         private GameConfigData _configData;
 
@@ -56,18 +58,19 @@ namespace JumJump.Controller
             _previousPosition = _groundPosition;
             ApplyFacingScale(1f);
             PlaceRigidbody(_groundPosition);
+            ResetLandingSink();
             ChangeState(PlayerStateType.Idle);
         }
 
         public void LandOnPlatform(PlatformController platform, Vector3 landingPosition)
         {
-            PlaceAtGroundPosition(landingPosition);
+            PlaceAtGroundPosition(landingPosition, true);
             _eventBus.Publish(new PlayerLandedEvent(platform));
         }
 
         public void LandOnStackedPlatform(PlatformController platform, Vector3 landingPosition)
         {
-            PlaceAtGroundPosition(landingPosition);
+            PlaceAtGroundPosition(landingPosition, true);
         }
 
         private void OnPlayerJumpRequested(in PlayerJumpRequestedEvent ev)
@@ -78,6 +81,7 @@ namespace JumJump.Controller
             }
 
             _jumpElapsed = 0f;
+            ResetLandingSink();
             _groundPosition = transform.position;
             _previousPosition = _groundPosition;
             _isJumping = true;
@@ -91,7 +95,7 @@ namespace JumJump.Controller
             PlayGameOverKnockback(ev.KnockbackDirection);
         }
 
-        private void PlaceAtGroundPosition(Vector3 groundPosition)
+        private void PlaceAtGroundPosition(Vector3 groundPosition, bool playLandingSink)
         {
             _isJumping = false;
             _isGameOverKnockback = false;
@@ -100,6 +104,15 @@ namespace JumJump.Controller
             _previousPosition = _groundPosition;
             PlaceRigidbody(_groundPosition);
             ChangeState(PlayerStateType.Idle);
+
+            if (playLandingSink)
+            {
+                BeginLandingSink(_groundPosition);
+            }
+            else
+            {
+                ResetLandingSink();
+            }
         }
 
         private void ChangeState(PlayerStateType state)
@@ -167,6 +180,7 @@ namespace JumJump.Controller
             _isGameOverKnockback = true;
             _jumpElapsed = 0f;
             _previousPosition = transform.position;
+            ResetLandingSink();
             ChangeState(PlayerStateType.Knockback);
 
             var directionX = ResolveKnockbackDirectionX(knockbackDirection);
@@ -204,6 +218,44 @@ namespace JumJump.Controller
         private float ResolveGroundContactOffset()
         {
             return transform.position.y - _bodyCollider.bounds.min.y;
+        }
+
+        private void BeginLandingSink(Vector3 basePosition)
+        {
+            _landingSinkBasePosition = basePosition;
+            _landingSinkElapsed = 0f;
+            ApplyLandingSink(0f);
+        }
+
+        private void ResetLandingSink()
+        {
+            _landingSinkElapsed = float.PositiveInfinity;
+            _landingSinkBasePosition = _groundPosition;
+            PlaceRigidbody(_landingSinkBasePosition);
+        }
+
+        private void UpdateLandingSink(float deltaTime)
+        {
+            var duration = Mathf.Max(0.01f, _configData.PlayerLandingSinkDuration);
+            if (_landingSinkElapsed >= duration)
+            {
+                return;
+            }
+
+            _landingSinkElapsed += deltaTime;
+            var normalizedTime = Mathf.Clamp01(_landingSinkElapsed / duration);
+            ApplyLandingSink(normalizedTime);
+        }
+
+        private void ApplyLandingSink(float normalizedTime)
+        {
+            const float DownPhase = 0.35f;
+            var sinkProgress = normalizedTime < DownPhase
+                ? Mathf.SmoothStep(0f, 1f, normalizedTime / DownPhase)
+                : Mathf.SmoothStep(1f, 0f, (normalizedTime - DownPhase) / (1f - DownPhase));
+            var position = _landingSinkBasePosition;
+            position.y -= Mathf.Max(0f, _configData.PlayerLandingSinkOffset) * sinkProgress;
+            PlaceRigidbody(position);
         }
 
         private void Start()
@@ -245,9 +297,16 @@ namespace JumJump.Controller
             _defaultLocalScale = transform.localScale;
             _spawnPosition = transform.position;
             _groundPosition = _spawnPosition;
+            _landingSinkBasePosition = _spawnPosition;
+            _landingSinkElapsed = float.PositiveInfinity;
             _previousPosition = _spawnPosition;
             _state = PlayerStateType.Idle;
             ApplyAnimatorState();
+        }
+
+        private void LateUpdate()
+        {
+            UpdateLandingSink(Time.deltaTime);
         }
 
         private void OnTriggerEnter2D(Collider2D other)

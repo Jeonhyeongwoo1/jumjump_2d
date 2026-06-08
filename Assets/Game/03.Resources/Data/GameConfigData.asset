@@ -119,7 +119,6 @@ MonoBehaviour:
   _platformFirstSpawnDirection: 1
   _platformAlternatesSpawnSide: 1
   _platformRandomSpawnSideStartCount: 10
-  _platformVerticalStep: 1
   _platformWidth: 0.85
   _platformHeight: 1
   _platformGimmickSettings:
@@ -213,7 +212,9 @@ MonoBehaviour:
   _playerVerticalOffset: 0.58
   _playerLandingVerticalTolerance: 0.35
   _playerLandingEnabledNormalizedTime: 0.5
-  _playerContactHalfWidth: 0.22
+  _playerLandingSinkOffset: 0.3
+  _playerLandingSinkDuration: 0.2
+  _playerContactHalfWidth: 3
   _playerGameOverKnockbackHorizontalSpeed: 2
   _playerGameOverKnockbackUpwardSpeed: 3.5
   _playerGameOverKnockbackGravityScale: 1
