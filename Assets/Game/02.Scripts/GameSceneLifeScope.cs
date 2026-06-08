@@ -7,6 +7,7 @@ using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Service.GameFlowState;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 using VContainer.Unity;
@@ -15,12 +16,13 @@ namespace JumJump
 {
     public sealed class GameSceneLifeScope : LifetimeScope
     {
-        [UnityEngine.SerializeField] private GameConfigData _gameConfigData;
-        [UnityEngine.SerializeField] private PlatformCheatData _platformCheatData;
-        [UnityEngine.SerializeField] private InputActionAsset _inputActions;
-        [UnityEngine.SerializeField] private VerticalFollowCamera _followCamera;
-        [UnityEngine.SerializeField] private UnityEngine.Transform _platformPoolRoot;
-        [UnityEngine.SerializeField] private UIDynamicFont _dynamicFontRoot;
+        [SerializeField] private GameConfigData _gameConfigData;
+        [SerializeField] private PlatformCheatData _platformCheatData;
+        [SerializeField] private InputActionAsset _inputActions;
+        [SerializeField] private VerticalFollowCamera _followCamera;
+        [SerializeField] private UnityEngine.Camera _gameCamera;
+        [SerializeField] private Transform _platformPoolRoot;
+        [SerializeField] private UIDynamicFont _dynamicFontRoot;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -34,10 +36,14 @@ namespace JumJump
             builder.Register<PlayerRegistry>(Lifetime.Scoped);
             builder.RegisterInstance(_inputActions);
             builder.RegisterInstance(_platformPoolRoot);
+            builder.RegisterInstance(_gameCamera);
+            builder.RegisterComponent(_followCamera);
             builder.Register<BackgroundEnvironmentFactory>(Lifetime.Scoped);
             builder.Register<UIFactory>(Lifetime.Scoped);
             builder.Register<UIService>(Lifetime.Scoped);
             builder.Register<PopupService>(Lifetime.Scoped);
+            builder.Register<PlatformGimmickSelector>(Lifetime.Scoped);
+            builder.Register<PlatformSpawnPositionResolver>(Lifetime.Scoped);
             builder.Register<UIGameScenePresenter>(Lifetime.Scoped);
             builder.Register<UIGameOverPopupPresenter>(Lifetime.Scoped);
             builder.Register<UIDynamicFontPresenter>(Lifetime.Scoped);
@@ -53,11 +59,6 @@ namespace JumJump
             builder.RegisterEntryPoint<BackgroundEnvironmentService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<PlatformSpawnService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameBootstrapService>(Lifetime.Scoped).AsSelf();
-
-            if (_followCamera != null)
-            {
-                builder.RegisterComponent(_followCamera);
-            }
         }
     }
 }

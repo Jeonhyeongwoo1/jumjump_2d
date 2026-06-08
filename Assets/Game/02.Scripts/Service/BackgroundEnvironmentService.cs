@@ -1,5 +1,4 @@
 using System;
-using JumJump.Camera;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
@@ -25,13 +24,12 @@ namespace JumJump.Service
         private readonly IEventBus _eventBus;
         private readonly GameConfigData _configData;
         private readonly BackgroundEnvironmentFactory _factory;
-        private readonly VerticalFollowCamera _followCamera;
+        private readonly UnityEngine.Camera _camera;
 
         private BackgroundItem[] _items;
         private Transform _root;
         private SpriteRenderer _gradientRenderer;
         private Texture2D _gradientTexture;
-        private UnityEngine.Camera _camera;
         private float _lastGradientT = -1f;
         private float _previousCameraY;
         private float _elapsedTime;
@@ -41,23 +39,16 @@ namespace JumJump.Service
             IEventBus eventBus,
             GameConfigData configData,
             BackgroundEnvironmentFactory factory,
-            VerticalFollowCamera followCamera)
+            UnityEngine.Camera camera)
         {
             _eventBus = eventBus;
             _configData = configData;
             _factory = factory;
-            _followCamera = followCamera;
+            _camera = camera;
         }
 
         public void Initialize()
         {
-            _camera = _followCamera == null ? null : _followCamera.GetComponent<UnityEngine.Camera>();
-            if (_camera == null)
-            {
-                Debug.LogError($"[{nameof(BackgroundEnvironmentService)}] Missing scene camera.");
-                return;
-            }
-
             _root = _factory.CreateRoot("BackgroundEnvironment");
             CreateGradientLayer();
             CreateBackgroundItems();
@@ -86,6 +77,26 @@ namespace JumJump.Service
         public void Dispose()
         {
             _eventBus.Unsubscribe<GameResetEvent>(OnGameReset);
+            if (_gradientRenderer != null && _gradientRenderer.sprite != null)
+            {
+                UnityEngine.Object.Destroy(_gradientRenderer.sprite);
+            }
+
+            if (_gradientTexture != null)
+            {
+                UnityEngine.Object.Destroy(_gradientTexture);
+            }
+
+            if (_root != null)
+            {
+                UnityEngine.Object.Destroy(_root.gameObject);
+            }
+
+            _items = null;
+            _root = null;
+            _gradientRenderer = null;
+            _gradientTexture = null;
+            _isInitialized = false;
         }
 
         private void OnGameReset(in GameResetEvent ev)
@@ -330,7 +341,7 @@ namespace JumJump.Service
 
         private float ResolveCameraY()
         {
-            return _camera == null ? 0f : _camera.transform.position.y;
+            return _camera.transform.position.y;
         }
     }
 }

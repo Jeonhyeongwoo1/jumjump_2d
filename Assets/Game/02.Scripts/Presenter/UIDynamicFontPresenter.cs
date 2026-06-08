@@ -1,3 +1,4 @@
+using System;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 namespace JumJump.Presenter
 {
-    public sealed class UIDynamicFontPresenter
+    public sealed class UIDynamicFontPresenter : IDisposable
     {
         private readonly IEventBus _eventBus;
         private readonly PoolService _poolService;
@@ -45,21 +46,20 @@ namespace JumJump.Presenter
             }
 
             var fontPrefab = prefab.GetComponent<UI_DynamicFont>();
-            if (fontPrefab == null)
-            {
-                Debug.LogError($"[{nameof(UIDynamicFontPresenter)}] Prefab missing {nameof(UI_DynamicFont)}.");
-                return;
-            }
-
             var rootTransform = _root.transform;
             _poolService.Register<UI_DynamicFont>(
                 _configData.DynamicFontPoolKey,
-                () => Object.Instantiate(fontPrefab, rootTransform),
+                () => UnityEngine.Object.Instantiate(fontPrefab, rootTransform),
                 view => view.gameObject.SetActive(true),
                 view => view.gameObject.SetActive(false),
                 _configData.DynamicFontPrewarmCount);
 
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
+        }
+
+        public void Dispose()
+        {
+            _eventBus.Unsubscribe<ScoreChangedEvent>(OnScoreChanged);
         }
 
         private void OnScoreChanged(in ScoreChangedEvent ev)

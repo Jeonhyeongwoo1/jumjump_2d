@@ -13,12 +13,6 @@ namespace JumJump.Presenter
         protected virtual void Awake()
         {
             Canvas = GetComponent<Canvas>();
-            if (Canvas == null)
-            {
-                Debug.LogError($"[{GetType().Name}] Missing Canvas component on root GameObject.");
-                return;
-            }
-
             Canvas.sortingOrder = GameConst.UI.PopupSortingOrder;
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Data;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace JumJump.Presenter
 {
-    public sealed class UIGameOverPopupPresenter
+    public sealed class UIGameOverPopupPresenter : IDisposable
     {
         private readonly IEventBus _eventBus;
         private readonly PopupService _popupService;
@@ -30,19 +31,30 @@ namespace JumJump.Presenter
         public void Show()
         {
             var view = _popupService.Push<UI_GameOverPopup>(_configData.GameOverPopupAddressableKey);
+            if (view == null)
+            {
+                return;
+            }
+
             _view = view;
             _view.AddEvents(OnAdClicked, OnCloseClicked);
 
-            _countdownCts?.Cancel();
-            _countdownCts?.Dispose();
+            DisposeCountdown();
             _countdownCts = new CancellationTokenSource();
             RunCountdownAsync(_countdownCts.Token).Forget();
         }
 
         public void Hide()
         {
-            _countdownCts?.Cancel();
+            DisposeCountdown();
+            _view?.RemoveEvents();
             _popupService.PopAll();
+            _view = null;
+        }
+
+        public void Dispose()
+        {
+            Hide();
         }
 
         private async UniTask RunCountdownAsync(CancellationToken ct)
@@ -59,21 +71,39 @@ namespace JumJump.Presenter
 
             if (!ct.IsCancellationRequested)
             {
-                _popupService.Pop();
+                ClosePopup();
             }
         }
 
         private void OnAdClicked()
         {
-            _countdownCts?.Cancel();
-            _popupService.Pop();
+            ClosePopup();
             _eventBus.Publish(new RestartRequestedEvent());
         }
 
         private void OnCloseClicked()
         {
-            _countdownCts?.Cancel();
+            ClosePopup();
+        }
+
+        private void ClosePopup()
+        {
+            DisposeCountdown();
+            _view?.RemoveEvents();
             _popupService.Pop();
+            _view = null;
+        }
+
+        private void DisposeCountdown()
+        {
+            if (_countdownCts == null)
+            {
+                return;
+            }
+
+            _countdownCts.Cancel();
+            _countdownCts.Dispose();
+            _countdownCts = null;
         }
     }
 }

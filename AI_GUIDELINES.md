@@ -1,5 +1,12 @@
 # AI_GUIDELINES.md
 
+## Highest Priority: Required Dependency / Component Rules
+
+- DI로 주입되는 필수 의존성은 null 체크하지 않는다. 생성자, `Construct`, `Bind`, `Initialize`에서 받은 필수 인자는 존재를 전제로 하고 직접 사용한다.
+- 필수 `[SerializeField]` 컴포넌트는 프리팹/씬에서 반드시 연결되어 있어야 한다. 코드에서 `GetComponent`, `GetComponentInChildren`, `GetComponentInParent`로 fallback resolve 하지 않는다.
+- 금지 예시: `if (_eventBus == null)`, `if (_configData == null)`, `if (_animator == null) _animator = GetComponent<Animator>();`, `if (_spriteRenderer == null) _spriteRenderer = GetComponentInChildren<SpriteRenderer>();`
+- null 체크는 현재 플레이어처럼 spawn 전에는 없을 수 있는 런타임 상태, 명시적 optional dependency, nullable 이벤트 payload, 풀/팩토리 실패 반환값에만 둔다.
+
 ## JumJump Target Platform: Mobile WebGL
 
 JumJump의 최종 배포 목표는 **모바일 브라우저에서 실행되는 Unity WebGL 빌드**다.

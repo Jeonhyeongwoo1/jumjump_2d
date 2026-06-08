@@ -138,11 +138,6 @@ namespace JumJump.Controller
 
         public bool IsFullyInGameCameraView()
         {
-            if (_gameCamera == null)
-            {
-                return false;
-            }
-
             var bounds = _spriteRenderer.bounds;
             var viewportMin = _gameCamera.WorldToViewportPoint(bounds.min);
             var viewportMax = _gameCamera.WorldToViewportPoint(bounds.max);
@@ -160,11 +155,6 @@ namespace JumJump.Controller
 
         public bool IsMostlyInGameCameraView(float visibleRatio)
         {
-            if (_gameCamera == null)
-            {
-                return false;
-            }
-
             var bounds = _spriteRenderer.bounds;
             var viewportMin = _gameCamera.WorldToViewportPoint(bounds.min);
             var viewportMax = _gameCamera.WorldToViewportPoint(bounds.max);

@@ -12,7 +12,7 @@ namespace JumJump.Controller
         public bool IsJumping => _isJumping;
         public bool CanLand => _isJumping &&
                                NormalizedJumpTime >= _configData.PlayerLandingEnabledNormalizedTime;
-        public bool IsDescending => _isJumping && _rigidbody != null && _rigidbody.linearVelocity.y <= 0f;
+        public bool IsDescending => _isJumping && _rigidbody.linearVelocity.y <= 0f;
         public Vector3 Position => transform.position;
         public Vector3 PreviousPosition => _previousPosition;
         public float BottomY => ResolveBottomY(Position);
@@ -59,23 +59,6 @@ namespace JumJump.Controller
             ChangeState(PlayerStateType.Idle);
         }
 
-        public void PlaceOnPlatform(PlatformController platform)
-        {
-            if (platform == null)
-            {
-                _isJumping = false;
-                return;
-            }
-
-            PlaceAtGroundPosition(platform.GetLandingPosition(this));
-        }
-
-        public void LandOnPlatform(PlatformController platform)
-        {
-            PlaceOnPlatform(platform);
-            _eventBus.Publish(new PlayerLandedEvent(platform));
-        }
-
         public void LandOnPlatform(PlatformController platform, Vector3 landingPosition)
         {
             PlaceAtGroundPosition(landingPosition);
@@ -84,11 +67,6 @@ namespace JumJump.Controller
 
         public void LandOnStackedPlatform(PlatformController platform, Vector3 landingPosition)
         {
-            if (platform == null)
-            {
-                return;
-            }
-
             PlaceAtGroundPosition(landingPosition);
         }
 
@@ -230,21 +208,14 @@ namespace JumJump.Controller
 
         private void Start()
         {
-            if (_eventBus == null)
-            {
-                Debug.LogError($"[{nameof(Player)}] Missing dependency: {nameof(_eventBus)}.");
-                enabled = false;
-                return;
-            }
-
             _eventBus.Subscribe<PlayerJumpRequestedEvent>(OnPlayerJumpRequested);
             _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
         }
 
         private void OnDestroy()
         {
-            _eventBus?.Unsubscribe<PlayerJumpRequestedEvent>(OnPlayerJumpRequested);
-            _eventBus?.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
+            _eventBus.Unsubscribe<PlayerJumpRequestedEvent>(OnPlayerJumpRequested);
+            _eventBus.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
         }
 
         private void FixedUpdate()
@@ -260,28 +231,6 @@ namespace JumJump.Controller
 
         private void Awake()
         {
-            if (_bodyCollider == null)
-            {
-                _bodyCollider = GetComponentInChildren<Collider2D>();
-            }
-
-            if (_rigidbody == null)
-            {
-                _rigidbody = GetComponent<Rigidbody2D>();
-            }
-
-            if (_animator == null)
-            {
-                _animator = GetComponent<Animator>();
-            }
-
-            if (_bodyCollider == null || _rigidbody == null || _animator == null)
-            {
-                Debug.LogError($"[{nameof(Player)}] Missing required component.");
-                enabled = false;
-                return;
-            }
-
             _rigidbody.bodyType = RigidbodyType2D.Dynamic;
             _rigidbody.gravityScale = 0f;
             _rigidbody.linearVelocity = Vector2.zero;

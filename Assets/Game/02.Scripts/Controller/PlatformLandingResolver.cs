@@ -5,24 +5,6 @@ namespace JumJump.Controller
 {
     internal static class PlatformLandingResolver
     {
-        public static bool IsLandingPointInside(
-            Vector3 platformPosition,
-            float halfWidth,
-            Vector3 characterPosition,
-            float characterVerticalOffset,
-            float verticalTolerance)
-        {
-            var landingY = platformPosition.y + characterVerticalOffset;
-
-            if (Mathf.Abs(characterPosition.y - landingY) > verticalTolerance)
-            {
-                return false;
-            }
-
-            return characterPosition.x >= platformPosition.x - halfWidth &&
-                   characterPosition.x <= platformPosition.x + halfWidth;
-        }
-
         public static bool IsPlayerWithinContact(
             Player player,
             Vector3 platformPosition,

@@ -1,17 +1,19 @@
 # AGENTS.md
 
-## Highest Priority: Required Dependency Null Checks
+## Highest Priority: Required Dependency / Component Rules
 
-- Required dependencies resolved through DI, constructors, `Construct`, `Bind`, `Awake`, or `Initialize` must be validated once at that boundary and then used directly.
-- Do not add repeated defensive null checks for required dependencies in gameplay logic, event handlers, `Update`, `FixedUpdate`, or `Tick`.
-- If a required dependency is missing, fail fast in the initialization boundary with `Debug.LogError` and disable/abort that component or service setup.
+- Required DI dependencies resolved through constructors, `[Inject] Construct`, `Bind`, or `Initialize` are assumed to exist. Assign them directly and use them directly.
+- Do not add defensive null checks for required DI dependencies such as `_eventBus == null`, `_configData == null`, `_playerRegistry == null`, or `_platformFactory == null`.
+- Required `[SerializeField]` component references are assumed to be wired by prefab/scene setup. Do not silently recover them with `GetComponent`, `GetComponentInChildren`, or `GetComponentInParent`.
+- Do not add fallback code like `if (_animator == null) _animator = GetComponent<Animator>();` for required serialized components. Missing prefab wiring should fail visibly instead of being hidden.
 - Keep null checks only for runtime state that can legitimately be absent, such as the current player before spawn, an optional camera, nullable event payload objects, or pooled objects returned from a factory.
-- Before finishing code changes, search touched files for repeated required dependency checks such as `_eventBus == null`, `_configData == null`, `_playerRegistry == null`, `_platformFactory == null`, and replace them with initialization-time validation unless the dependency is explicitly optional.
+- Before finishing code changes, search touched files for required-dependency null checks and fallback component lookups, then remove them unless the dependency is explicitly optional.
 
 Recommended check:
 
 ```powershell
 rg -n "_eventBus == null|_configData == null|_playerRegistry == null|_platformFactory == null" Assets\Game\02.Scripts
+rg -n "if \(_[A-Za-z0-9]+ == null\)|GetComponentInChildren|GetComponentInParent|GetComponent<" Assets\Game\02.Scripts
 ```
 
 ## JumJump Mobile WebGL 작업 기준
@@ -57,8 +59,8 @@ This file provides guidance to OpenAI Codex when working with code in this repos
 - **이벤트 타입은 `struct`**: `where T : struct` 제약 준수
 - **`[SerializeField]` 필드는 `private`**: `public` 선언 금지
 - **주입 의존성은 `private readonly`**: 생성 후 재할당 금지
-- **필수 컴포넌트 / 의존성 null 체크 반복 금지**: `_animator == null` 같은 방어 코드를 각 메서드마다 반복하지 않는다. `Awake`, `Initialize`, `Construct`, `Bind` 단계에서 한 번 resolve / validate 하고, 실패 시 `Debug.LogError`로 fail-fast 한다.
-- **`AddComponent` / `GetComponent` 남발 금지**: `AddComponent`, `GetComponent`, `GetComponentInChildren`, `GetComponentInParent` 호출을 로직 곳곳에서 반복하지 않는다. 컴포넌트 참조는 `Awake`, `Initialize`, `Construct`, `Bind` 단계에서 한 번만 resolve / cache 하고 재사용한다. 런타임 중 반복 탐색이나 조건부 `AddComponent`는 예외적인 경우에만 허용하며, 왜 필요한지 코드상 책임이 분명해야 한다.
+- **필수 DI 의존성 null 체크 금지**: `_eventBus == null`, `_configData == null`, `_playerRegistry == null` 같은 필수 주입 의존성 방어 코드를 추가하지 않는다. DI 배선은 존재를 전제로 하고 직접 사용한다.
+- **필수 `[SerializeField]` 컴포넌트 fallback 금지**: `_animator == null`이면 `GetComponent<Animator>()`로 채우는 식의 자동 복구 코드를 추가하지 않는다. 프리팹/씬 배선 누락은 숨기지 않고 즉시 드러나야 한다.
 - **일반 클래스의 `static` 사용 제한**: `Utils`, `Helper`처럼 타입 자체가 `static class`인 경우가 아니면 `static` 메서드, `static` 필드, `static` 프로퍼티를 추가하지 않는다. 공용 동작이 필요하면 전용 `static class`로 분리하거나, 그렇지 않으면 인스턴스 책임으로 유지한다.
 - **행동별 예외 규칙은 행동 객체가 책임진다**: 공용 상태 전이 함수(`SetState`, `ChangeCondition`, `RefreshCrowdControlState`)에는 모든 개체에 공통인 기본 규칙만 둔다. 특정 행동(`Charge`, `Dash`, 패턴 캐스팅 등) 동안에만 달라지는 상태 면역, 군중제어 무시, 입력 잠금, 슈퍼아머 같은 예외는 해당 행동을 구현한 Behaviour/Pattern이 직접 활성화·해제하고, 종료 시 공용 상태를 재평가한다.
 

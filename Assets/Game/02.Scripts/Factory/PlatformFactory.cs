@@ -15,9 +15,9 @@ namespace JumJump.Factory
         private readonly IEventBus _eventBus;
         private readonly PlayerRegistry _playerRegistry;
         private readonly GameConfigData _configData;
+        private readonly UnityEngine.Camera _gameCamera;
 
         private PlatformController _platformPrefab;
-        private UnityEngine.Camera _gameCamera;
         private bool _isReady;
 
         public PlatformFactory(
@@ -26,7 +26,8 @@ namespace JumJump.Factory
             ResourceService resourceService,
             IEventBus eventBus,
             PlayerRegistry playerRegistry,
-            GameConfigData configData)
+            GameConfigData configData,
+            UnityEngine.Camera gameCamera)
         {
             _poolRoot = poolRoot;
             _poolService = poolService;
@@ -34,6 +35,7 @@ namespace JumJump.Factory
             _eventBus = eventBus;
             _playerRegistry = playerRegistry;
             _configData = configData;
+            _gameCamera = gameCamera;
         }
 
         public void Warmup()
@@ -51,18 +53,6 @@ namespace JumJump.Factory
             }
 
             _platformPrefab = prefab.GetComponent<PlatformController>();
-            if (_platformPrefab == null)
-            {
-                Debug.LogError($"[{nameof(PlatformFactory)}] Loaded prefab has no {nameof(PlatformController)}.");
-                return;
-            }
-
-            _gameCamera = UnityEngine.Camera.main;
-            if (_gameCamera == null)
-            {
-                Debug.LogWarning($"[{nameof(PlatformFactory)}] Main camera not found; camera-aware platform gimmicks may not run.");
-            }
-
             _poolService.Register(_configData.PlatformPoolKey, Create, OnGet, OnRelease, _configData.PlatformPrewarmCount);
             _isReady = true;
         }

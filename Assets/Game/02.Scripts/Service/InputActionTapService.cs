@@ -24,30 +24,13 @@ namespace JumJump.Service
 
         public void Initialize()
         {
-            if (_inputActions == null)
-            {
-                Debug.LogError($"[{nameof(InputActionTapService)}] Missing InputActionAsset.");
-                return;
-            }
-
-            _tapAction = _inputActions.FindAction(_configData.TapActionPath, false);
-            if (_tapAction == null)
-            {
-                Debug.LogError($"[{nameof(InputActionTapService)}] Missing input action: {_configData.TapActionPath}.");
-                return;
-            }
-
+            _tapAction = _inputActions.FindAction(_configData.TapActionPath, true);
             _tapAction.performed += OnTapPerformed;
             _tapAction.Enable();
         }
 
         public void Dispose()
         {
-            if (_tapAction == null)
-            {
-                return;
-            }
-
             _tapAction.performed -= OnTapPerformed;
             _tapAction.Disable();
         }

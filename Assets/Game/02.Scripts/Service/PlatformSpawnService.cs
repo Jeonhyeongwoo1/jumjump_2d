@@ -28,8 +28,9 @@ namespace JumJump.Service
         private readonly PlayerRegistry _playerRegistry;
         private readonly ScoreService _scoreService;
         private readonly PlatformGimmickBehaviourFactory _platformGimmickBehaviourFactory;
+        private readonly PlatformGimmickSelector _gimmickSelector;
+        private readonly PlatformSpawnPositionResolver _positionResolver;
         private readonly GameConfigData _configData;
-        private readonly PlatformCheatData _platformCheatData;
 
         public PlatformSpawnService(
             IEventBus eventBus,
@@ -38,8 +39,9 @@ namespace JumJump.Service
             PlayerRegistry playerRegistry,
             ScoreService scoreService,
             PlatformGimmickBehaviourFactory platformGimmickBehaviourFactory,
-            GameConfigData configData,
-            PlatformCheatData platformCheatData)
+            PlatformGimmickSelector gimmickSelector,
+            PlatformSpawnPositionResolver positionResolver,
+            GameConfigData configData)
         {
             _eventBus = eventBus;
             _platformFactory = platformFactory;
@@ -47,8 +49,9 @@ namespace JumJump.Service
             _playerRegistry = playerRegistry;
             _scoreService = scoreService;
             _platformGimmickBehaviourFactory = platformGimmickBehaviourFactory;
+            _gimmickSelector = gimmickSelector;
+            _positionResolver = positionResolver;
             _configData = configData;
-            _platformCheatData = platformCheatData;
         }
 
         public void Initialize()
@@ -143,15 +146,13 @@ namespace JumJump.Service
             }
 
             var targetX = player.Position.x;
-            var spawnSide = ResolveSpawnSide();
-            var spawnX = targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
-            var gimmickSetting = ResolvePlatformGimmickSetting();
+            var spawnSide = _positionResolver.ResolveSpawnSide(_nextPlatformIndex);
+            var spawnX = _positionResolver.ResolveIncomingSpawnX(targetX, spawnSide);
+            var gimmickSetting = _gimmickSelector.ResolvePrimary();
             var moveSpeed = ResolveMoveSpeed(gimmickSetting);
             if (gimmickSetting != null && gimmickSetting.Type == PlatformGimmickType.Double)
             {
-                var normalSetting = FindPlatformGimmickSetting(
-                    _configData.PlatformGimmickSettings,
-                    PlatformGimmickType.Normal);
+                var normalSetting = _gimmickSelector.Find(PlatformGimmickType.Normal);
                 var platform = SpawnPlatform(new Vector3(spawnX, platformY, 0f), targetX, moveSpeed, normalSetting);
                 ScheduleDoublePreSpawn(platform);
                 return platform;
@@ -197,31 +198,17 @@ namespace JumJump.Service
             }
 
             var targetX = player.Position.x;
-            var spawnSide = ResolveSpawnSide();
-            var spawnX = ResolveDoublePreviewSpawnX(targetX, spawnSide);
+            var spawnSide = _positionResolver.ResolveSpawnSide(_nextPlatformIndex);
+            var spawnX = _positionResolver.ResolveDoublePreviewSpawnX(targetX, spawnSide);
             var moveSpeed = ResolveBaseMoveSpeed() *
                             Mathf.Max(0f, _configData.PlatformDoubleFollowUpMoveSpeedScale);
-            var gimmickSetting = ResolveDoubleFollowUpGimmickSetting();
+            var gimmickSetting = _gimmickSelector.ResolveDoubleFollowUp();
             _prefetchedDoublePlatform = SpawnPlatform(
                 new Vector3(spawnX, _pendingDoublePlatformY, 0f),
                 targetX,
                 moveSpeed,
                 gimmickSetting);
             _prefetchedDoublePlatform?.EnterPreview(_configData.PlatformDoublePreviewAlpha);
-        }
-
-        private float ResolveDoublePreviewSpawnX(float targetX, float spawnSide)
-        {
-            var gameCamera = UnityEngine.Camera.main;
-            if (gameCamera == null)
-            {
-                return targetX + spawnSide * Mathf.Max(0f, _configData.PlatformSpawnDistance);
-            }
-
-            var viewportX = spawnSide < 0f ? 0f : 1f;
-            var cameraDepth = Mathf.Abs(gameCamera.transform.position.z);
-            var edgePosition = gameCamera.ViewportToWorldPoint(new Vector3(viewportX, 0.5f, cameraDepth));
-            return edgePosition.x;
         }
 
         private PlatformController SpawnPlatform(
@@ -248,23 +235,6 @@ namespace JumJump.Service
             _platformRegistry.Register(platform);
             _nextPlatformIndex++;
             return platform;
-        }
-
-        private PlatformGimmickSetting ResolveDoubleFollowUpGimmickSetting()
-        {
-            var settings = _configData.PlatformGimmickSettings;
-            var normalSetting = FindPlatformGimmickSetting(settings, PlatformGimmickType.Normal);
-            var smallSetting = FindPlatformGimmickSetting(settings, PlatformGimmickType.Small);
-            var fastSetting = FindPlatformGimmickSetting(settings, PlatformGimmickType.Fast);
-
-            if (smallSetting == null && fastSetting == null)
-            {
-                return normalSetting;
-            }
-
-            return UnityEngine.Random.value < 0.5f
-                ? smallSetting ?? fastSetting
-                : fastSetting ?? smallSetting;
         }
 
         private float ResolveMoveSpeed(PlatformGimmickSetting gimmickSetting)
@@ -335,91 +305,6 @@ namespace JumJump.Service
             return baseMoveSpeed * UnityEngine.Random.Range(minScale, maxScale);
         }
 
-        private PlatformGimmickSetting ResolvePlatformGimmickSetting()
-        {
-            var settings = _configData.PlatformGimmickSettings;
-            var normalSetting = FindPlatformGimmickSetting(settings, PlatformGimmickType.Normal);
-            if (_platformCheatData != null && _platformCheatData.ForcePlatformGimmick)
-            {
-                var forcedSetting = FindPlatformGimmickSetting(settings, _platformCheatData.ForcedPlatformGimmickType);
-                return forcedSetting ?? normalSetting;
-            }
-
-            if (settings == null || settings.Length == 0)
-            {
-                return normalSetting;
-            }
-
-            var totalChance = 0f;
-            for (var i = 0; i < settings.Length; i++)
-            {
-                var setting = settings[i];
-                if (setting == null || setting.Type == PlatformGimmickType.Normal)
-                {
-                    continue;
-                }
-
-                if (_scoreService.Score <= setting.StartScore)
-                {
-                    continue;
-                }
-
-                totalChance += Mathf.Clamp01(setting.SpawnChance);
-            }
-
-            if (totalChance <= 0f)
-            {
-                return normalSetting;
-            }
-
-            var roll = totalChance <= 1f
-                ? UnityEngine.Random.value
-                : UnityEngine.Random.Range(0f, totalChance);
-            var cumulativeChance = 0f;
-            for (var i = 0; i < settings.Length; i++)
-            {
-                var setting = settings[i];
-                if (setting == null || setting.Type == PlatformGimmickType.Normal)
-                {
-                    continue;
-                }
-
-                if (_scoreService.Score <= setting.StartScore)
-                {
-                    continue;
-                }
-
-                cumulativeChance += Mathf.Clamp01(setting.SpawnChance);
-                if (roll <= cumulativeChance)
-                {
-                    return setting;
-                }
-            }
-
-            return normalSetting;
-        }
-
-        private PlatformGimmickSetting FindPlatformGimmickSetting(
-            PlatformGimmickSetting[] settings,
-            PlatformGimmickType type)
-        {
-            if (settings == null)
-            {
-                return null;
-            }
-
-            for (var i = 0; i < settings.Length; i++)
-            {
-                var setting = settings[i];
-                if (setting != null && setting.Type == type)
-                {
-                    return setting;
-                }
-            }
-
-            return null;
-        }
-
         private void OnPlayerLanded(in PlayerLandedEvent ev)
         {
             if (ev.Platform == null)
@@ -437,23 +322,6 @@ namespace JumJump.Service
             }
 
             SpawnIncomingPlatformAtY(ev.Platform.GetStackedNextCenterY());
-        }
-
-        private float ResolveSpawnSide()
-        {
-            var firstDirection = _configData.PlatformFirstSpawnDirection >= 0 ? 1f : -1f;
-            if (!_configData.PlatformAlternatesSpawnSide)
-            {
-                return firstDirection;
-            }
-
-            if (_configData.PlatformRandomSpawnSideStartCount > 0 &&
-                _nextPlatformIndex + 1 >= _configData.PlatformRandomSpawnSideStartCount)
-            {
-                return UnityEngine.Random.value < 0.5f ? firstDirection : -firstDirection;
-            }
-
-            return _nextPlatformIndex % 2 == 0 ? firstDirection : -firstDirection;
         }
 
         private void OnResourcesReady(in GameResourcesReadyEvent ev)

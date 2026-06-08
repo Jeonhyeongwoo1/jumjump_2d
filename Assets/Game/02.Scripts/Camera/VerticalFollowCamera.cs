@@ -28,17 +28,12 @@ namespace JumJump.Camera
 
         private void OnPlayerSpawned(in PlayerSpawnedEvent ev)
         {
-            if (ev.Player == null)
-            {
-                return;
-            }
-
             Bind(ev.Player.transform);
         }
 
         private void OnDestroy()
         {
-            _eventBus?.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
+            _eventBus.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
         }
 
         private void LateUpdate()

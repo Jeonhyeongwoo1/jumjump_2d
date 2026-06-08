@@ -40,13 +40,6 @@ namespace JumJump.Controller
             _eventBus = eventBus;
             _playerRegistry = playerRegistry;
             _configData = configData;
-            if (_eventBus == null || _playerRegistry == null || _configData == null)
-            {
-                Debug.LogError($"[{nameof(PlatformController)}] Missing required dependency.");
-                enabled = false;
-                return;
-            }
-
             _visual.BindCamera(gameCamera);
             _visual.CacheBaseSize(_configData);
         }
@@ -73,17 +66,10 @@ namespace JumJump.Controller
             gameObject.SetActive(true);
         }
 
-        public Vector3 GetLandingPosition(float characterVerticalOffset)
-        {
-            var platformPosition = transform.position;
-            return new Vector3(platformPosition.x, platformPosition.y + characterVerticalOffset, platformPosition.z);
-        }
-
         public Vector3 GetLandingPosition(Player player)
         {
             var platformPosition = transform.position;
-            var groundContactOffset = player == null ? 0f : player.GroundContactOffset;
-            return new Vector3(platformPosition.x, GetLandingSurfaceY() + groundContactOffset, platformPosition.z);
+            return new Vector3(platformPosition.x, GetLandingSurfaceY() + player.GroundContactOffset, platformPosition.z);
         }
 
         public float GetStackedNextCenterY()
@@ -136,16 +122,6 @@ namespace JumJump.Controller
 
             ResolveStackedLanding(player, landingY);
             return true;
-        }
-
-        public bool IsLandingPointInside(Vector3 characterPosition, float characterVerticalOffset, float verticalTolerance)
-        {
-            return PlatformLandingResolver.IsLandingPointInside(
-                transform.position,
-                _visual.ResolveLandingHalfWidth(),
-                characterPosition,
-                characterVerticalOffset,
-                verticalTolerance);
         }
 
         public void Release()

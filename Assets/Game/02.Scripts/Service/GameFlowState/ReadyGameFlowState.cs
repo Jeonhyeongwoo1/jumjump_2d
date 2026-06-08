@@ -1,3 +1,4 @@
+using System;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
@@ -5,7 +6,7 @@ using JumJump.Presenter;
 
 namespace JumJump.Service.GameFlowState
 {
-    public sealed class ReadyGameFlowState : IGameFlowState
+    public sealed class ReadyGameFlowState : IGameFlowState, IDisposable
     {
         public GameStateType StateType => GameStateType.Ready;
 
@@ -52,6 +53,11 @@ namespace JumJump.Service.GameFlowState
             _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
             var view = _uiService.Create<UI_GameScene>(_configData.GameSceneUiAddressableKey);
             _scenePresenter.Bind(view);
+        }
+
+        public void Dispose()
+        {
+            _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
         }
     }
 }

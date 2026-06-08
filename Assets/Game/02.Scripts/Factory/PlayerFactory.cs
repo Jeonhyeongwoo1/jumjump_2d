@@ -47,12 +47,6 @@ namespace JumJump.Factory
                 return;
             }
 
-            if (prefab.GetComponent<Player>() == null)
-            {
-                Debug.LogError($"[{nameof(PlayerFactory)}] Loaded prefab has no {nameof(Player)}.");
-                return;
-            }
-
             _playerPrefab = prefab;
             _poolService.Register(_configData.PlayerPoolKey, Create, OnGet, OnRelease, _configData.PlayerPrewarmCount);
             _isReady = true;
