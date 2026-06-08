@@ -54,10 +54,12 @@ namespace JumJump.Event
     public struct PlayerLandedEvent
     {
         public PlatformController Platform { get; private set; }
+        public Vector3 LandingPosition { get; private set; }
 
-        public PlayerLandedEvent(PlatformController platform)
+        public PlayerLandedEvent(PlatformController platform, Vector3 landingPosition)
         {
             Platform = platform;
+            LandingPosition = landingPosition;
         }
     }
 

@@ -41,7 +41,7 @@ namespace JumJump.Service
 
         public void Tick()
         {
-            _currentState?.OnUpdate();
+            _currentState?.OnUpdate(this);
         }
 
         public void Dispose()

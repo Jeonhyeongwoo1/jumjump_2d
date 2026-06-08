@@ -28,7 +28,7 @@ namespace JumJump.Service.GameFlowState
             _popupPresenter.Show();
         }
 
-        public void OnUpdate() { }
+        public void OnUpdate(IGameFlowStateContext context) { }
 
         public void OnExit()
         {

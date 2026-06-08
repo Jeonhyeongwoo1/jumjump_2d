@@ -29,7 +29,7 @@ namespace JumJump.Service.GameFlowState
         }
 
         public void OnEnter() { }
-        public void OnUpdate() { }
+        public void OnUpdate(IGameFlowStateContext context) { }
         public void OnExit() { }
 
         public void OnTapRequested(IGameFlowStateContext context)

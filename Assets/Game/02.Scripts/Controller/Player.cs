@@ -26,6 +26,7 @@ namespace JumJump.Controller
 
         private bool _isJumping;
         private bool _isGameOverKnockback;
+        private bool _isGameOverFreezeLocked;
         private float _jumpElapsed;
         private int _isJumpingAnimatorParameterHash;
         private int _isDeadAnimatorParameterHash;
@@ -53,6 +54,7 @@ namespace JumJump.Controller
         {
             _isJumping = false;
             _isGameOverKnockback = false;
+            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
             _groundPosition = _spawnPosition;
             _previousPosition = _groundPosition;
@@ -64,8 +66,9 @@ namespace JumJump.Controller
 
         public void LandOnPlatform(PlatformController platform, Vector3 landingPosition)
         {
+            var contactPosition = ResolveGroundContactPosition(landingPosition);
             PlaceAtGroundPosition(landingPosition, true);
-            _eventBus.Publish(new PlayerLandedEvent(platform));
+            _eventBus.Publish(new PlayerLandedEvent(platform, contactPosition));
         }
 
         public void LandOnStackedPlatform(PlatformController platform, Vector3 landingPosition)
@@ -99,6 +102,7 @@ namespace JumJump.Controller
         {
             _isJumping = false;
             _isGameOverKnockback = false;
+            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
             _groundPosition = groundPosition;
             _previousPosition = _groundPosition;
@@ -178,6 +182,7 @@ namespace JumJump.Controller
 
             _isJumping = false;
             _isGameOverKnockback = true;
+            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
             _previousPosition = transform.position;
             ResetLandingSink();
@@ -190,6 +195,20 @@ namespace JumJump.Controller
             _rigidbody.linearVelocity = new Vector2(
                 directionX * Mathf.Max(0f, _configData.PlayerGameOverKnockbackHorizontalSpeed),
                 Mathf.Max(0f, _configData.PlayerGameOverKnockbackUpwardSpeed));
+        }
+
+        private void FreezeGameOverKnockbackIfDescending()
+        {
+            if (_isGameOverFreezeLocked || _rigidbody.linearVelocity.y > 0f)
+            {
+                return;
+            }
+
+            _isGameOverFreezeLocked = true;
+            _rigidbody.constraints = RigidbodyConstraints2D.FreezeAll;
+            _rigidbody.linearVelocity = Vector2.zero;
+            _rigidbody.angularVelocity = 0f;
+            _rigidbody.gravityScale = 0f;
         }
 
         private float ResolveKnockbackDirectionX(Vector2 knockbackDirection)
@@ -218,6 +237,12 @@ namespace JumJump.Controller
         private float ResolveGroundContactOffset()
         {
             return transform.position.y - _bodyCollider.bounds.min.y;
+        }
+
+        private Vector3 ResolveGroundContactPosition(Vector3 groundPosition)
+        {
+            groundPosition.y -= GroundContactOffset;
+            return groundPosition;
         }
 
         private void BeginLandingSink(Vector3 basePosition)
@@ -272,6 +297,12 @@ namespace JumJump.Controller
 
         private void FixedUpdate()
         {
+            if (_isGameOverKnockback)
+            {
+                FreezeGameOverKnockbackIfDescending();
+                return;
+            }
+
             if (!_isJumping)
             {
                 return;

@@ -109,6 +109,10 @@ MonoBehaviour:
   _platformPrewarmCount: 12
   _dynamicFontPoolKey: UI_DynamicFont
   _dynamicFontPrewarmCount: 5
+  _hayLandingFXPrefab: {fileID: 1691417389861638064, guid: cfbcfe96cd82c6f42a19cc2383d394c3, type: 3}
+  _hayLandingFXPoolKey: FX_HayLanding
+  _hayLandingFXPoolCount: 8
+  _hayLandingFXOffset: {x: 0, y: 0.1, z: 0}
   _scorePerLanding: 1
   _highScoreKey: JumJump.HighScore
   _tapActionPath: Player/Attack
@@ -218,3 +222,4 @@ MonoBehaviour:
   _playerGameOverKnockbackHorizontalSpeed: 2
   _playerGameOverKnockbackUpwardSpeed: 3.5
   _playerGameOverKnockbackGravityScale: 1
+  _playerGameOverPopupDelay: 1

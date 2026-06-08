@@ -56,6 +56,7 @@ namespace JumJump
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<HayLandingFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<BackgroundEnvironmentService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<PlatformSpawnService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameBootstrapService>(Lifetime.Scoped).AsSelf();
