@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace JumJump.Editor
 {
-    [CustomEditor(typeof(GameConfigData))]
-    public sealed class GameConfigDataEditor : UnityEditor.Editor
+    [CustomEditor(typeof(BackgroundConfigData))]
+    public sealed class BackgroundConfigDataEditor : UnityEditor.Editor
     {
         private struct BackgroundPreset
         {
@@ -41,8 +41,8 @@ namespace JumJump.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Background Test Tools", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Apply Fast Test Preset: depth/그라데이션 높이를 낮춰 배경 파츠가 빠르게 등장하도록 한다.\n" +
-                "Restore Defaults: 출시용 기본값으로 되돌린다.",
+                "Apply Fast Test Preset: shortens depth and gradient height for quick background transition checks.\n" +
+                "Restore Defaults: restores launch default values.",
                 MessageType.Info);
 
             using (new EditorGUILayout.HorizontalScope())

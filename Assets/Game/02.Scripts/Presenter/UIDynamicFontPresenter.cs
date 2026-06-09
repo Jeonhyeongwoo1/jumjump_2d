@@ -15,7 +15,7 @@ namespace JumJump.Presenter
         private readonly PoolService _poolService;
         private readonly ResourceService _resourceService;
         private readonly PlayerRegistry _playerRegistry;
-        private readonly GameConfigData _configData;
+        private readonly ResourceConfigData _resourceConfigData;
         private readonly UIDynamicFont _root;
 
         private int _previousScore;
@@ -25,34 +25,34 @@ namespace JumJump.Presenter
             PoolService poolService,
             ResourceService resourceService,
             PlayerRegistry playerRegistry,
-            GameConfigData configData,
+            ResourceConfigData resourceConfigData,
             UIDynamicFont root)
         {
             _eventBus = eventBus;
             _poolService = poolService;
             _resourceService = resourceService;
             _playerRegistry = playerRegistry;
-            _configData = configData;
+            _resourceConfigData = resourceConfigData;
             _root = root;
         }
 
         public void Warmup()
         {
-            var prefab = _resourceService.GetPrefab(_configData.DynamicFontAddressableKey);
+            var prefab = _resourceService.GetPrefab(_resourceConfigData.DynamicFontAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(UIDynamicFontPresenter)}] Failed to load prefab: {_configData.DynamicFontAddressableKey}");
+                Debug.LogError($"[{nameof(UIDynamicFontPresenter)}] Failed to load prefab: {_resourceConfigData.DynamicFontAddressableKey}");
                 return;
             }
 
             var fontPrefab = prefab.GetComponent<UI_DynamicFont>();
             var rootTransform = _root.transform;
             _poolService.Register<UI_DynamicFont>(
-                _configData.DynamicFontPoolKey,
+                _resourceConfigData.DynamicFontPoolKey,
                 () => UnityEngine.Object.Instantiate(fontPrefab, rootTransform),
                 view => view.gameObject.SetActive(true),
                 view => view.gameObject.SetActive(false),
-                _configData.DynamicFontPrewarmCount);
+                _resourceConfigData.DynamicFontPrewarmCount);
 
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
         }
@@ -81,7 +81,7 @@ namespace JumJump.Presenter
             var spawnPosition = player.Position +
                                 new Vector3(GameConst.DynamicFont.SpawnOffsetX, GameConst.DynamicFont.SpawnOffsetY, 0f);
 
-            var view = _poolService.Get<UI_DynamicFont>(_configData.DynamicFontPoolKey);
+            var view = _poolService.Get<UI_DynamicFont>(_resourceConfigData.DynamicFontPoolKey);
             if (view == null)
             {
                 return;
@@ -92,7 +92,7 @@ namespace JumJump.Presenter
 
         private void Release(UI_DynamicFont view)
         {
-            _poolService.Release(_configData.DynamicFontPoolKey, view);
+            _poolService.Release(_resourceConfigData.DynamicFontPoolKey, view);
         }
     }
 }

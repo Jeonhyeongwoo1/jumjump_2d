@@ -9,7 +9,7 @@ namespace JumJump.Controller
             Player player,
             Vector3 platformPosition,
             float halfWidth,
-            GameConfigData configData)
+            PlayerConfigData configData)
         {
             var contactHalfWidth = Mathf.Max(0f, halfWidth + configData.PlayerContactHalfWidth);
             return Mathf.Abs(player.Position.x - platformPosition.x) <= contactHalfWidth;
@@ -25,7 +25,7 @@ namespace JumJump.Controller
             return player.BottomY < landingY;
         }
 
-        public static bool CanResolveStackedLanding(Player player, float landingY, GameConfigData configData)
+        public static bool CanResolveStackedLanding(Player player, float landingY, PlayerConfigData configData)
         {
             if (!player.CanLand || !player.IsDescending)
             {
@@ -41,16 +41,17 @@ namespace JumJump.Controller
             Vector3 platformPosition,
             float halfWidth,
             float landingY,
-            GameConfigData configData)
+            PlayerConfigData playerConfigData,
+            PlatformConfigData platformConfigData)
         {
-            if (!IsPlayerWithinContact(player, platformPosition, halfWidth, configData))
+            if (!IsPlayerWithinContact(player, platformPosition, halfWidth, playerConfigData))
             {
                 return false;
             }
 
             return player.IsJumping &&
                    player.IsDescending &&
-                   player.BottomY < landingY - Mathf.Max(0f, configData.PlatformSideHitTopMargin);
+                   player.BottomY < landingY - Mathf.Max(0f, platformConfigData.PlatformSideHitTopMargin);
         }
 
         public static Vector2 ResolveKnockbackDirection(Player player, Vector3 platformPosition, float moveDirectionX)
@@ -89,7 +90,7 @@ namespace JumJump.Controller
             return player.PreviousBottomY >= landingY && player.BottomY <= landingY;
         }
 
-        private static bool IsTouchingLandingSurface(Player player, float landingY, GameConfigData configData)
+        private static bool IsTouchingLandingSurface(Player player, float landingY, PlayerConfigData configData)
         {
             var snapTolerance = Mathf.Min(0.08f, Mathf.Max(0.01f, configData.PlayerLandingVerticalTolerance));
             return player.BottomY <= landingY + snapTolerance && player.Position.y >= landingY;

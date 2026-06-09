@@ -230,6 +230,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Presenter.UI_GameScene
   _scoreText: {fileID: 8385033982540604471}
   _goldText: {fileID: 1173040715953218547}
+  _startCountdownPanel: {fileID: 7392165399819854563}
+  _startCountdownText: {fileID: 346770996475970967}
 --- !u!1 &5159704086037290239
 GameObject:
   m_ObjectHideFlags: 0
@@ -572,8 +574,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 150
-  m_fontSizeBase: 150
+  m_fontSize: 230
+  m_fontSizeBase: 230
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

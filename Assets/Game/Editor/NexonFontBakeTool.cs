@@ -6,12 +6,14 @@ using UnityEngine.TextCore.LowLevel;
 
 namespace JumJump.Editor
 {
+    [InitializeOnLoad]
     public static class NexonFontBakeTool
     {
         private const string FontFolderPath = "Assets/Game/03.Resources/Fonts";
         private const int SamplingPointSize = 90;
         private const int AtlasPadding = 9;
         private const int AtlasSize = 1024;
+
         private const string RequestFileName = ".codex-bake-nexon-fonts.request";
         private const string RunningFileName = ".codex-bake-nexon-fonts.running";
 
@@ -20,6 +22,12 @@ namespace JumJump.Editor
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
             "One more try?RestartScoreHighBest";
 
+        static NexonFontBakeTool()
+        {
+            EditorApplication.delayCall += BakePendingRequest;
+        }
+
+        [MenuItem("JumJump/Bake NEXON Font Assets")]
         [MenuItem("JumJump/Assets/Bake NEXON Font Assets")]
         public static void BakeNexonFontAssets()
         {
@@ -34,7 +42,13 @@ namespace JumJump.Editor
         [InitializeOnLoadMethod]
         private static void BakePendingRequest()
         {
-            var projectRoot = Directory.GetCurrentDirectory();
+            var projectRoot = Path.GetDirectoryName(Application.dataPath);
+            if (string.IsNullOrEmpty(projectRoot))
+            {
+                Debug.LogWarning($"[{nameof(NexonFontBakeTool)}] Failed to resolve project root.");
+                return;
+            }
+
             var requestPath = Path.Combine(projectRoot, RequestFileName);
             var runningPath = Path.Combine(projectRoot, RunningFileName);
 
@@ -42,6 +56,8 @@ namespace JumJump.Editor
             {
                 return;
             }
+
+            Debug.Log($"[{nameof(NexonFontBakeTool)}] Font bake request detected: {requestPath}");
 
             try
             {

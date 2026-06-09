@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace JumJump.Data
 {
-    public sealed partial class GameConfigData
+    [CreateAssetMenu(fileName = nameof(EffectConfigData), menuName = "JumJump/Effect Config Data")]
+    public sealed class EffectConfigData : ScriptableObject
     {
         public HayLandingFX HayLandingFXPrefab => _hayLandingFXPrefab;
         public string HayLandingFXPoolKey => _hayLandingFXPoolKey;

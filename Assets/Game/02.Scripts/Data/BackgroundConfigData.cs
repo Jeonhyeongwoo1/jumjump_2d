@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace JumJump.Data
 {
-    public sealed partial class GameConfigData
+    [CreateAssetMenu(fileName = nameof(BackgroundConfigData), menuName = "JumJump/Background Config Data")]
+    public sealed class BackgroundConfigData : ScriptableObject
     {
         public float BackgroundGradientMinHeight => _backgroundGradientMinHeight;
         public float BackgroundGradientMaxHeight => _backgroundGradientMaxHeight;

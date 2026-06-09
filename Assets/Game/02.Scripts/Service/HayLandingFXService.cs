@@ -10,14 +10,14 @@ namespace JumJump.Service
     public sealed class HayLandingFXService : IInitializable, IDisposable
     {
         private readonly IEventBus _eventBus;
-        private readonly GameConfigData _configData;
+        private readonly EffectConfigData _configData;
         private readonly PoolService _poolService;
         private Transform _poolRoot;
         private int _createdCount;
 
         public HayLandingFXService(
             IEventBus eventBus,
-            GameConfigData configData,
+            EffectConfigData configData,
             PoolService poolService)
         {
             _eventBus = eventBus;

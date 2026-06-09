@@ -38,7 +38,7 @@ namespace JumJump.Controller
             _gameCamera = gameCamera;
         }
 
-        public void CacheBaseSize(GameConfigData configData)
+        public void CacheBaseSize(PlatformConfigData configData)
         {
             if (_hasCachedBaseSize)
             {
@@ -183,7 +183,7 @@ namespace JumJump.Controller
             return visibleWidth / width >= Mathf.Clamp01(visibleRatio);
         }
 
-        private Vector2 ResolveBaseColliderSize(GameConfigData configData)
+        private Vector2 ResolveBaseColliderSize(PlatformConfigData configData)
         {
             var colliderSize = _landingCollider.size;
             if (colliderSize.x < GameConst.Platform.MinimumColliderDimension)

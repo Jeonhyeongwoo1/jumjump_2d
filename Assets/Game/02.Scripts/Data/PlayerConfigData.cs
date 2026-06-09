@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace JumJump.Data
 {
-    public sealed partial class GameConfigData
+    [CreateAssetMenu(fileName = nameof(PlayerConfigData), menuName = "JumJump/Player Config Data")]
+    public sealed class PlayerConfigData : ScriptableObject
     {
         public float PlayerJumpDuration => _playerJumpDuration;
         public float PlayerJumpHeight => _playerJumpHeight;

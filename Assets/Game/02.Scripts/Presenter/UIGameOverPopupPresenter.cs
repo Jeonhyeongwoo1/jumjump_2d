@@ -14,23 +14,23 @@ namespace JumJump.Presenter
     {
         private readonly IEventBus _eventBus;
         private readonly PopupService _popupService;
-        private readonly GameConfigData _configData;
+        private readonly ResourceConfigData _resourceConfigData;
 
         private UI_GameOverPopup _view;
         private CancellationTokenSource _countdownCts;
 
         public bool IsShowing => _view != null && _view.gameObject.activeSelf;
 
-        public UIGameOverPopupPresenter(IEventBus eventBus, PopupService popupService, GameConfigData configData)
+        public UIGameOverPopupPresenter(IEventBus eventBus, PopupService popupService, ResourceConfigData resourceConfigData)
         {
             _eventBus = eventBus;
             _popupService = popupService;
-            _configData = configData;
+            _resourceConfigData = resourceConfigData;
         }
 
         public void Show()
         {
-            var view = _popupService.Push<UI_GameOverPopup>(_configData.GameOverPopupAddressableKey);
+            var view = _popupService.Push<UI_GameOverPopup>(_resourceConfigData.GameOverPopupAddressableKey);
             if (view == null)
             {
                 return;

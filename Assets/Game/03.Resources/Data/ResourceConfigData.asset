@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38b2f7389e4b40ed8f384f1e2b7b52d1, type: 3}
+  m_Name: ResourceConfigData
+  m_EditorClassIdentifier: 
+  _preLoadLabel: PreLoad
+  _playerAddressableKey: Player
+  _platformAddressableKey: Platform
+  _gameSceneUiAddressableKey: UI_GameScene
+  _gameOverPopupAddressableKey: UI_GameOverPopup
+  _dynamicFontAddressableKey: UI_DynamicFont
+  _playerPoolKey: Player
+  _playerPrewarmCount: 1
+  _platformPoolKey: Platform
+  _platformPrewarmCount: 12
+  _dynamicFontPoolKey: UI_DynamicFont
+  _dynamicFontPrewarmCount: 5

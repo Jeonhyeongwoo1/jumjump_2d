@@ -1102,7 +1102,12 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
+  _resourceConfigData: {fileID: 11400000, guid: b4a03d3961794ad1881f394d87bd314a, type: 2}
   _gameConfigData: {fileID: 11400000, guid: f006c368b7594d159df654b86f350640, type: 2}
+  _playerConfigData: {fileID: 11400000, guid: 2da699d49db8456b8a8d101118660b1a, type: 2}
+  _platformConfigData: {fileID: 11400000, guid: e44e9740d9ef4f4197d9a3e2c086d61f, type: 2}
+  _backgroundConfigData: {fileID: 11400000, guid: 6832eebc31e54dd7ae9a11fb8b4fb41e, type: 2}
+  _effectConfigData: {fileID: 11400000, guid: e79fd455b3cd41cd80f715c23fab1db3, type: 2}
   _platformCheatData: {fileID: 11400000, guid: c66d90c5ae1747f19dc8b578a6df80c4, type: 2}
   _inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   _followCamera: {fileID: 134098829}

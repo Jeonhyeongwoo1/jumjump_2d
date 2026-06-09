@@ -14,7 +14,7 @@ namespace JumJump.Factory
         private readonly ResourceService _resourceService;
         private readonly PlayerRegistry _playerRegistry;
         private readonly IObjectResolver _resolver;
-        private readonly GameConfigData _configData;
+        private readonly ResourceConfigData _configData;
 
         private GameObject _playerPrefab;
         private bool _isReady;
@@ -24,7 +24,7 @@ namespace JumJump.Factory
             ResourceService resourceService,
             PlayerRegistry playerRegistry,
             IObjectResolver resolver,
-            GameConfigData configData)
+            ResourceConfigData configData)
         {
             _poolService = poolService;
             _resourceService = resourceService;

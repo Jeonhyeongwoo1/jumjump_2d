@@ -22,7 +22,7 @@ namespace JumJump.Service
         }
 
         private readonly IEventBus _eventBus;
-        private readonly GameConfigData _configData;
+        private readonly BackgroundConfigData _configData;
         private readonly BackgroundEnvironmentFactory _factory;
         private readonly UnityEngine.Camera _camera;
 
@@ -37,7 +37,7 @@ namespace JumJump.Service
 
         public BackgroundEnvironmentService(
             IEventBus eventBus,
-            GameConfigData configData,
+            BackgroundConfigData configData,
             BackgroundEnvironmentFactory factory,
             UnityEngine.Camera camera)
         {

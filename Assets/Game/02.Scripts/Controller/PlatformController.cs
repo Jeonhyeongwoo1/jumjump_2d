@@ -31,19 +31,22 @@ namespace JumJump.Controller
         private PlatformGimmickTimer _gimmickTimer;
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
-        private GameConfigData _configData;
+        private PlatformConfigData _platformConfigData;
+        private PlayerConfigData _playerConfigData;
 
         public void Bind(
             IEventBus eventBus,
             PlayerRegistry playerRegistry,
-            GameConfigData configData,
+            PlatformConfigData platformConfigData,
+            PlayerConfigData playerConfigData,
             UnityEngine.Camera gameCamera)
         {
             _eventBus = eventBus;
             _playerRegistry = playerRegistry;
-            _configData = configData;
+            _platformConfigData = platformConfigData;
+            _playerConfigData = playerConfigData;
             _visual.BindCamera(gameCamera);
-            _visual.CacheBaseSize(_configData);
+            _visual.CacheBaseSize(_platformConfigData);
         }
 
         public void InjectRelease(Action<PlatformController> onReleaseAction)
@@ -61,7 +64,7 @@ namespace JumJump.Controller
             _motion.Configure(position.x, targetX, moveSpeed);
             _gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
             _gimmickBehaviour = gimmickBehaviour;
-            _visual.CacheBaseSize(_configData);
+            _visual.CacheBaseSize(_platformConfigData);
             ResetForSpawn();
             PlaceRigidbody(position);
             _gimmickBehaviour?.Reset(this);
@@ -77,7 +80,7 @@ namespace JumJump.Controller
 
         public float GetStackedNextCenterY()
         {
-            return transform.position.y + ResolveStackHeight() + _configData.PlatformStackVerticalOffset;
+            return transform.position.y + ResolveStackHeight() + _platformConfigData.PlatformStackVerticalOffset;
         }
 
         public bool TryResolveLanding(Player player)
@@ -89,7 +92,7 @@ namespace JumJump.Controller
 
             var platformPosition = transform.position;
             var halfWidth = _visual.ResolveLandingHalfWidth();
-            if (!PlatformLandingResolver.IsPlayerWithinContact(player, platformPosition, halfWidth, _configData))
+            if (!PlatformLandingResolver.IsPlayerWithinContact(player, platformPosition, halfWidth, _playerConfigData))
             {
                 return false;
             }
@@ -118,7 +121,7 @@ namespace JumJump.Controller
             }
 
             var landingY = GetLandingSurfaceY();
-            if (!PlatformLandingResolver.CanResolveStackedLanding(player, landingY, _configData))
+            if (!PlatformLandingResolver.CanResolveStackedLanding(player, landingY, _playerConfigData))
             {
                 return false;
             }
@@ -268,14 +271,15 @@ namespace JumJump.Controller
                     transform.position,
                     _visual.ResolveLandingHalfWidth(),
                     landingY,
-                    _configData))
+                    _playerConfigData,
+                    _platformConfigData))
             {
                 ResolveSideHit(player);
             }
         }
 
-        private float GetLandingSurfaceY() => _visual.GetLandingSurfaceY(_configData.PlatformLandingHeight);
-        private float ResolveStackHeight() => _visual.ResolveStackHeight(_configData.PlatformHeight);
+        private float GetLandingSurfaceY() => _visual.GetLandingSurfaceY(_platformConfigData.PlatformLandingHeight);
+        private float ResolveStackHeight() => _visual.ResolveStackHeight(_platformConfigData.PlatformHeight);
 
         private void ResolveLanding(Player player, float landingY)
         {

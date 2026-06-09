@@ -45,12 +45,12 @@ namespace JumJump.Controller
         private Vector3 _landingSinkBasePosition;
         private float _landingSinkElapsed;
         private IEventBus _eventBus;
-        private GameConfigData _configData;
+        private PlayerConfigData _configData;
 
         private float NormalizedJumpTime => Mathf.Clamp01(_jumpElapsed / Mathf.Max(0.01f, _configData.PlayerJumpDuration));
 
         [Inject]
-        public void Construct(IEventBus eventBus, GameConfigData configData)
+        public void Construct(IEventBus eventBus, PlayerConfigData configData)
         {
             _eventBus = eventBus;
             _configData = configData;

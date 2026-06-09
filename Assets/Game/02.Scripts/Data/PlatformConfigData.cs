@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace JumJump.Data
 {
-    public sealed partial class GameConfigData
+    [CreateAssetMenu(fileName = nameof(PlatformConfigData), menuName = "JumJump/Platform Config Data")]
+    public sealed class PlatformConfigData : ScriptableObject
     {
         public float PlatformSpawnDistance => _platformSpawnDistance;
         public string PlatformNormalSpriteAddressableKey => _platformNormalSpriteAddressableKey;

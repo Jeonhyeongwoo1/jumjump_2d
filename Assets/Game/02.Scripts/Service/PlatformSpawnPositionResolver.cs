@@ -5,10 +5,10 @@ namespace JumJump.Service
 {
     public sealed class PlatformSpawnPositionResolver
     {
-        private readonly GameConfigData _configData;
+        private readonly PlatformConfigData _configData;
         private readonly UnityEngine.Camera _gameCamera;
 
-        public PlatformSpawnPositionResolver(GameConfigData configData, UnityEngine.Camera gameCamera)
+        public PlatformSpawnPositionResolver(PlatformConfigData configData, UnityEngine.Camera gameCamera)
         {
             _configData = configData;
             _gameCamera = gameCamera;

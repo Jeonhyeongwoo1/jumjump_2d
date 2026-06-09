@@ -30,7 +30,7 @@ namespace JumJump.Service
         private readonly PlatformGimmickBehaviourFactory _platformGimmickBehaviourFactory;
         private readonly PlatformGimmickSelector _gimmickSelector;
         private readonly PlatformSpawnPositionResolver _positionResolver;
-        private readonly GameConfigData _configData;
+        private readonly PlatformConfigData _configData;
 
         public PlatformSpawnService(
             IEventBus eventBus,
@@ -41,7 +41,7 @@ namespace JumJump.Service
             PlatformGimmickBehaviourFactory platformGimmickBehaviourFactory,
             PlatformGimmickSelector gimmickSelector,
             PlatformSpawnPositionResolver positionResolver,
-            GameConfigData configData)
+            PlatformConfigData configData)
         {
             _eventBus = eventBus;
             _platformFactory = platformFactory;

@@ -5,12 +5,12 @@ namespace JumJump.Service
 {
     public sealed class PlatformGimmickSelector
     {
-        private readonly GameConfigData _configData;
+        private readonly PlatformConfigData _configData;
         private readonly PlatformCheatData _platformCheatData;
         private readonly ScoreService _scoreService;
 
         public PlatformGimmickSelector(
-            GameConfigData configData,
+            PlatformConfigData configData,
             PlatformCheatData platformCheatData,
             ScoreService scoreService)
         {

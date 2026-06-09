@@ -6,6 +6,14 @@ namespace JumJump.Util
         {
             public const int SceneUISortingOrder = 100;
             public const int PopupSortingOrder = 1000;
+            public const int StartCountdownSeconds = 3;
+            public const float StartCountdownScaleFrom = 0.5f;
+            public const float StartCountdownScalePop = 1.45f;
+            public const float StartCountdownScaleSettle = 1f;
+            public const float StartCountdownScaleOut = 0.8f;
+            public const float StartCountdownPopInDuration = 0.12f;
+            public const float StartCountdownSettleDuration = 0.22f;
+            public const float StartCountdownFadeOutStart = 0.8f;
             public const int GameOverCountdownSeconds = 5;
         }
 

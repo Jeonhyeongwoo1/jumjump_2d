@@ -16,7 +16,12 @@ namespace JumJump
 {
     public sealed class GameSceneLifeScope : LifetimeScope
     {
+        [SerializeField] private ResourceConfigData _resourceConfigData;
         [SerializeField] private GameConfigData _gameConfigData;
+        [SerializeField] private PlayerConfigData _playerConfigData;
+        [SerializeField] private PlatformConfigData _platformConfigData;
+        [SerializeField] private BackgroundConfigData _backgroundConfigData;
+        [SerializeField] private EffectConfigData _effectConfigData;
         [SerializeField] private PlatformCheatData _platformCheatData;
         [SerializeField] private InputActionAsset _inputActions;
         [SerializeField] private VerticalFollowCamera _followCamera;
@@ -27,7 +32,12 @@ namespace JumJump
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterComponent(_dynamicFontRoot);
+            builder.RegisterInstance(_resourceConfigData);
             builder.RegisterInstance(_gameConfigData);
+            builder.RegisterInstance(_playerConfigData);
+            builder.RegisterInstance(_platformConfigData);
+            builder.RegisterInstance(_backgroundConfigData);
+            builder.RegisterInstance(_effectConfigData);
             builder.RegisterInstance(_platformCheatData);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);

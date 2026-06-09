@@ -27,7 +27,12 @@ namespace JumJump.Editor
         private const string PlatformPrefabPath = PrefabFolderPath + "/Platform.prefab";
         private const string PlayerPrefabPath = PrefabFolderPath + "/Player.prefab";
         private const string GameSceneUiPrefabPath = PrefabFolderPath + "/UI/UI_GameScene.prefab";
+        private const string ResourceConfigPath = DataFolderPath + "/ResourceConfigData.asset";
         private const string GameConfigPath = DataFolderPath + "/GameConfigData.asset";
+        private const string PlayerConfigPath = DataFolderPath + "/PlayerConfigData.asset";
+        private const string PlatformConfigPath = DataFolderPath + "/PlatformConfigData.asset";
+        private const string BackgroundConfigPath = DataFolderPath + "/BackgroundConfigData.asset";
+        private const string EffectConfigPath = DataFolderPath + "/EffectConfigData.asset";
         private const string PlatformCheatDataPath = DataFolderPath + "/PlatformCheatData.asset";
 
         [MenuItem("JumJump/Setup/Rebuild Game Scene")]
@@ -35,13 +40,18 @@ namespace JumJump.Editor
         {
             EnsureFolders();
 
-            var configData = EnsureGameConfigData();
+            var resourceConfigData = EnsureResourceConfigData();
+            var gameConfigData = EnsureGameConfigData();
+            var playerConfigData = EnsurePlayerConfigData();
+            var platformConfigData = EnsurePlatformConfigData();
+            var backgroundConfigData = EnsureBackgroundConfigData();
+            var effectConfigData = EnsureEffectConfigData();
             var platformCheatData = EnsurePlatformCheatData();
             CreatePlatformPrefab();
             CreatePlayerPrefab();
-            RegisterAddressable(PlatformPrefabPath, configData.PlatformAddressableKey, configData.PreLoadLabel);
-            RegisterAddressable(PlayerPrefabPath, configData.PlayerAddressableKey, configData.PreLoadLabel);
-            RegisterAddressable(GameSceneUiPrefabPath, configData.GameSceneUiAddressableKey, configData.PreLoadLabel);
+            RegisterAddressable(PlatformPrefabPath, resourceConfigData.PlatformAddressableKey, resourceConfigData.PreLoadLabel);
+            RegisterAddressable(PlayerPrefabPath, resourceConfigData.PlayerAddressableKey, resourceConfigData.PreLoadLabel);
+            RegisterAddressable(GameSceneUiPrefabPath, resourceConfigData.GameSceneUiAddressableKey, resourceConfigData.PreLoadLabel);
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             scene.name = "GameScene";
@@ -52,10 +62,16 @@ namespace JumJump.Editor
             var followCamera = camera.GetComponent<VerticalFollowCamera>();
 
             var lifeScope = systems.GetComponent<GameSceneLifeScope>();
-            SetObjectField(lifeScope, "_gameConfigData", configData);
+            SetObjectField(lifeScope, "_resourceConfigData", resourceConfigData);
+            SetObjectField(lifeScope, "_gameConfigData", gameConfigData);
+            SetObjectField(lifeScope, "_playerConfigData", playerConfigData);
+            SetObjectField(lifeScope, "_platformConfigData", platformConfigData);
+            SetObjectField(lifeScope, "_backgroundConfigData", backgroundConfigData);
+            SetObjectField(lifeScope, "_effectConfigData", effectConfigData);
             SetObjectField(lifeScope, "_platformCheatData", platformCheatData);
             SetObjectField(lifeScope, "_inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
             SetObjectField(lifeScope, "_followCamera", followCamera);
+            SetObjectField(lifeScope, "_gameCamera", camera.GetComponent<UnityEngine.Camera>());
             SetObjectField(lifeScope, "_platformPoolRoot", systems.transform.Find("PlatformPoolRoot"));
 
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -94,16 +110,46 @@ namespace JumJump.Editor
             CreateFolderIfMissing(ResourceFolderPath, "Data");
         }
 
+        private static ResourceConfigData EnsureResourceConfigData()
+        {
+            return EnsureConfigData<ResourceConfigData>(ResourceConfigPath);
+        }
+
         private static GameConfigData EnsureGameConfigData()
         {
-            var configData = AssetDatabase.LoadAssetAtPath<GameConfigData>(GameConfigPath);
+            return EnsureConfigData<GameConfigData>(GameConfigPath);
+        }
+
+        private static PlayerConfigData EnsurePlayerConfigData()
+        {
+            return EnsureConfigData<PlayerConfigData>(PlayerConfigPath);
+        }
+
+        private static PlatformConfigData EnsurePlatformConfigData()
+        {
+            return EnsureConfigData<PlatformConfigData>(PlatformConfigPath);
+        }
+
+        private static BackgroundConfigData EnsureBackgroundConfigData()
+        {
+            return EnsureConfigData<BackgroundConfigData>(BackgroundConfigPath);
+        }
+
+        private static EffectConfigData EnsureEffectConfigData()
+        {
+            return EnsureConfigData<EffectConfigData>(EffectConfigPath);
+        }
+
+        private static T EnsureConfigData<T>(string assetPath) where T : ScriptableObject
+        {
+            var configData = AssetDatabase.LoadAssetAtPath<T>(assetPath);
             if (configData != null)
             {
                 return configData;
             }
 
-            configData = ScriptableObject.CreateInstance<GameConfigData>();
-            AssetDatabase.CreateAsset(configData, GameConfigPath);
+            configData = ScriptableObject.CreateInstance<T>();
+            AssetDatabase.CreateAsset(configData, assetPath);
             AssetDatabase.SaveAssets();
             return configData;
         }

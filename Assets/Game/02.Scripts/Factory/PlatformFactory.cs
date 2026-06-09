@@ -14,7 +14,9 @@ namespace JumJump.Factory
         private readonly ResourceService _resourceService;
         private readonly IEventBus _eventBus;
         private readonly PlayerRegistry _playerRegistry;
-        private readonly GameConfigData _configData;
+        private readonly ResourceConfigData _resourceConfigData;
+        private readonly PlatformConfigData _platformConfigData;
+        private readonly PlayerConfigData _playerConfigData;
         private readonly UnityEngine.Camera _gameCamera;
 
         private PlatformController _platformPrefab;
@@ -26,7 +28,9 @@ namespace JumJump.Factory
             ResourceService resourceService,
             IEventBus eventBus,
             PlayerRegistry playerRegistry,
-            GameConfigData configData,
+            ResourceConfigData resourceConfigData,
+            PlatformConfigData platformConfigData,
+            PlayerConfigData playerConfigData,
             UnityEngine.Camera gameCamera)
         {
             _poolRoot = poolRoot;
@@ -34,7 +38,9 @@ namespace JumJump.Factory
             _resourceService = resourceService;
             _eventBus = eventBus;
             _playerRegistry = playerRegistry;
-            _configData = configData;
+            _resourceConfigData = resourceConfigData;
+            _platformConfigData = platformConfigData;
+            _playerConfigData = playerConfigData;
             _gameCamera = gameCamera;
         }
 
@@ -45,15 +51,15 @@ namespace JumJump.Factory
                 return;
             }
 
-            var prefab = _resourceService.GetPrefab(_configData.PlatformAddressableKey);
+            var prefab = _resourceService.GetPrefab(_resourceConfigData.PlatformAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(PlatformFactory)}] Failed to load platform prefab: {_configData.PlatformAddressableKey}");
+                Debug.LogError($"[{nameof(PlatformFactory)}] Failed to load platform prefab: {_resourceConfigData.PlatformAddressableKey}");
                 return;
             }
 
             _platformPrefab = prefab.GetComponent<PlatformController>();
-            _poolService.Register(_configData.PlatformPoolKey, Create, OnGet, OnRelease, _configData.PlatformPrewarmCount);
+            _poolService.Register(_resourceConfigData.PlatformPoolKey, Create, OnGet, OnRelease, _resourceConfigData.PlatformPrewarmCount);
             _isReady = true;
         }
 
@@ -65,7 +71,7 @@ namespace JumJump.Factory
                 return null;
             }
 
-            var platform = _poolService.Get<PlatformController>(_configData.PlatformPoolKey);
+            var platform = _poolService.Get<PlatformController>(_resourceConfigData.PlatformPoolKey);
             if (platform != null)
             {
                 platform.ApplySprite(ResolvePlatformSprite(type));
@@ -76,13 +82,13 @@ namespace JumJump.Factory
 
         public void Release(PlatformController platform)
         {
-            _poolService.Release(_configData.PlatformPoolKey, platform);
+            _poolService.Release(_resourceConfigData.PlatformPoolKey, platform);
         }
 
         private PlatformController Create()
         {
             var platform = Object.Instantiate(_platformPrefab, _poolRoot);
-            platform.Bind(_eventBus, _playerRegistry, _configData, _gameCamera);
+            platform.Bind(_eventBus, _playerRegistry, _platformConfigData, _playerConfigData, _gameCamera);
             platform.InjectRelease(Release);
             return platform;
         }
@@ -97,11 +103,11 @@ namespace JumJump.Factory
             switch (type)
             {
                 case PlatformGimmickType.Shield:
-                    return _configData.PlatformShieldSpriteAddressableKey;
+                    return _platformConfigData.PlatformShieldSpriteAddressableKey;
                 case PlatformGimmickType.Rocket:
-                    return _configData.PlatformRocketSpriteAddressableKey;
+                    return _platformConfigData.PlatformRocketSpriteAddressableKey;
                 default:
-                    return _configData.PlatformNormalSpriteAddressableKey;
+                    return _platformConfigData.PlatformNormalSpriteAddressableKey;
             }
         }
 

@@ -10,11 +10,11 @@ namespace JumJump.Service.GameFlowState
         public GameStateType StateType => GameStateType.Playing;
 
         private readonly IEventBus _eventBus;
-        private readonly GameConfigData _configData;
+        private readonly PlayerConfigData _configData;
         private bool _isGameOverPending;
         private float _gameOverDelayElapsed;
 
-        public PlayingGameFlowState(IEventBus eventBus, GameConfigData configData)
+        public PlayingGameFlowState(IEventBus eventBus, PlayerConfigData configData)
         {
             _eventBus = eventBus;
             _configData = configData;

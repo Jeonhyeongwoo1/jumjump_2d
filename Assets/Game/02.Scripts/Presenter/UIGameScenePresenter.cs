@@ -30,6 +30,7 @@ namespace JumJump.Presenter
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _view.SetScore(_scoreService.Score);
             _view.SetGold(0);
+            _view.HideStartCountdown();
         }
 
         public void Unbind()
@@ -46,6 +47,26 @@ namespace JumJump.Presenter
         private void OnScoreChanged(in ScoreChangedEvent ev)
         {
             _view?.SetScore(ev.Score);
+        }
+
+        public void ShowStartCountdown(int seconds)
+        {
+            _view?.ShowStartCountdown(seconds);
+        }
+
+        public void SetStartCountdown(int seconds)
+        {
+            _view?.SetStartCountdown(seconds);
+        }
+
+        public void SetStartCountdownProgress(float normalized)
+        {
+            _view?.SetStartCountdownProgress(normalized);
+        }
+
+        public void HideStartCountdown()
+        {
+            _view?.HideStartCountdown();
         }
     }
 }
