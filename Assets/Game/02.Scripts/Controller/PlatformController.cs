@@ -217,10 +217,10 @@ namespace JumJump.Controller
         internal void RevealPlatformVisual()
         {
             ResetGimmickRuntime();
-            _visual.ApplySprite(_configData.ResolvePlatformSprite(_gimmickType));
             SetPlatformAlpha(1f);
         }
 
+        internal void ApplySprite(Sprite sprite) => _visual.ApplySprite(sprite);
         internal void SetPlatformAlpha(float alpha) => _visual.SetAlpha(alpha);
         internal bool IsFullyInGameCameraView() => _visual.IsFullyInGameCameraView();
         internal bool IsMostlyInGameCameraView(float visibleRatio) => _visual.IsMostlyInGameCameraView(visibleRatio);
@@ -231,7 +231,6 @@ namespace JumJump.Controller
             _isActive = true;
             _isInteractionEnabled = true;
             ResetGimmickRuntime();
-            _visual.ApplySprite(_configData.ResolvePlatformSprite(_gimmickType));
             SetPlatformAlpha(1f);
             _visual.ApplyScale(1f, 1f);
             _visual.SetLandingColliderEnabled(true);

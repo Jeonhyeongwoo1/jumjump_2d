@@ -5,6 +5,9 @@ namespace JumJump.Data
     public sealed partial class GameConfigData
     {
         public float PlatformSpawnDistance => _platformSpawnDistance;
+        public string PlatformNormalSpriteAddressableKey => _platformNormalSpriteAddressableKey;
+        public string PlatformShieldSpriteAddressableKey => _platformShieldSpriteAddressableKey;
+        public string PlatformRocketSpriteAddressableKey => _platformRocketSpriteAddressableKey;
         public int PlatformFirstSpawnDirection => _platformFirstSpawnDirection;
         public bool PlatformAlternatesSpawnSide => _platformAlternatesSpawnSide;
         public int PlatformRandomSpawnSideStartCount => _platformRandomSpawnSideStartCount;
@@ -27,6 +30,9 @@ namespace JumJump.Data
         public float PlatformCleanupBelowDistance => _platformCleanupBelowDistance;
 
         [Header("Platform")]
+        [SerializeField] private string _platformNormalSpriteAddressableKey = "Platform.sprite";
+        [SerializeField] private string _platformShieldSpriteAddressableKey = "Box_Shield.sprite";
+        [SerializeField] private string _platformRocketSpriteAddressableKey = "Box_Rocket.sprite";
         [SerializeField] private float _platformSpawnDistance = 2.2f;
         [SerializeField] private int _platformFirstSpawnDirection = 1;
         [SerializeField] private bool _platformAlternatesSpawnSide = true;
@@ -46,8 +52,6 @@ namespace JumJump.Data
             new PlatformGimmickSetting(PlatformGimmickType.Shield, 12, 0.12f, 1f, 1f),
             new PlatformGimmickSetting(PlatformGimmickType.Rocket, 25, 0.08f, 1f, 1f)
         };
-        [SerializeField] private Sprite _platformShieldSprite;
-        [SerializeField] private Sprite _platformRocketSprite;
         [SerializeField] private float _platformBaseMoveSpeed = 0.45f;
         [SerializeField] private float _platformBaseMoveSpeedMinScale = 1f;
         [SerializeField] private float _platformBaseMoveSpeedMaxScale = 1.15f;
@@ -62,18 +66,5 @@ namespace JumJump.Data
         [SerializeField] private int _platformRocketBoostExtraStackCount = 2;
         [SerializeField] private float _platformSideHitTopMargin = 0.35f;
         [SerializeField] private float _platformCleanupBelowDistance = 2f;
-
-        public Sprite ResolvePlatformSprite(PlatformGimmickType type)
-        {
-            switch (type)
-            {
-                case PlatformGimmickType.Shield:
-                    return _platformShieldSprite;
-                case PlatformGimmickType.Rocket:
-                    return _platformRocketSprite;
-                default:
-                    return null;
-            }
-        }
     }
 }

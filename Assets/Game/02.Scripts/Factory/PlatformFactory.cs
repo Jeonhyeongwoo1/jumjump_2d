@@ -57,7 +57,7 @@ namespace JumJump.Factory
             _isReady = true;
         }
 
-        public PlatformController Get()
+        public PlatformController Get(PlatformGimmickType type)
         {
             if (!_isReady)
             {
@@ -65,7 +65,13 @@ namespace JumJump.Factory
                 return null;
             }
 
-            return _poolService.Get<PlatformController>(_configData.PlatformPoolKey);
+            var platform = _poolService.Get<PlatformController>(_configData.PlatformPoolKey);
+            if (platform != null)
+            {
+                platform.ApplySprite(ResolvePlatformSprite(type));
+            }
+
+            return platform;
         }
 
         public void Release(PlatformController platform)
@@ -79,6 +85,24 @@ namespace JumJump.Factory
             platform.Bind(_eventBus, _playerRegistry, _configData, _gameCamera);
             platform.InjectRelease(Release);
             return platform;
+        }
+
+        private Sprite ResolvePlatformSprite(PlatformGimmickType type)
+        {
+            return _resourceService.GetAsset<Sprite>(ResolvePlatformSpriteKey(type));
+        }
+
+        private string ResolvePlatformSpriteKey(PlatformGimmickType type)
+        {
+            switch (type)
+            {
+                case PlatformGimmickType.Shield:
+                    return _configData.PlatformShieldSpriteAddressableKey;
+                case PlatformGimmickType.Rocket:
+                    return _configData.PlatformRocketSpriteAddressableKey;
+                default:
+                    return _configData.PlatformNormalSpriteAddressableKey;
+            }
         }
 
         private void OnGet(PlatformController platform)

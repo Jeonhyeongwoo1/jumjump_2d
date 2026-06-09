@@ -7,6 +7,10 @@
 - Required `[SerializeField]` component references are assumed to be wired by prefab/scene setup. Do not silently recover them with `GetComponent`, `GetComponentInChildren`, or `GetComponentInParent`.
 - Do not add fallback code like `if (_animator == null) _animator = GetComponent<Animator>();` for required serialized components. Missing prefab wiring should fail visibly instead of being hidden.
 - Keep null checks only for runtime state that can legitimately be absent, such as the current player before spawn, an optional camera, nullable event payload objects, or pooled objects returned from a factory.
+- Do not add private fields just to cache cheap synchronous lookups or values that are already owned by another service/factory. Extra fields increase state surface and can drift from the real source of truth.
+- Cache values only when there is a clear reason: expensive computation, repeated hot-path access with measurable cost, stable lifetime ownership, or fail-fast validation at a setup boundary such as `Warmup`.
+- Keep cached resources in the class that owns resource selection/lifetime. For example, if `PlatformFactory` chooses a platform sprite from `ResourceService`, `PlatformController` should receive the sprite to apply and should not store normal/shield/rocket resource fields.
+- Before adding a cache field, prefer a small resolver method that reads from the existing source of truth at the point of use. If caching is still chosen, the code should make ownership, invalidation, and update timing obvious.
 - Before finishing code changes, search touched files for required-dependency null checks and fallback component lookups, then remove them unless the dependency is explicitly optional.
 
 Recommended check:

@@ -217,14 +217,14 @@ namespace JumJump.Service
             float moveSpeed,
             PlatformGimmickSetting gimmickSetting)
         {
-            var platform = _platformFactory.Get();
+            var gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
+            var platform = _platformFactory.Get(gimmickType);
             if (platform == null)
             {
                 Debug.LogError($"[{nameof(PlatformSpawnService)}] Failed to get platform from factory.");
                 return null;
             }
 
-            var gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
             var gimmickBehaviour = _platformGimmickBehaviourFactory.Get(gimmickType);
             platform.Initialize(
                 position,

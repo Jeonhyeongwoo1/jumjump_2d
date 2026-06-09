@@ -119,6 +119,9 @@ MonoBehaviour:
   _cameraMinimumY: 0
   _cameraSmoothSpeed: 8
   _cameraVerticalOffset: 1.2
+  _platformNormalSpriteAddressableKey: Platform.sprite
+  _platformShieldSpriteAddressableKey: Box_Shield.sprite
+  _platformRocketSpriteAddressableKey: Box_Rocket.sprite
   _platformSpawnDistance: 3
   _platformFirstSpawnDirection: 1
   _platformAlternatesSpawnSide: 1
@@ -216,8 +219,6 @@ MonoBehaviour:
     _maxMoveSpeedScale: 1
     _minGhostFadeDuration: 0
     _maxGhostFadeDuration: 0
-  _platformShieldSprite: {fileID: 21300000, guid: be3b49f6ddee07c42a62563356fdce33, type: 3}
-  _platformRocketSprite: {fileID: 21300000, guid: 4faa0814967cee2439ea465fdc607126, type: 3}
   _platformBaseMoveSpeed: 2.3
   _platformBaseMoveSpeedMinScale: 1
   _platformBaseMoveSpeedMaxScale: 1.15
