@@ -25,16 +25,22 @@ namespace JumJump.Controller
         [SerializeField] private Animator _animator;
 
         private bool _isJumping;
+        private bool _hasShield;
+        private bool _isRocketBoosting;
         private bool _isGameOverKnockback;
         private bool _isGameOverFreezeLocked;
         private float _jumpElapsed;
+        private float _rocketBoostElapsed;
         private int _isJumpingAnimatorParameterHash;
         private int _isDeadAnimatorParameterHash;
         private int _idleAnimatorStateHash;
         private PlayerStateType _state;
+        private PlatformController _rocketTargetPlatform;
         private Vector3 _spawnPosition;
         private Vector3 _groundPosition;
         private Vector3 _previousPosition;
+        private Vector3 _rocketBoostStartGroundPosition;
+        private Vector3 _rocketBoostTargetGroundPosition;
         private Vector3 _defaultLocalScale;
         private Vector3 _landingSinkBasePosition;
         private float _landingSinkElapsed;
@@ -53,9 +59,13 @@ namespace JumJump.Controller
         public void ResetForRound()
         {
             _isJumping = false;
+            _hasShield = false;
+            _isRocketBoosting = false;
             _isGameOverKnockback = false;
             _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
+            _rocketBoostElapsed = 0f;
+            _rocketTargetPlatform = null;
             _groundPosition = _spawnPosition;
             _previousPosition = _groundPosition;
             ApplyFacingScale(1f);
@@ -76,9 +86,41 @@ namespace JumJump.Controller
             PlaceAtGroundPosition(landingPosition, true);
         }
 
+        public void GrantShield()
+        {
+            _hasShield = true;
+        }
+
+        public bool TryConsumeShield()
+        {
+            if (!_hasShield)
+            {
+                return false;
+            }
+
+            _hasShield = false;
+            return true;
+        }
+
+        public void StartRocketBoost(PlatformController targetPlatform, Vector3 targetGroundPosition)
+        {
+            _isJumping = false;
+            _isRocketBoosting = true;
+            _isGameOverKnockback = false;
+            _isGameOverFreezeLocked = false;
+            _jumpElapsed = 0f;
+            _rocketBoostElapsed = 0f;
+            _rocketTargetPlatform = targetPlatform;
+            _rocketBoostStartGroundPosition = _groundPosition;
+            _rocketBoostTargetGroundPosition = targetGroundPosition;
+            _previousPosition = _rocketBoostStartGroundPosition;
+            ResetLandingSink();
+            ChangeState(PlayerStateType.Jump);
+        }
+
         private void OnPlayerJumpRequested(in PlayerJumpRequestedEvent ev)
         {
-            if (_isJumping || _isGameOverKnockback)
+            if (_isJumping || _isRocketBoosting || _isGameOverKnockback)
             {
                 return;
             }
@@ -101,6 +143,7 @@ namespace JumJump.Controller
         private void PlaceAtGroundPosition(Vector3 groundPosition, bool playLandingSink)
         {
             _isJumping = false;
+            _isRocketBoosting = false;
             _isGameOverKnockback = false;
             _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
@@ -181,6 +224,7 @@ namespace JumJump.Controller
             }
 
             _isJumping = false;
+            _isRocketBoosting = false;
             _isGameOverKnockback = true;
             _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
@@ -283,6 +327,40 @@ namespace JumJump.Controller
             PlaceRigidbody(position);
         }
 
+        private void UpdateRocketBoost(float deltaTime)
+        {
+            var duration = Mathf.Max(0.01f, _configData.PlayerRocketBoostDuration);
+            _rocketBoostElapsed += deltaTime;
+            var normalizedTime = Mathf.Clamp01(_rocketBoostElapsed / duration);
+            var easedTime = Mathf.SmoothStep(0f, 1f, normalizedTime);
+            var nextPosition = Vector3.Lerp(
+                _rocketBoostStartGroundPosition,
+                _rocketBoostTargetGroundPosition,
+                easedTime);
+
+            _previousPosition = transform.position;
+            _groundPosition = nextPosition;
+            PlaceRigidbody(nextPosition);
+
+            if (normalizedTime < 1f)
+            {
+                return;
+            }
+
+            var targetPlatform = _rocketTargetPlatform;
+            var targetGroundPosition = _rocketBoostTargetGroundPosition;
+            _isRocketBoosting = false;
+            _rocketTargetPlatform = null;
+
+            if (targetPlatform == null)
+            {
+                PlaceAtGroundPosition(targetGroundPosition, true);
+                return;
+            }
+
+            LandOnPlatform(targetPlatform, targetGroundPosition);
+        }
+
         private void Start()
         {
             _eventBus.Subscribe<PlayerJumpRequestedEvent>(OnPlayerJumpRequested);
@@ -297,6 +375,12 @@ namespace JumJump.Controller
 
         private void FixedUpdate()
         {
+            if (_isRocketBoosting)
+            {
+                UpdateRocketBoost(Time.fixedDeltaTime);
+                return;
+            }
+
             if (_isGameOverKnockback)
             {
                 FreezeGameOverKnockbackIfDescending();

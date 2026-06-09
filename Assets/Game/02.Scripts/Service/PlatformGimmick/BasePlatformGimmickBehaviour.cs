@@ -22,7 +22,7 @@ namespace JumJump.Service.PlatformGimmick
         {
         }
 
-        public virtual void OnLanding(PlatformController platform)
+        public virtual void OnLanding(PlatformController platform, Player player)
         {
         }
 

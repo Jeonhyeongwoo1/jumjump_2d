@@ -12,6 +12,7 @@ namespace JumJump.Controller
     public sealed class PlatformController : MonoBehaviour
     {
         public float CenterY => transform.position.y;
+        public PlatformGimmickType GimmickType => _gimmickType;
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
@@ -24,6 +25,7 @@ namespace JumJump.Controller
         private bool _shouldTickGimmick;
         private Action<PlatformController> _onReleaseAction;
         private IPlatformGimmickBehaviour _gimmickBehaviour;
+        private PlatformGimmickType _gimmickType;
         private PlatformVisual _visual;
         private PlatformMotion _motion;
         private PlatformGimmickTimer _gimmickTimer;
@@ -57,6 +59,7 @@ namespace JumJump.Controller
             PlatformGimmickSetting gimmickSetting)
         {
             _motion.Configure(position.x, targetX, moveSpeed);
+            _gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
             _gimmickBehaviour = gimmickBehaviour;
             _visual.CacheBaseSize(_configData);
             ResetForSpawn();
@@ -214,6 +217,7 @@ namespace JumJump.Controller
         internal void RevealPlatformVisual()
         {
             ResetGimmickRuntime();
+            _visual.ApplySprite(_configData.ResolvePlatformSprite(_gimmickType));
             SetPlatformAlpha(1f);
         }
 
@@ -227,6 +231,7 @@ namespace JumJump.Controller
             _isActive = true;
             _isInteractionEnabled = true;
             ResetGimmickRuntime();
+            _visual.ApplySprite(_configData.ResolvePlatformSprite(_gimmickType));
             SetPlatformAlpha(1f);
             _visual.ApplyScale(1f, 1f);
             _visual.SetLandingColliderEnabled(true);
@@ -277,22 +282,27 @@ namespace JumJump.Controller
         {
             _isResolved = true;
             _motion.Stop();
-            _gimmickBehaviour?.OnLanding(this);
+            _gimmickBehaviour?.OnLanding(this, player);
             SetLandingColliderTrigger(false);
             PlayJumpAnimation();
-            player.LandOnPlatform(this, BuildLandingPosition(player, landingY));
+            player.LandOnPlatform(this, BuildLandingPosition(player, landingY, false));
         }
 
         private void ResolveStackedLanding(Player player, float landingY)
         {
-            _gimmickBehaviour?.OnLanding(this);
+            _gimmickBehaviour?.OnLanding(this, player);
             PlayJumpAnimation();
-            player.LandOnStackedPlatform(this, BuildLandingPosition(player, landingY));
+            player.LandOnStackedPlatform(this, BuildLandingPosition(player, landingY, false));
         }
 
-        private Vector3 BuildLandingPosition(Player player, float landingY)
+        private Vector3 BuildLandingPosition(Player player, float landingY, bool snapToPlatformX)
         {
             var landingPosition = player.Position;
+            if (snapToPlatformX)
+            {
+                landingPosition.x = transform.position.x;
+            }
+
             landingPosition.y = landingY + player.GroundContactOffset;
             return landingPosition;
         }
@@ -301,6 +311,12 @@ namespace JumJump.Controller
 
         private void ResolveSideHit(Player player)
         {
+            if (player.TryConsumeShield())
+            {
+                ResolveShieldLanding(player);
+                return;
+            }
+
             _isResolved = true;
             _motion.Stop();
             StopGimmickTick();
@@ -309,6 +325,17 @@ namespace JumJump.Controller
                 transform.position,
                 _motion.MoveDirectionX);
             _eventBus.Publish(new PlayerMissedLandingEvent(knockbackDirection));
+        }
+
+        private void ResolveShieldLanding(Player player)
+        {
+            var landingY = GetLandingSurfaceY();
+            _isResolved = true;
+            _motion.Stop();
+            _gimmickBehaviour?.OnLanding(this, player);
+            SetLandingColliderTrigger(false);
+            PlayJumpAnimation();
+            player.LandOnPlatform(this, BuildLandingPosition(player, landingY, true));
         }
 
         private void OnTriggerEnter2D(Collider2D other) => TryResolveLanding(ResolvePlayerFromCollider(other));

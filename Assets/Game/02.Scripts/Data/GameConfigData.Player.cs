@@ -16,6 +16,7 @@ namespace JumJump.Data
         public float PlayerGameOverKnockbackUpwardSpeed => _playerGameOverKnockbackUpwardSpeed;
         public float PlayerGameOverKnockbackGravityScale => _playerGameOverKnockbackGravityScale;
         public float PlayerGameOverPopupDelay => _playerGameOverPopupDelay;
+        public float PlayerRocketBoostDuration => _playerRocketBoostDuration;
 
         [Header("Player")]
         [SerializeField] private float _playerJumpDuration = 0.48f;
@@ -32,5 +33,8 @@ namespace JumJump.Data
         [SerializeField] private float _playerGameOverKnockbackUpwardSpeed = 2f;
         [SerializeField] private float _playerGameOverKnockbackGravityScale = 2.2f;
         [SerializeField] private float _playerGameOverPopupDelay = 1f;
+
+        [Header("Rocket")]
+        [SerializeField] private float _playerRocketBoostDuration = 0.45f;
     }
 }

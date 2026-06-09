@@ -11,6 +11,6 @@ namespace JumJump.Interface
         void Reset(PlatformController platform);
         void Apply(PlatformController platform, PlatformGimmickSetting setting);
         void Tick(PlatformController platform, float deltaTime);
-        void OnLanding(PlatformController platform);
+        void OnLanding(PlatformController platform, Player player);
     }
 }

@@ -23,6 +23,8 @@ namespace JumJump
         SmallAndFast,
         Ghost,
         Double,
-        Reveal
+        Reveal,
+        Shield,
+        Rocket
     }
 }

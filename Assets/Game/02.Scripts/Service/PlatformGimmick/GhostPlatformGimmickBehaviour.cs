@@ -46,7 +46,7 @@ namespace JumJump.Service.PlatformGimmick
             platform.StopGimmickTick();
         }
 
-        public override void OnLanding(PlatformController platform)
+        public override void OnLanding(PlatformController platform, Player player)
         {
             platform.RevealPlatformVisual();
         }

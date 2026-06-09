@@ -13,6 +13,7 @@ namespace JumJump.Controller
         private Animator _animator;
         private UnityEngine.Camera _gameCamera;
         private int _jumpAnimationStateHash;
+        private Sprite _baseSprite;
         private Vector3 _baseLocalScale;
         private Vector3 _baseSpriteLocalScale;
         private Color _baseSpriteColor;
@@ -45,6 +46,7 @@ namespace JumJump.Controller
             }
 
             _baseLocalScale = _landingCollider.transform.localScale;
+            _baseSprite = _spriteRenderer.sprite;
             _baseSpriteLocalScale = _spriteRenderer.transform.localScale;
             _baseSpriteColor = _spriteRenderer.color;
             _baseSpriteSize = _spriteRenderer.size;
@@ -87,6 +89,11 @@ namespace JumJump.Controller
                 _baseColliderSize.x * colliderWidthScale,
                 _baseColliderSize.y * colliderHeightScale);
             _landingCollider.isTrigger = true;
+        }
+
+        public void ApplySprite(Sprite sprite)
+        {
+            _spriteRenderer.sprite = sprite == null ? _baseSprite : sprite;
         }
 
         public void SetAlpha(float alpha)

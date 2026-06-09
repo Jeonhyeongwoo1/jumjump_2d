@@ -113,7 +113,7 @@ namespace JumJump.Service
         {
             return setting != null &&
                    setting.Type != PlatformGimmickType.Normal &&
-                   _scoreService.Score > setting.StartScore;
+                   _scoreService.Score >= setting.StartScore;
         }
     }
 }

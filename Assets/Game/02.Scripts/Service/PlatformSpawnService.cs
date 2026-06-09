@@ -247,6 +247,39 @@ namespace JumJump.Service
             return ResolveBaseMoveSpeed();
         }
 
+        private void SpawnRocketDestinationPlatform(PlatformController sourcePlatform)
+        {
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn rocket destination platform.");
+                return;
+            }
+
+            var normalSetting = _gimmickSelector.Find(PlatformGimmickType.Normal);
+            var targetY = ResolveRocketDestinationCenterY(sourcePlatform);
+            var targetX = player.Position.x;
+            var destinationPlatform = SpawnPlatform(
+                new Vector3(targetX, targetY, 0f),
+                targetX,
+                0f,
+                normalSetting);
+            if (destinationPlatform == null)
+            {
+                return;
+            }
+
+            player.StartRocketBoost(destinationPlatform, destinationPlatform.GetLandingPosition(player));
+        }
+
+        private float ResolveRocketDestinationCenterY(PlatformController sourcePlatform)
+        {
+            var targetY = sourcePlatform.GetStackedNextCenterY();
+            var stepHeight = Mathf.Max(0f, _configData.PlatformHeight + _configData.PlatformStackVerticalOffset);
+            var extraStackCount = Mathf.Max(0, _configData.PlatformRocketBoostExtraStackCount);
+            return targetY + stepHeight * extraStackCount;
+        }
+
         private void ClearPendingDoubleSpawn()
         {
             _hasPendingDoublePreSpawn = false;
@@ -313,6 +346,13 @@ namespace JumJump.Service
             }
 
             _platformRegistry.ReleaseBelow(ev.Platform.CenterY - Mathf.Max(0f, _configData.PlatformCleanupBelowDistance));
+            if (ev.Platform.GimmickType == PlatformGimmickType.Rocket)
+            {
+                ClearPendingDoubleSpawn();
+                SpawnRocketDestinationPlatform(ev.Platform);
+                return;
+            }
+
             if (ev.Platform == _doubleSourcePlatform)
             {
                 SpawnPendingDoublePlatform();
