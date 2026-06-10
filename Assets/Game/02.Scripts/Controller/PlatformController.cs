@@ -12,6 +12,8 @@ namespace JumJump.Controller
     public sealed class PlatformController : MonoBehaviour
     {
         public float CenterY => transform.position.y;
+        public float BottomY => _visual.GetBottomY();
+        public float TopY => _visual.GetTopY();
         public PlatformGimmickType GimmickType => _gimmickType;
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -153,6 +155,28 @@ namespace JumJump.Controller
             _onReleaseAction?.Invoke(this);
         }
 
+        public void ArchiveForResultView()
+        {
+            if (_state == PlatformStateType.Released || _state == PlatformStateType.Archived)
+            {
+                return;
+            }
+
+            PrepareResultViewState();
+            gameObject.SetActive(false);
+        }
+
+        public void ShowForResultView()
+        {
+            if (_state == PlatformStateType.Released)
+            {
+                return;
+            }
+
+            PrepareResultViewState();
+            gameObject.SetActive(true);
+        }
+
         private void Awake()
         {
             _visual.BindComponents(_spriteRenderer, _landingCollider, _animator);
@@ -242,14 +266,18 @@ namespace JumJump.Controller
             _gimmickTimer.Stop();
         }
 
-        internal void DelayMove(float delay)
+        internal void DelayMove(float delay, bool hideWhileWaiting = false)
         {
-            if (!_entryDelay.Start(delay))
+            if (!_entryDelay.Start(delay, hideWhileWaiting))
             {
                 return;
             }
 
             _motion.Pause();
+            if (hideWhileWaiting)
+            {
+                SetPlatformAlpha(0f);
+            }
         }
 
         internal void RevealPlatformVisual()
@@ -280,6 +308,18 @@ namespace JumJump.Controller
         {
             _gimmickTimer.Reset();
             _shouldTickGimmick = false;
+        }
+
+        private void PrepareResultViewState()
+        {
+            _state = PlatformStateType.Archived;
+            _motion.Stop();
+            _entryDelay.Reset();
+            _shieldBlockedDissolve.Reset();
+            _gimmickBehaviour?.Reset(this);
+            ResetGimmickRuntime();
+            SetInteractionEnabled(false);
+            SetPlatformAlpha(1f);
         }
 
         private void PlaceRigidbody(Vector3 position)
@@ -425,12 +465,18 @@ namespace JumJump.Controller
                 return false;
             }
 
+            var wasHidden = _entryDelay.HideWhileWaiting;
             if (_entryDelay.Tick(deltaTime))
             {
                 return true;
             }
 
             _motion.Resume();
+            if (wasHidden)
+            {
+                SetPlatformAlpha(1f);
+            }
+
             return false;
         }
 

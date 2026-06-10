@@ -15,6 +15,7 @@ namespace JumJump.Util
             public const float StartCountdownSettleDuration = 0.22f;
             public const float StartCountdownFadeOutStart = 0.8f;
             public const int GameOverCountdownSeconds = 5;
+            public const float GameOverResultViewRestartDelay = 2f;
         }
 
         public static class Platform
@@ -29,6 +30,17 @@ namespace JumJump.Util
             public const float RocketPathPlayerLeadEntryRatio = 0.45f;
             public const float RocketPathFinalArrivalLeadEntryRatio = 0.25f;
             public const float RocketPathEntryDurationScale = 1.35f;
+        }
+
+        public static class Score
+        {
+            public const float RocketBoostIncrementInterval = 0.06f;
+        }
+
+        public static class Camera
+        {
+            public const float GameOverOverviewBottomViewportY = 0f;
+            public const float GameOverOverviewTopViewportY = 0.9f;
         }
 
         public static class Environment

@@ -20,6 +20,7 @@ namespace JumJump
         Moving,
         Resolved,
         ShieldBlockedDissolving,
+        Archived,
         Released
     }
 

@@ -83,6 +83,20 @@ namespace JumJump.Event
         }
     }
 
+    public struct RocketBoostPlatformsPassedEvent
+    {
+        public int PlatformCount { get; private set; }
+
+        public RocketBoostPlatformsPassedEvent(int platformCount)
+        {
+            PlatformCount = platformCount;
+        }
+    }
+
+    public struct GameOverResultViewRequestedEvent
+    {
+    }
+
     public struct PlatformsResetEvent
     {
         public PlatformController StartPlatform { get; private set; }

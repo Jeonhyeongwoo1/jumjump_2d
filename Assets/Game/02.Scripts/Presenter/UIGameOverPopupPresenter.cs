@@ -18,6 +18,7 @@ namespace JumJump.Presenter
 
         private UI_GameOverPopup _view;
         private CancellationTokenSource _countdownCts;
+        private CancellationTokenSource _resultRestartCts;
 
         public bool IsShowing => _view != null && _view.gameObject.activeSelf;
 
@@ -47,6 +48,7 @@ namespace JumJump.Presenter
         public void Hide()
         {
             DisposeCountdown();
+            DisposeResultRestart();
             _view?.RemoveEvents();
             _popupService.PopAll();
             _view = null;
@@ -71,27 +73,52 @@ namespace JumJump.Presenter
 
             if (!ct.IsCancellationRequested)
             {
-                ClosePopup();
+                ClosePopup(true);
             }
         }
 
         private void OnAdClicked()
         {
-            ClosePopup();
+            ClosePopup(false);
             _eventBus.Publish(new RestartRequestedEvent());
         }
 
         private void OnCloseClicked()
         {
-            ClosePopup();
+            ClosePopup(true);
         }
 
-        private void ClosePopup()
+        private void ClosePopup(bool requestResultView)
         {
             DisposeCountdown();
             _view?.RemoveEvents();
             _popupService.Pop();
             _view = null;
+
+            if (requestResultView)
+            {
+                _eventBus.Publish(new GameOverResultViewRequestedEvent());
+                ScheduleResultRestart();
+            }
+        }
+
+        private void ScheduleResultRestart()
+        {
+            DisposeResultRestart();
+            _resultRestartCts = new CancellationTokenSource();
+            RunResultRestartAsync(_resultRestartCts.Token).Forget();
+        }
+
+        private async UniTask RunResultRestartAsync(CancellationToken ct)
+        {
+            var isCanceled = await UniTask.Delay(
+                TimeSpan.FromSeconds(GameConst.UI.GameOverResultViewRestartDelay),
+                cancellationToken: ct).SuppressCancellationThrow();
+
+            if (!isCanceled)
+            {
+                _eventBus.Publish(new RestartRequestedEvent());
+            }
         }
 
         private void DisposeCountdown()
@@ -104,6 +131,18 @@ namespace JumJump.Presenter
             _countdownCts.Cancel();
             _countdownCts.Dispose();
             _countdownCts = null;
+        }
+
+        private void DisposeResultRestart()
+        {
+            if (_resultRestartCts == null)
+            {
+                return;
+            }
+
+            _resultRestartCts.Cancel();
+            _resultRestartCts.Dispose();
+            _resultRestartCts = null;
         }
     }
 }

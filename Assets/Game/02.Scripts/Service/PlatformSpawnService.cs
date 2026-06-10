@@ -293,6 +293,7 @@ namespace JumJump.Service
             var platformY = sourcePlatform.GetStackedNextCenterY();
             var entryDuration = ResolveRocketPathEntryDuration(platformCount);
             var destinationPlatform = default(PlatformController);
+            var passedPlatformCount = 0;
             for (var i = 0; i < platformCount; i++)
             {
                 var spawnSide = _positionResolver.ResolveSpawnSide(_nextPlatformIndex);
@@ -309,9 +310,10 @@ namespace JumJump.Service
                 }
 
                 platformY = platform.GetStackedNextCenterY();
-                platform.DelayMove(ResolveRocketPathEntryDelay(i, platformCount, entryDuration));
+                platform.DelayMove(ResolveRocketPathEntryDelay(i, platformCount, entryDuration), true);
                 if (i < platformCount - 1)
                 {
+                    passedPlatformCount++;
                     platform.SetInteractionEnabled(false);
                     continue;
                 }
@@ -326,6 +328,7 @@ namespace JumJump.Service
 
             var destinationPosition = destinationPlatform.GetLandingPosition(player);
             destinationPosition.x = targetX;
+            _eventBus.Publish(new RocketBoostPlatformsPassedEvent(passedPlatformCount));
             player.StartRocketBoost(destinationPlatform, destinationPosition);
         }
 
@@ -422,7 +425,7 @@ namespace JumJump.Service
                 return;
             }
 
-            _platformRegistry.ReleaseBelow(ev.Platform.CenterY - Mathf.Max(0f, _configData.PlatformCleanupBelowDistance));
+            _platformRegistry.ArchiveBelow(ResolveCleanupBelowY(ev.Platform));
             if (ev.Platform.GimmickType == PlatformGimmickType.Rocket)
             {
                 ClearPendingDoubleSpawn();
@@ -439,6 +442,13 @@ namespace JumJump.Service
             }
 
             SpawnIncomingPlatformAtY(ev.Platform.GetStackedNextCenterY());
+        }
+
+        private float ResolveCleanupBelowY(PlatformController landedPlatform)
+        {
+            var cleanupDistance = Mathf.Max(0f, _configData.PlatformCleanupBelowDistance);
+            var platformStep = Mathf.Max(0f, landedPlatform.GetStackedNextCenterY() - landedPlatform.CenterY);
+            return landedPlatform.CenterY - cleanupDistance - platformStep;
         }
 
         private void OnPlatformShieldBlocked(in PlatformShieldBlockedEvent ev)

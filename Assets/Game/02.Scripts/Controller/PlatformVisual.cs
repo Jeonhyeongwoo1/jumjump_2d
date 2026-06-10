@@ -118,6 +118,10 @@ namespace JumJump.Controller
             _landingCollider.isTrigger = isTrigger;
         }
 
+        public float GetBottomY() => _spriteRenderer.bounds.min.y;
+
+        public float GetTopY() => _spriteRenderer.bounds.max.y;
+
         public float ResolveLandingHalfWidth()
         {
             return Mathf.Max(GameConst.Platform.MinimumColliderDimension, _landingCollider.bounds.size.x * 0.5f);
