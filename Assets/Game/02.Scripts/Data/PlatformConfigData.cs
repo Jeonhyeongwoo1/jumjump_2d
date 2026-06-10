@@ -26,7 +26,6 @@ namespace JumJump.Data
         public float PlatformDoubleActivationDelay => _platformDoubleActivationDelay;
         public float PlatformDoublePreviewAlpha => _platformDoublePreviewAlpha;
         public float PlatformDoubleFollowUpMoveSpeedScale => _platformDoubleFollowUpMoveSpeedScale;
-        public int PlatformRocketBoostExtraStackCount => _platformRocketBoostExtraStackCount;
         public float PlatformSideHitTopMargin => _platformSideHitTopMargin;
         public float PlatformCleanupBelowDistance => _platformCleanupBelowDistance;
 
@@ -64,7 +63,6 @@ namespace JumJump.Data
         [SerializeField] private float _platformDoubleActivationDelay = 0.18f;
         [SerializeField] private float _platformDoublePreviewAlpha = 0.35f;
         [SerializeField] private float _platformDoubleFollowUpMoveSpeedScale = 0.8f;
-        [SerializeField] private int _platformRocketBoostExtraStackCount = 2;
         [SerializeField] private float _platformSideHitTopMargin = 0.35f;
         [SerializeField] private float _platformCleanupBelowDistance = 2f;
     }

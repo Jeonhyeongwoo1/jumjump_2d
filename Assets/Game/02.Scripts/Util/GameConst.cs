@@ -23,6 +23,9 @@ namespace JumJump.Util
             public const float MinimumWidthScale = 0.01f;
             public const float MoveTargetEpsilon = 0.001f;
             public const float CleanupYMargin = 0.05f;
+            public const float ShieldBlockedFadeDuration = 0.45f;
+            public const float ShieldBlockedRetreatDistance = 0.7f;
+            public const float ShieldBlockedRespawnDelay = 1f;
         }
 
         public static class Environment
@@ -37,6 +40,11 @@ namespace JumJump.Util
             public const float RiseHeight = 0.8f;
             public const float SpawnOffsetX = 0.5f;
             public const float SpawnOffsetY = 0.3f;
+        }
+
+        public static class Player
+        {
+            public const float ShieldBreakAnimationDuration = 0.52f;
         }
     }
 }

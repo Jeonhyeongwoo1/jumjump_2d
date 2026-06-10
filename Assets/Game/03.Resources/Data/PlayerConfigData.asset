@@ -24,4 +24,4 @@ MonoBehaviour:
   _playerGameOverKnockbackUpwardSpeed: 3.5
   _playerGameOverKnockbackGravityScale: 1
   _playerGameOverPopupDelay: 1
-  _playerRocketBoostDuration: 0.45
+  _playerRocketBoostDuration: 1.4

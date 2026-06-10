@@ -1,6 +1,7 @@
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 
@@ -23,17 +24,24 @@ namespace JumJump.Controller
         [SerializeField] private Collider2D _bodyCollider;
         [SerializeField] private Rigidbody2D _rigidbody;
         [SerializeField] private Animator _animator;
+        [SerializeField] private GameObject _shieldVisualRoot;
+        [SerializeField] private SpriteRenderer _shieldSpriteRenderer;
+        [SerializeField] private Animator _shieldAnimator;
 
         private bool _isJumping;
         private bool _hasShield;
+        private bool _isShieldBreakAnimating;
         private bool _isRocketBoosting;
         private bool _isGameOverKnockback;
         private bool _isGameOverFreezeLocked;
         private float _jumpElapsed;
+        private float _shieldBreakElapsed;
         private float _rocketBoostElapsed;
         private int _isJumpingAnimatorParameterHash;
         private int _isDeadAnimatorParameterHash;
         private int _idleAnimatorStateHash;
+        private int _shieldIdleAnimatorStateHash;
+        private int _shieldBreakAnimatorStateHash;
         private PlayerStateType _state;
         private PlatformController _rocketTargetPlatform;
         private Vector3 _spawnPosition;
@@ -43,6 +51,7 @@ namespace JumJump.Controller
         private Vector3 _rocketBoostTargetGroundPosition;
         private Vector3 _defaultLocalScale;
         private Vector3 _landingSinkBasePosition;
+        private Sprite _shieldIdleSprite;
         private float _landingSinkElapsed;
         private IEventBus _eventBus;
         private PlayerConfigData _configData;
@@ -60,10 +69,12 @@ namespace JumJump.Controller
         {
             _isJumping = false;
             _hasShield = false;
+            _isShieldBreakAnimating = false;
             _isRocketBoosting = false;
             _isGameOverKnockback = false;
             _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
+            _shieldBreakElapsed = 0f;
             _rocketBoostElapsed = 0f;
             _rocketTargetPlatform = null;
             _groundPosition = _spawnPosition;
@@ -71,6 +82,7 @@ namespace JumJump.Controller
             ApplyFacingScale(1f);
             PlaceRigidbody(_groundPosition);
             ResetLandingSink();
+            HideShieldVisual();
             ChangeState(PlayerStateType.Idle);
         }
 
@@ -89,9 +101,10 @@ namespace JumJump.Controller
         public void GrantShield()
         {
             _hasShield = true;
+            ShowShieldVisual();
         }
 
-        public bool TryConsumeShield()
+        public bool TryBlockWithShield()
         {
             if (!_hasShield)
             {
@@ -99,6 +112,8 @@ namespace JumJump.Controller
             }
 
             _hasShield = false;
+            PlayShieldBreakAnimation();
+            ReturnToShieldBlockStartPosition();
             return true;
         }
 
@@ -303,6 +318,62 @@ namespace JumJump.Controller
             PlaceRigidbody(_landingSinkBasePosition);
         }
 
+        private void ShowShieldVisual()
+        {
+            _isShieldBreakAnimating = false;
+            _shieldBreakElapsed = 0f;
+            _shieldSpriteRenderer.sprite = _shieldIdleSprite;
+            _shieldVisualRoot.SetActive(true);
+            _shieldAnimator.Play(_shieldIdleAnimatorStateHash, 0, 0f);
+        }
+
+        private void PlayShieldBreakAnimation()
+        {
+            _isShieldBreakAnimating = true;
+            _shieldBreakElapsed = 0f;
+            _shieldVisualRoot.SetActive(true);
+            _shieldAnimator.Play(_shieldBreakAnimatorStateHash, 0, 0f);
+        }
+
+        private void ReturnToShieldBlockStartPosition()
+        {
+            var startPosition = _groundPosition;
+            _isJumping = false;
+            _isRocketBoosting = false;
+            _isGameOverKnockback = false;
+            _isGameOverFreezeLocked = false;
+            _jumpElapsed = 0f;
+            _rocketBoostElapsed = 0f;
+            _rocketTargetPlatform = null;
+            _groundPosition = startPosition;
+            _previousPosition = startPosition;
+            PlaceRigidbody(startPosition);
+            ResetLandingSink();
+            ChangeState(PlayerStateType.Idle);
+        }
+
+        private void HideShieldVisual()
+        {
+            _isShieldBreakAnimating = false;
+            _shieldBreakElapsed = 0f;
+            _shieldSpriteRenderer.sprite = _shieldIdleSprite;
+            _shieldVisualRoot.SetActive(false);
+        }
+
+        private void UpdateShieldBreakAnimation(float deltaTime)
+        {
+            if (!_isShieldBreakAnimating)
+            {
+                return;
+            }
+
+            _shieldBreakElapsed += deltaTime;
+            if (_shieldBreakElapsed >= GameConst.Player.ShieldBreakAnimationDuration)
+            {
+                HideShieldVisual();
+            }
+        }
+
         private void UpdateLandingSink(float deltaTime)
         {
             var duration = Mathf.Max(0.01f, _configData.PlayerLandingSinkDuration);
@@ -409,6 +480,9 @@ namespace JumJump.Controller
             _isJumpingAnimatorParameterHash = Animator.StringToHash("IsJumping");
             _isDeadAnimatorParameterHash = Animator.StringToHash("IsDead");
             _idleAnimatorStateHash = Animator.StringToHash("Idle");
+            _shieldIdleAnimatorStateHash = Animator.StringToHash("Empty");
+            _shieldBreakAnimatorStateHash = Animator.StringToHash("Destory");
+            _shieldIdleSprite = _shieldSpriteRenderer.sprite;
             _defaultLocalScale = transform.localScale;
             _spawnPosition = transform.position;
             _groundPosition = _spawnPosition;
@@ -416,12 +490,14 @@ namespace JumJump.Controller
             _landingSinkElapsed = float.PositiveInfinity;
             _previousPosition = _spawnPosition;
             _state = PlayerStateType.Idle;
+            HideShieldVisual();
             ApplyAnimatorState();
         }
 
         private void LateUpdate()
         {
             UpdateLandingSink(Time.deltaTime);
+            UpdateShieldBreakAnimation(Time.deltaTime);
         }
 
         private void OnTriggerEnter2D(Collider2D other)

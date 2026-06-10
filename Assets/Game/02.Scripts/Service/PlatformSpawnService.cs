@@ -5,6 +5,7 @@ using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -18,8 +19,10 @@ namespace JumJump.Service
         private float _pendingDoubleActivationElapsed;
         private float _pendingDoubleActivationDelay;
         private float _pendingDoublePlatformY;
+        private float _pendingShieldBlockedRespawnElapsed;
         private bool _hasPendingDoublePreSpawn;
         private bool _hasPendingDoubleActivation;
+        private bool _hasPendingShieldBlockedRespawn;
         private PlatformController _doubleSourcePlatform;
         private PlatformController _prefetchedDoublePlatform;
         private readonly IEventBus _eventBus;
@@ -31,6 +34,8 @@ namespace JumJump.Service
         private readonly PlatformGimmickSelector _gimmickSelector;
         private readonly PlatformSpawnPositionResolver _positionResolver;
         private readonly PlatformConfigData _configData;
+        private readonly GameConfigData _gameConfigData;
+        private readonly PlayerConfigData _playerConfigData;
 
         public PlatformSpawnService(
             IEventBus eventBus,
@@ -41,7 +46,9 @@ namespace JumJump.Service
             PlatformGimmickBehaviourFactory platformGimmickBehaviourFactory,
             PlatformGimmickSelector gimmickSelector,
             PlatformSpawnPositionResolver positionResolver,
-            PlatformConfigData configData)
+            PlatformConfigData configData,
+            GameConfigData gameConfigData,
+            PlayerConfigData playerConfigData)
         {
             _eventBus = eventBus;
             _platformFactory = platformFactory;
@@ -52,6 +59,8 @@ namespace JumJump.Service
             _gimmickSelector = gimmickSelector;
             _positionResolver = positionResolver;
             _configData = configData;
+            _gameConfigData = gameConfigData;
+            _playerConfigData = playerConfigData;
         }
 
         public void Initialize()
@@ -59,6 +68,7 @@ namespace JumJump.Service
             _eventBus.Subscribe<GameResourcesReadyEvent>(OnResourcesReady);
             _eventBus.Subscribe<GameStartedEvent>(OnGameStarted);
             _eventBus.Subscribe<PlayerLandedEvent>(OnPlayerLanded);
+            _eventBus.Subscribe<PlatformShieldBlockedEvent>(OnPlatformShieldBlocked);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
         }
 
@@ -66,6 +76,7 @@ namespace JumJump.Service
         {
             TickPendingDoublePreSpawn();
             TickPendingDoubleActivation();
+            TickPendingShieldBlockedRespawn();
         }
 
         public void Dispose()
@@ -73,6 +84,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
             _eventBus.Unsubscribe<GameStartedEvent>(OnGameStarted);
             _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
+            _eventBus.Unsubscribe<PlatformShieldBlockedEvent>(OnPlatformShieldBlocked);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
         }
 
@@ -120,7 +132,26 @@ namespace JumJump.Service
             _platformRegistry.Clear();
             _nextPlatformIndex = 0;
             ClearPendingDoubleSpawn();
+            ClearPendingShieldBlockedRespawn();
             player.ResetForRound();
+        }
+
+        private void TickPendingShieldBlockedRespawn()
+        {
+            if (!_hasPendingShieldBlockedRespawn)
+            {
+                return;
+            }
+
+            _pendingShieldBlockedRespawnElapsed += Time.deltaTime;
+            if (_pendingShieldBlockedRespawnElapsed < GameConst.Platform.ShieldBlockedRespawnDelay)
+            {
+                return;
+            }
+
+            _hasPendingShieldBlockedRespawn = false;
+            _pendingShieldBlockedRespawnElapsed = 0f;
+            SpawnIncomingPlatform();
         }
 
         private PlatformController SpawnIncomingPlatform()
@@ -247,37 +278,66 @@ namespace JumJump.Service
             return ResolveBaseMoveSpeed();
         }
 
-        private void SpawnRocketDestinationPlatform(PlatformController sourcePlatform)
+        private void SpawnRocketPathPlatforms(PlatformController sourcePlatform)
         {
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn rocket destination platform.");
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn rocket path platforms.");
                 return;
             }
 
             var normalSetting = _gimmickSelector.Find(PlatformGimmickType.Normal);
-            var targetY = ResolveRocketDestinationCenterY(sourcePlatform);
             var targetX = player.Position.x;
-            var destinationPlatform = SpawnPlatform(
-                new Vector3(targetX, targetY, 0f),
-                targetX,
-                0f,
-                normalSetting);
+            var platformCount = Mathf.Max(1, _gameConfigData.RocketBoostPlatformCount);
+            var platformY = sourcePlatform.GetStackedNextCenterY();
+            var entryDuration = ResolveRocketPathEntryDuration(platformCount);
+            var destinationPlatform = default(PlatformController);
+            for (var i = 0; i < platformCount; i++)
+            {
+                var spawnSide = _positionResolver.ResolveSpawnSide(_nextPlatformIndex);
+                var spawnX = _positionResolver.ResolveDoublePreviewSpawnX(targetX, spawnSide);
+                var moveSpeed = ResolveRocketPathMoveSpeed(spawnX, targetX, entryDuration);
+                var platform = SpawnPlatform(
+                    new Vector3(spawnX, platformY, 0f),
+                    targetX,
+                    moveSpeed,
+                    normalSetting);
+                if (platform == null)
+                {
+                    continue;
+                }
+
+                platformY = platform.GetStackedNextCenterY();
+                platform.DelayMove(entryDuration * i);
+                if (i < platformCount - 1)
+                {
+                    platform.SetInteractionEnabled(false);
+                    continue;
+                }
+
+                destinationPlatform = platform;
+            }
+
             if (destinationPlatform == null)
             {
                 return;
             }
 
-            player.StartRocketBoost(destinationPlatform, destinationPlatform.GetLandingPosition(player));
+            var destinationPosition = destinationPlatform.GetLandingPosition(player);
+            destinationPosition.x = targetX;
+            player.StartRocketBoost(destinationPlatform, destinationPosition);
         }
 
-        private float ResolveRocketDestinationCenterY(PlatformController sourcePlatform)
+        private float ResolveRocketPathEntryDuration(int platformCount)
         {
-            var targetY = sourcePlatform.GetStackedNextCenterY();
-            var stepHeight = Mathf.Max(0f, _configData.PlatformHeight + _configData.PlatformStackVerticalOffset);
-            var extraStackCount = Mathf.Max(0, _configData.PlatformRocketBoostExtraStackCount);
-            return targetY + stepHeight * extraStackCount;
+            var duration = Mathf.Max(0.01f, _playerConfigData.PlayerRocketBoostDuration);
+            return duration / Mathf.Max(1, platformCount);
+        }
+
+        private float ResolveRocketPathMoveSpeed(float spawnX, float targetX, float duration)
+        {
+            return Mathf.Abs(spawnX - targetX) / Mathf.Max(0.01f, duration);
         }
 
         private void ClearPendingDoubleSpawn()
@@ -291,6 +351,12 @@ namespace JumJump.Service
             _hasPendingDoubleActivation = false;
             _doubleSourcePlatform = null;
             _prefetchedDoublePlatform = null;
+        }
+
+        private void ClearPendingShieldBlockedRespawn()
+        {
+            _hasPendingShieldBlockedRespawn = false;
+            _pendingShieldBlockedRespawnElapsed = 0f;
         }
 
         private void SchedulePrefetchedDoubleActivation()
@@ -349,7 +415,7 @@ namespace JumJump.Service
             if (ev.Platform.GimmickType == PlatformGimmickType.Rocket)
             {
                 ClearPendingDoubleSpawn();
-                SpawnRocketDestinationPlatform(ev.Platform);
+                SpawnRocketPathPlatforms(ev.Platform);
                 return;
             }
 
@@ -362,6 +428,19 @@ namespace JumJump.Service
             }
 
             SpawnIncomingPlatformAtY(ev.Platform.GetStackedNextCenterY());
+        }
+
+        private void OnPlatformShieldBlocked(in PlatformShieldBlockedEvent ev)
+        {
+            if (ev.Platform == null)
+            {
+                return;
+            }
+
+            _platformRegistry.Unregister(ev.Platform);
+            ClearPendingDoubleSpawn();
+            _pendingShieldBlockedRespawnElapsed = 0f;
+            _hasPendingShieldBlockedRespawn = true;
         }
 
         private void OnResourcesReady(in GameResourcesReadyEvent ev)

@@ -73,6 +73,16 @@ namespace JumJump.Event
         }
     }
 
+    public struct PlatformShieldBlockedEvent
+    {
+        public PlatformController Platform { get; private set; }
+
+        public PlatformShieldBlockedEvent(PlatformController platform)
+        {
+            Platform = platform;
+        }
+    }
+
     public struct PlatformsResetEvent
     {
         public PlatformController StartPlatform { get; private set; }

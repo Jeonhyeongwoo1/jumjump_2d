@@ -123,6 +123,5 @@ MonoBehaviour:
   _platformDoubleActivationDelay: 0
   _platformDoublePreviewAlpha: 0.35
   _platformDoubleFollowUpMoveSpeedScale: 0.8
-  _platformRocketBoostExtraStackCount: 2
   _platformSideHitTopMargin: 0.35
   _platformCleanupBelowDistance: 2

@@ -53,6 +53,9 @@ MonoBehaviour:
   _bodyCollider: {fileID: 5848641528617622365}
   _rigidbody: {fileID: 254102305136680538}
   _animator: {fileID: 2143644201591714277}
+  _shieldVisualRoot: {fileID: 1436670134180710008}
+  _shieldSpriteRenderer: {fileID: 6789844307173957653}
+  _shieldAnimator: {fileID: 6695486725703270792}
 --- !u!95 &2143644201591714277
 Animator:
   serializedVersion: 7

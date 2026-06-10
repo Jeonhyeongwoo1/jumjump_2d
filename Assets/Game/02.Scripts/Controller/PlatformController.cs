@@ -23,12 +23,19 @@ namespace JumJump.Controller
         private bool _isActive;
         private bool _isInteractionEnabled;
         private bool _shouldTickGimmick;
+        private bool _isShieldBlockedDissolving;
+        private bool _hasPendingEntryDelay;
+        private float _shieldBlockedDissolveElapsed;
+        private float _entryDelayElapsed;
+        private float _entryDelayDuration;
         private Action<PlatformController> _onReleaseAction;
         private IPlatformGimmickBehaviour _gimmickBehaviour;
         private PlatformGimmickType _gimmickType;
         private PlatformVisual _visual;
         private PlatformMotion _motion;
         private PlatformGimmickTimer _gimmickTimer;
+        private Vector3 _shieldBlockedDissolveStartPosition;
+        private Vector3 _shieldBlockedDissolveTargetPosition;
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
         private PlatformConfigData _platformConfigData;
@@ -100,6 +107,12 @@ namespace JumJump.Controller
             var landingY = GetLandingSurfaceY();
             if (PlatformLandingResolver.CanResolveLanding(player, landingY))
             {
+                if (player.TryBlockWithShield())
+                {
+                    ResolveShieldBlock(player);
+                    return true;
+                }
+
                 ResolveLanding(player, landingY);
                 return true;
             }
@@ -138,6 +151,8 @@ namespace JumJump.Controller
             }
 
             _isActive = false;
+            _isShieldBlockedDissolving = false;
+            _hasPendingEntryDelay = false;
             _gimmickBehaviour?.Reset(this);
             ResetGimmickRuntime();
             gameObject.SetActive(false);
@@ -151,7 +166,23 @@ namespace JumJump.Controller
 
         private void FixedUpdate()
         {
-            if (!_isActive || _isResolved)
+            if (!_isActive)
+            {
+                return;
+            }
+
+            if (_isShieldBlockedDissolving)
+            {
+                TickShieldBlockedDissolve(Time.fixedDeltaTime);
+                return;
+            }
+
+            if (TickPendingEntryDelay(Time.fixedDeltaTime))
+            {
+                return;
+            }
+
+            if (_isResolved)
             {
                 return;
             }
@@ -217,6 +248,19 @@ namespace JumJump.Controller
             _gimmickTimer.Stop();
         }
 
+        internal void DelayMove(float delay)
+        {
+            if (delay <= 0f)
+            {
+                return;
+            }
+
+            _motion.Pause();
+            _entryDelayElapsed = 0f;
+            _entryDelayDuration = delay;
+            _hasPendingEntryDelay = true;
+        }
+
         internal void RevealPlatformVisual()
         {
             ResetGimmickRuntime();
@@ -233,6 +277,11 @@ namespace JumJump.Controller
             _isResolved = false;
             _isActive = true;
             _isInteractionEnabled = true;
+            _isShieldBlockedDissolving = false;
+            _hasPendingEntryDelay = false;
+            _shieldBlockedDissolveElapsed = 0f;
+            _entryDelayElapsed = 0f;
+            _entryDelayDuration = 0f;
             ResetGimmickRuntime();
             SetPlatformAlpha(1f);
             _visual.ApplyScale(1f, 1f);
@@ -314,9 +363,9 @@ namespace JumJump.Controller
 
         private void ResolveSideHit(Player player)
         {
-            if (player.TryConsumeShield())
+            if (player.TryBlockWithShield())
             {
-                ResolveShieldLanding(player);
+                ResolveShieldBlock(player);
                 return;
             }
 
@@ -330,15 +379,83 @@ namespace JumJump.Controller
             _eventBus.Publish(new PlayerMissedLandingEvent(knockbackDirection));
         }
 
-        private void ResolveShieldLanding(Player player)
+        private void ResolveShieldBlock(Player player)
         {
-            var landingY = GetLandingSurfaceY();
             _isResolved = true;
             _motion.Stop();
-            _gimmickBehaviour?.OnLanding(this, player);
-            SetLandingColliderTrigger(false);
-            PlayJumpAnimation();
-            player.LandOnPlatform(this, BuildLandingPosition(player, landingY, true));
+            StopGimmickTick();
+            SetInteractionEnabled(false);
+            StartShieldBlockedDissolve(player);
+        }
+
+        private void StartShieldBlockedDissolve(Player player)
+        {
+            _isShieldBlockedDissolving = true;
+            _shieldBlockedDissolveElapsed = 0f;
+            _shieldBlockedDissolveStartPosition = transform.position;
+            var retreatDirectionX = ResolveShieldBlockedRetreatDirectionX(player);
+            _shieldBlockedDissolveTargetPosition = _shieldBlockedDissolveStartPosition +
+                                                   new Vector3(
+                                                       retreatDirectionX * GameConst.Platform.ShieldBlockedRetreatDistance,
+                                                       0f,
+                                                       0f);
+        }
+
+        private void TickShieldBlockedDissolve(float deltaTime)
+        {
+            _shieldBlockedDissolveElapsed += deltaTime;
+            var normalizedTime = Mathf.Clamp01(
+                _shieldBlockedDissolveElapsed / Mathf.Max(0.01f, GameConst.Platform.ShieldBlockedFadeDuration));
+            var easedTime = Mathf.SmoothStep(0f, 1f, normalizedTime);
+            var nextPosition = Vector3.Lerp(
+                _shieldBlockedDissolveStartPosition,
+                _shieldBlockedDissolveTargetPosition,
+                easedTime);
+            _rigidbody.MovePosition(nextPosition);
+            transform.position = nextPosition;
+            SetPlatformAlpha(1f - easedTime);
+
+            if (normalizedTime >= 1f)
+            {
+                _eventBus.Publish(new PlatformShieldBlockedEvent(this));
+                Release();
+            }
+        }
+
+        private float ResolveShieldBlockedRetreatDirectionX(Player player)
+        {
+            var directionX = -_motion.MoveDirectionX;
+            if (Mathf.Approximately(directionX, 0f))
+            {
+                directionX = Mathf.Sign(transform.position.x - player.Position.x);
+            }
+
+            if (Mathf.Approximately(directionX, 0f))
+            {
+                directionX = 1f;
+            }
+
+            return directionX;
+        }
+
+        private bool TickPendingEntryDelay(float deltaTime)
+        {
+            if (!_hasPendingEntryDelay)
+            {
+                return false;
+            }
+
+            _entryDelayElapsed += deltaTime;
+            if (_entryDelayElapsed < _entryDelayDuration)
+            {
+                return true;
+            }
+
+            _hasPendingEntryDelay = false;
+            _entryDelayElapsed = 0f;
+            _entryDelayDuration = 0f;
+            _motion.Resume();
+            return false;
         }
 
         private void OnTriggerEnter2D(Collider2D other) => TryResolveLanding(ResolvePlayerFromCollider(other));

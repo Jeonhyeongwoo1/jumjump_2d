@@ -11,6 +11,7 @@ namespace JumJump.Data
         public float CameraMinimumY => _cameraMinimumY;
         public float CameraSmoothSpeed => _cameraSmoothSpeed;
         public float CameraVerticalOffset => _cameraVerticalOffset;
+        public int RocketBoostPlatformCount => _rocketBoostPlatformCount;
 
         [Header("Score")]
         [SerializeField] private int _scorePerLanding = 1;
@@ -25,5 +26,8 @@ namespace JumJump.Data
         [SerializeField] private float _cameraMinimumY;
         [SerializeField] private float _cameraSmoothSpeed = 8f;
         [SerializeField] private float _cameraVerticalOffset = 1.2f;
+
+        [Header("Rocket")]
+        [SerializeField] private int _rocketBoostPlatformCount = 10;
     }
 }

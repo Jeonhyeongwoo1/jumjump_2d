@@ -74,7 +74,14 @@ namespace JumJump.Factory
             var platform = _poolService.Get<PlatformController>(_resourceConfigData.PlatformPoolKey);
             if (platform != null)
             {
-                platform.ApplySprite(ResolvePlatformSprite(type));
+                var spriteKey = ResolvePlatformSpriteKey(type);
+                var sprite = _resourceService.GetAsset<Sprite>(spriteKey);
+                if (sprite == null)
+                {
+                    Debug.LogError($"[{nameof(PlatformFactory)}] Failed to resolve platform sprite. Type: {type}, Key: {spriteKey}");
+                }
+
+                platform.ApplySprite(sprite);
             }
 
             return platform;
@@ -91,11 +98,6 @@ namespace JumJump.Factory
             platform.Bind(_eventBus, _playerRegistry, _platformConfigData, _playerConfigData, _gameCamera);
             platform.InjectRelease(Release);
             return platform;
-        }
-
-        private Sprite ResolvePlatformSprite(PlatformGimmickType type)
-        {
-            return _resourceService.GetAsset<Sprite>(ResolvePlatformSpriteKey(type));
         }
 
         private string ResolvePlatformSpriteKey(PlatformGimmickType type)

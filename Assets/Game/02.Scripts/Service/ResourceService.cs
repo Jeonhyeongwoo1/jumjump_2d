@@ -7,25 +7,26 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using Object = UnityEngine.Object;
 
 namespace JumJump.Service
 {
-    /// <summary>
-    /// Addressables 에셋 로딩/해제의 단일 접근점.
-    /// 동일 키의 핸들을 캐싱해 중복 로드를 막고, Dispose 시 모든 핸들을 일괄 해제한다.
-    /// </summary>
     public sealed class ResourceService : IDisposable
     {
-        private readonly Dictionary<string, UnityEngine.Object> _assets = new Dictionary<string, UnityEngine.Object>(16);
-        private readonly Dictionary<string, AsyncOperationHandle> _handles = new Dictionary<string, AsyncOperationHandle>(16);
+        private const string SpriteKeySuffix = ".sprite";
+
+        private readonly Dictionary<string, Object> _resources = new Dictionary<string, Object>(32);
+        private readonly Dictionary<string, AsyncOperationHandle> _handles = new Dictionary<string, AsyncOperationHandle>(32);
+        private readonly Dictionary<string, HashSet<string>> _labelResourceKeys = new Dictionary<string, HashSet<string>>(4);
+        private readonly Dictionary<string, HashSet<string>> _resourceLabels = new Dictionary<string, HashSet<string>>(32);
+        private readonly HashSet<string> _loadedLabels = new HashSet<string>();
         private readonly ResourceConfigData _configData;
-        private readonly PlatformConfigData _platformConfigData;
+
         private bool _isPreLoaded;
 
-        public ResourceService(ResourceConfigData configData, PlatformConfigData platformConfigData)
+        public ResourceService(ResourceConfigData configData)
         {
             _configData = configData;
-            _platformConfigData = platformConfigData;
         }
 
         public GameObject GetPrefab(string key)
@@ -33,9 +34,10 @@ namespace JumJump.Service
             return GetAsset<GameObject>(key);
         }
 
-        public T GetAsset<T>(string key) where T : UnityEngine.Object
+        public T GetAsset<T>(string key) where T : Object
         {
-            if (string.IsNullOrEmpty(key))
+            var resolvedKey = ResolveKey<T>(key);
+            if (string.IsNullOrWhiteSpace(resolvedKey))
             {
                 Debug.LogError($"[{nameof(ResourceService)}] Empty resource key.");
                 return null;
@@ -43,22 +45,23 @@ namespace JumJump.Service
 
             if (!_isPreLoaded)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Asset requested before preload: {key}");
+                Debug.LogError($"[{nameof(ResourceService)}] Asset requested before preload: {resolvedKey}");
                 return null;
             }
 
-            if (!_assets.TryGetValue(key, out var asset))
+            if (!_resources.TryGetValue(resolvedKey, out var resource))
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Preloaded asset not found: {key}");
+                Debug.LogError($"[{nameof(ResourceService)}] Preloaded asset not found: {resolvedKey}");
                 return null;
             }
 
-            if (asset is T typedAsset)
+            if (resource is T typedResource)
             {
-                return typedAsset;
+                return typedResource;
             }
 
-            Debug.LogError($"[{nameof(ResourceService)}] Preloaded asset type mismatch: {key} ({asset.GetType().Name})");
+            Debug.LogError(
+                $"[{nameof(ResourceService)}] Preloaded asset type mismatch. Key: {resolvedKey}, Cached: {resource.GetType().Name}, Requested: {typeof(T).Name}");
             return null;
         }
 
@@ -70,51 +73,83 @@ namespace JumJump.Service
             }
 
             var preLoadLabel = _configData.PreLoadLabel;
-            var locationsHandle = Addressables.LoadResourceLocationsAsync(preLoadLabel);
-            try
-            {
-                var locations = await locationsHandle.ToUniTask(cancellationToken: cancellationToken);
+            var loaded = await LoadLabelAsync(preLoadLabel, cancellationToken);
+            _isPreLoaded = loaded;
+        }
 
-                if (locations == null || locations.Count == 0)
-                {
-                    Debug.LogWarning($"[{nameof(ResourceService)}] No addressables found for label: {preLoadLabel}");
-                }
-                else
-                {
-                    await LoadPreLoadLocationsAsync(locations, cancellationToken);
-                }
-            }
-            catch (OperationCanceledException)
+        public async UniTask<bool> LoadLabelAsync(string labelKey, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(labelKey))
             {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressables by label: {preLoadLabel}\n{ex}");
-            }
-            finally
-            {
-                ReleaseLocationHandle(locationsHandle);
+                Debug.LogError($"[{nameof(ResourceService)}] Addressables label is empty.");
+                return false;
             }
 
-            await EnsureConfiguredAssetsLoadedAsync(cancellationToken);
-            _isPreLoaded = true;
+            if (_loadedLabels.Contains(labelKey))
+            {
+                return true;
+            }
+
+            var loaded = await LoadResourcesAsync(labelKey, labelKey, cancellationToken);
+            if (!loaded)
+            {
+                return false;
+            }
+
+            _loadedLabels.Add(labelKey);
+            return true;
+        }
+
+        public async UniTask<bool> LoadKeyAsync(string key, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                Debug.LogError($"[{nameof(ResourceService)}] Addressables key is empty.");
+                return false;
+            }
+
+            if (IsResourceCached(key))
+            {
+                return true;
+            }
+
+            return await LoadResourcesAsync(key, null, cancellationToken);
         }
 
         public void Release(string key)
         {
-            if (!_handles.TryGetValue(key, out var handle))
+            ReleaseCachedResource(key);
+        }
+
+        public async UniTask ReleaseLabelAsync(string labelKey, bool unloadUnusedAssets = false)
+        {
+            if (string.IsNullOrWhiteSpace(labelKey))
             {
                 return;
             }
 
-            if (handle.IsValid())
+            if (_labelResourceKeys.TryGetValue(labelKey, out var resourceKeys))
             {
-                Addressables.Release(handle);
+                foreach (var resourceKey in resourceKeys)
+                {
+                    if (HasOtherLabelOwner(resourceKey, labelKey))
+                    {
+                        continue;
+                    }
+
+                    ReleaseCachedResource(resourceKey);
+                }
+
+                _labelResourceKeys.Remove(labelKey);
             }
 
-            _handles.Remove(key);
-            _assets.Remove(key);
+            _loadedLabels.Remove(labelKey);
+
+            if (unloadUnusedAssets)
+            {
+                await Resources.UnloadUnusedAssets().ToUniTask();
+                GC.Collect();
+            }
         }
 
         public void Dispose()
@@ -127,67 +162,64 @@ namespace JumJump.Service
                 }
             }
 
+            _resources.Clear();
             _handles.Clear();
-            _assets.Clear();
+            _labelResourceKeys.Clear();
+            _resourceLabels.Clear();
+            _loadedLabels.Clear();
             _isPreLoaded = false;
         }
 
-        private async UniTask LoadPreLoadLocationsAsync(IList<IResourceLocation> locations, CancellationToken cancellationToken)
+        private async UniTask<bool> LoadResourcesAsync(
+            string key,
+            string labelKey,
+            CancellationToken cancellationToken)
         {
-            for (var i = 0; i < locations.Count; i++)
-            {
-                var location = locations[i];
-                if (location == null || string.IsNullOrEmpty(location.PrimaryKey))
-                {
-                    continue;
-                }
-
-                if (_handles.ContainsKey(location.PrimaryKey))
-                {
-                    continue;
-                }
-
-                if (typeof(GameObject).IsAssignableFrom(location.ResourceType))
-                {
-                    await TryLoadPreLoadAssetAsync<GameObject>(location, cancellationToken);
-                    continue;
-                }
-
-                if (typeof(UnityEngine.Object).IsAssignableFrom(location.ResourceType))
-                {
-                    await TryLoadPreLoadAssetAsync<UnityEngine.Object>(location, cancellationToken);
-                    continue;
-                }
-
-                Debug.LogWarning($"[{nameof(ResourceService)}] Unsupported preload asset type: {location.PrimaryKey} ({location.ResourceType})");
-            }
-        }
-
-        private async UniTask TryLoadPreLoadAssetAsync<T>(IResourceLocation location, CancellationToken cancellationToken)
-            where T : UnityEngine.Object
-        {
-            AsyncOperationHandle<T> handle;
+            var locationsHandle = Addressables.LoadResourceLocationsAsync(key);
             try
             {
-                handle = Addressables.LoadAssetAsync<T>(location);
-                SetHandle(location.PrimaryKey, handle);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to start preload asset: {location.PrimaryKey}\n{ex}");
-                return;
-            }
-
-            try
-            {
-                var asset = await handle.ToUniTask(cancellationToken: cancellationToken);
-                if (asset == null)
+                var locations = await locationsHandle.ToUniTask(cancellationToken: cancellationToken);
+                if (locations == null || locations.Count == 0)
                 {
-                    Debug.LogError($"[{nameof(ResourceService)}] Failed to preload asset: {location.PrimaryKey}");
-                    return;
+                    Debug.LogError($"[{nameof(ResourceService)}] Addressables key returned no locations: {key}");
+                    return false;
                 }
 
-                CacheAsset(location.PrimaryKey, asset);
+                var failedCount = 0;
+                for (var i = 0; i < locations.Count; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var location = locations[i];
+                    if (location == null || string.IsNullOrEmpty(location.PrimaryKey))
+                    {
+                        failedCount++;
+                        continue;
+                    }
+
+                    if (IsResourceCached(location.PrimaryKey))
+                    {
+                        TrackLabelResource(labelKey, location.PrimaryKey);
+                        continue;
+                    }
+
+                    var loaded = await LoadAssetAsync(location, cancellationToken);
+                    if (!loaded)
+                    {
+                        failedCount++;
+                    }
+
+                    TrackLabelResource(labelKey, location.PrimaryKey);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                if (failedCount > 0)
+                {
+                    Debug.LogError($"[{nameof(ResourceService)}] Failed to load {failedCount} addressable assets from: {key}");
+                    return false;
+                }
+
+                return true;
             }
             catch (OperationCanceledException)
             {
@@ -195,52 +227,50 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to preload asset: {location.PrimaryKey}\n{ex}");
+                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressables: {key}\n{ex}");
+                return false;
             }
-        }
-
-        private async UniTask EnsureConfiguredAssetsLoadedAsync(CancellationToken cancellationToken)
-        {
-            await EnsureAssetLoadedAsync<GameObject>(_configData.PlatformAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<GameObject>(_configData.PlayerAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<GameObject>(_configData.GameSceneUiAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<GameObject>(_configData.GameOverPopupAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<GameObject>(_configData.DynamicFontAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<Sprite>(_platformConfigData.PlatformNormalSpriteAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<Sprite>(_platformConfigData.PlatformShieldSpriteAddressableKey, cancellationToken);
-            await EnsureAssetLoadedAsync<Sprite>(_platformConfigData.PlatformRocketSpriteAddressableKey, cancellationToken);
-        }
-
-        private async UniTask EnsureAssetLoadedAsync<T>(string key, CancellationToken cancellationToken)
-            where T : UnityEngine.Object
-        {
-            if (string.IsNullOrEmpty(key) || HasCachedAsset<T>(key))
+            finally
             {
-                return;
-            }
-
-            AsyncOperationHandle<T> handle;
-            try
-            {
-                handle = Addressables.LoadAssetAsync<T>(key);
-                SetHandle(key, handle);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to start configured asset preload: {key}\n{ex}");
-                return;
-            }
-
-            try
-            {
-                var asset = await handle.ToUniTask(cancellationToken: cancellationToken);
-                if (asset == null)
+                if (locationsHandle.IsValid())
                 {
-                    Debug.LogError($"[{nameof(ResourceService)}] Failed to preload configured asset: {key}");
-                    return;
+                    Addressables.Release(locationsHandle);
+                }
+            }
+        }
+
+        private UniTask<bool> LoadAssetAsync(IResourceLocation location, CancellationToken cancellationToken)
+        {
+            var key = location.PrimaryKey;
+            if (key.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
+            {
+                return LoadTypedAssetByKeyAsync<Sprite>(key, cancellationToken);
+            }
+
+            if (location.ResourceType == typeof(Sprite))
+            {
+                return LoadTypedAssetAsync<Sprite>(location, key, cancellationToken);
+            }
+
+            return LoadTypedAssetAsync<Object>(location, key, cancellationToken);
+        }
+
+        private async UniTask<bool> LoadTypedAssetByKeyAsync<T>(string key, CancellationToken cancellationToken)
+            where T : Object
+        {
+            try
+            {
+                var handle = Addressables.LoadAssetAsync<T>(key);
+                var resource = await handle.ToUniTask(cancellationToken: cancellationToken);
+                if (resource == null)
+                {
+                    Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}");
+                    ReleaseHandle(handle);
+                    return false;
                 }
 
-                CacheAsset(key, asset);
+                CacheResource(key, resource, handle);
+                return true;
             }
             catch (OperationCanceledException)
             {
@@ -248,36 +278,225 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to preload configured asset: {key}\n{ex}");
+                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}\n{ex}");
+                return false;
             }
         }
 
-        private void CacheAsset(string key, UnityEngine.Object asset)
+        private async UniTask<bool> LoadTypedAssetAsync<T>(
+            IResourceLocation location,
+            string key,
+            CancellationToken cancellationToken)
+            where T : Object
+        {
+            try
+            {
+                var handle = Addressables.LoadAssetAsync<T>(location);
+                var resource = await handle.ToUniTask(cancellationToken: cancellationToken);
+                if (resource == null)
+                {
+                    Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}");
+                    ReleaseHandle(handle);
+                    return false;
+                }
+
+                CacheResource(key, resource, handle);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}\n{ex}");
+                return false;
+            }
+        }
+
+        private void CacheResource(string key, Object resource, AsyncOperationHandle handle)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                ReleaseHandle(handle);
+                return;
+            }
+
+            if (_resources.ContainsKey(key))
+            {
+                ReleaseHandle(handle);
+                return;
+            }
+
+            _resources.Add(key, resource);
+            _handles.Add(key, handle);
+
+            if (resource is Sprite)
+            {
+                CacheSpriteAlias(key, resource);
+            }
+        }
+
+        private void CacheSpriteAlias(string key, Object resource)
+        {
+            if (key.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
+            {
+                var baseKey = key.Substring(0, key.Length - SpriteKeySuffix.Length);
+                if (!_resources.ContainsKey(baseKey))
+                {
+                    _resources.Add(baseKey, resource);
+                }
+
+                return;
+            }
+
+            var spriteKey = key + SpriteKeySuffix;
+            if (!_resources.ContainsKey(spriteKey))
+            {
+                _resources.Add(spriteKey, resource);
+            }
+        }
+
+        private bool IsResourceCached(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                return false;
+            }
+
+            if (_resources.ContainsKey(key))
+            {
+                return true;
+            }
+
+            if (!key.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var baseKey = key.Substring(0, key.Length - SpriteKeySuffix.Length);
+            return _resources.TryGetValue(baseKey, out var resource) && resource is Sprite;
+        }
+
+        private string ResolveKey<T>(string key) where T : Object
+        {
+            if (typeof(T) == typeof(Sprite) &&
+                !string.IsNullOrEmpty(key) &&
+                !key.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
+            {
+                return key + SpriteKeySuffix;
+            }
+
+            return key;
+        }
+
+        private void TrackLabelResource(string labelKey, string resourceKey)
+        {
+            if (string.IsNullOrEmpty(labelKey) || string.IsNullOrEmpty(resourceKey))
+            {
+                return;
+            }
+
+            if (!_labelResourceKeys.TryGetValue(labelKey, out var resourceKeys))
+            {
+                resourceKeys = new HashSet<string>();
+                _labelResourceKeys.Add(labelKey, resourceKeys);
+            }
+
+            resourceKeys.Add(resourceKey);
+
+            if (!_resourceLabels.TryGetValue(resourceKey, out var labels))
+            {
+                labels = new HashSet<string>();
+                _resourceLabels.Add(resourceKey, labels);
+            }
+
+            labels.Add(labelKey);
+        }
+
+        private bool HasOtherLabelOwner(string resourceKey, string labelKey)
+        {
+            if (!_resourceLabels.TryGetValue(resourceKey, out var labels))
+            {
+                return false;
+            }
+
+            labels.Remove(labelKey);
+            if (labels.Count > 0)
+            {
+                return true;
+            }
+
+            _resourceLabels.Remove(resourceKey);
+            return false;
+        }
+
+        private void ReleaseCachedResource(string key)
         {
             if (string.IsNullOrEmpty(key))
             {
                 return;
             }
 
-            _assets[key] = asset;
-        }
+            var resolvedKey = ResolveReleaseKey(key);
+            _resources.TryGetValue(resolvedKey, out var resource);
+            _resources.Remove(resolvedKey);
+            ReleaseHandle(resolvedKey);
 
-        private bool HasCachedAsset<T>(string key) where T : UnityEngine.Object
-        {
-            return _assets.TryGetValue(key, out var asset) && asset is T;
-        }
-
-        private void SetHandle(string key, AsyncOperationHandle handle)
-        {
-            if (_handles.TryGetValue(key, out var previousHandle) && previousHandle.IsValid())
+            if (resolvedKey.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
             {
-                Addressables.Release(previousHandle);
+                var baseKey = resolvedKey.Substring(0, resolvedKey.Length - SpriteKeySuffix.Length);
+                ReleaseAlias(baseKey, resource);
+                return;
             }
 
-            _handles[key] = handle;
+            ReleaseAlias(resolvedKey + SpriteKeySuffix, resource);
         }
 
-        private void ReleaseLocationHandle(AsyncOperationHandle<IList<IResourceLocation>> handle)
+        private string ResolveReleaseKey(string key)
+        {
+            if (_resources.ContainsKey(key))
+            {
+                return key;
+            }
+
+            var spriteKey = key + SpriteKeySuffix;
+            if (_resources.ContainsKey(spriteKey))
+            {
+                return spriteKey;
+            }
+
+            return key;
+        }
+
+        private void ReleaseAlias(string key, Object resource)
+        {
+            if (resource == null || !_resources.TryGetValue(key, out var aliasResource))
+            {
+                return;
+            }
+
+            if (!ReferenceEquals(resource, aliasResource))
+            {
+                return;
+            }
+
+            _resources.Remove(key);
+            ReleaseHandle(key);
+        }
+
+        private void ReleaseHandle(string key)
+        {
+            if (!_handles.TryGetValue(key, out var handle))
+            {
+                return;
+            }
+
+            ReleaseHandle(handle);
+            _handles.Remove(key);
+        }
+
+        private void ReleaseHandle(AsyncOperationHandle handle)
         {
             if (handle.IsValid())
             {

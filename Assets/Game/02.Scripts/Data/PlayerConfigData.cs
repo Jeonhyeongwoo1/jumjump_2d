@@ -36,6 +36,6 @@ namespace JumJump.Data
         [SerializeField] private float _playerGameOverPopupDelay = 1f;
 
         [Header("Rocket")]
-        [SerializeField] private float _playerRocketBoostDuration = 0.45f;
+        [SerializeField] private float _playerRocketBoostDuration = 1.4f;
     }
 }
