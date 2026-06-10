@@ -11,7 +11,16 @@ namespace JumJump
     {
         Idle,
         Jump,
+        RocketBoost,
         Knockback
+    }
+
+    public enum PlatformStateType
+    {
+        Moving,
+        Resolved,
+        ShieldBlockedDissolving,
+        Released
     }
 
     public enum PlatformGimmickType

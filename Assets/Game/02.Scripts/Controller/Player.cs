@@ -10,10 +10,10 @@ namespace JumJump.Controller
     [RequireComponent(typeof(Rigidbody2D))]
     public sealed class Player : MonoBehaviour
     {
-        public bool IsJumping => _isJumping;
-        public bool CanLand => _isJumping &&
+        public bool IsJumping => _state == PlayerStateType.Jump;
+        public bool CanLand => IsJumping &&
                                NormalizedJumpTime >= _configData.PlayerLandingEnabledNormalizedTime;
-        public bool IsDescending => _isJumping && _rigidbody.linearVelocity.y <= 0f;
+        public bool IsDescending => IsJumping && _rigidbody.linearVelocity.y <= 0f;
         public Vector3 Position => transform.position;
         public Vector3 PreviousPosition => _previousPosition;
         public float BottomY => ResolveBottomY(Position);
@@ -28,31 +28,21 @@ namespace JumJump.Controller
         [SerializeField] private SpriteRenderer _shieldSpriteRenderer;
         [SerializeField] private Animator _shieldAnimator;
 
-        private bool _isJumping;
-        private bool _hasShield;
-        private bool _isShieldBreakAnimating;
-        private bool _isRocketBoosting;
-        private bool _isGameOverKnockback;
-        private bool _isGameOverFreezeLocked;
         private float _jumpElapsed;
-        private float _shieldBreakElapsed;
-        private float _rocketBoostElapsed;
         private int _isJumpingAnimatorParameterHash;
         private int _isDeadAnimatorParameterHash;
         private int _idleAnimatorStateHash;
         private int _shieldIdleAnimatorStateHash;
         private int _shieldBreakAnimatorStateHash;
         private PlayerStateType _state;
-        private PlatformController _rocketTargetPlatform;
+        private PlayerShieldRuntime _shield;
+        private PlayerRocketBoostRuntime _rocketBoost;
+        private PlayerLandingSinkRuntime _landingSink;
+        private PlayerKnockbackRuntime _knockback;
         private Vector3 _spawnPosition;
         private Vector3 _groundPosition;
         private Vector3 _previousPosition;
-        private Vector3 _rocketBoostStartGroundPosition;
-        private Vector3 _rocketBoostTargetGroundPosition;
         private Vector3 _defaultLocalScale;
-        private Vector3 _landingSinkBasePosition;
-        private Sprite _shieldIdleSprite;
-        private float _landingSinkElapsed;
         private IEventBus _eventBus;
         private PlayerConfigData _configData;
 
@@ -67,22 +57,15 @@ namespace JumJump.Controller
 
         public void ResetForRound()
         {
-            _isJumping = false;
-            _hasShield = false;
-            _isShieldBreakAnimating = false;
-            _isRocketBoosting = false;
-            _isGameOverKnockback = false;
-            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
-            _shieldBreakElapsed = 0f;
-            _rocketBoostElapsed = 0f;
-            _rocketTargetPlatform = null;
+            _rocketBoost.Reset();
+            _knockback.Reset();
             _groundPosition = _spawnPosition;
             _previousPosition = _groundPosition;
             ApplyFacingScale(1f);
             PlaceRigidbody(_groundPosition);
             ResetLandingSink();
-            HideShieldVisual();
+            _shield.Reset(_shieldVisualRoot, _shieldSpriteRenderer);
             ChangeState(PlayerStateType.Idle);
         }
 
@@ -100,42 +83,37 @@ namespace JumJump.Controller
 
         public void GrantShield()
         {
-            _hasShield = true;
-            ShowShieldVisual();
+            _shield.Grant(
+                _shieldVisualRoot,
+                _shieldSpriteRenderer,
+                _shieldAnimator,
+                _shieldIdleAnimatorStateHash);
         }
 
         public bool TryBlockWithShield()
         {
-            if (!_hasShield)
+            if (!_shield.TryBlock(_shieldVisualRoot, _shieldAnimator, _shieldBreakAnimatorStateHash))
             {
                 return false;
             }
 
-            _hasShield = false;
-            PlayShieldBreakAnimation();
             ReturnToShieldBlockStartPosition();
             return true;
         }
 
         public void StartRocketBoost(PlatformController targetPlatform, Vector3 targetGroundPosition)
         {
-            _isJumping = false;
-            _isRocketBoosting = true;
-            _isGameOverKnockback = false;
-            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
-            _rocketBoostElapsed = 0f;
-            _rocketTargetPlatform = targetPlatform;
-            _rocketBoostStartGroundPosition = _groundPosition;
-            _rocketBoostTargetGroundPosition = targetGroundPosition;
-            _previousPosition = _rocketBoostStartGroundPosition;
+            _knockback.Reset();
+            _rocketBoost.Start(targetPlatform, _groundPosition, targetGroundPosition);
+            _previousPosition = _groundPosition;
             ResetLandingSink();
-            ChangeState(PlayerStateType.Jump);
+            ChangeState(PlayerStateType.RocketBoost);
         }
 
         private void OnPlayerJumpRequested(in PlayerJumpRequestedEvent ev)
         {
-            if (_isJumping || _isRocketBoosting || _isGameOverKnockback)
+            if (_state != PlayerStateType.Idle)
             {
                 return;
             }
@@ -144,7 +122,6 @@ namespace JumJump.Controller
             ResetLandingSink();
             _groundPosition = transform.position;
             _previousPosition = _groundPosition;
-            _isJumping = true;
             ApplyJumpVelocity();
             ChangeState(PlayerStateType.Jump);
             _eventBus.Publish(new PlayerJumpStartedEvent());
@@ -157,11 +134,9 @@ namespace JumJump.Controller
 
         private void PlaceAtGroundPosition(Vector3 groundPosition, bool playLandingSink)
         {
-            _isJumping = false;
-            _isRocketBoosting = false;
-            _isGameOverKnockback = false;
-            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
+            _rocketBoost.Reset();
+            _knockback.Reset();
             _groundPosition = groundPosition;
             _previousPosition = _groundPosition;
             PlaceRigidbody(_groundPosition);
@@ -198,7 +173,7 @@ namespace JumJump.Controller
         {
             _animator.SetBool(
                 _isJumpingAnimatorParameterHash,
-                _state == PlayerStateType.Jump);
+                _state == PlayerStateType.Jump || _state == PlayerStateType.RocketBoost);
             _animator.SetBool(
                 _isDeadAnimatorParameterHash,
                 _state == PlayerStateType.Knockback);
@@ -233,16 +208,14 @@ namespace JumJump.Controller
 
         private void PlayGameOverKnockback(Vector2 knockbackDirection)
         {
-            if (_isGameOverKnockback)
+            if (_state == PlayerStateType.Knockback)
             {
                 return;
             }
 
-            _isJumping = false;
-            _isRocketBoosting = false;
-            _isGameOverKnockback = true;
-            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
+            _rocketBoost.Reset();
+            _knockback.Reset();
             _previousPosition = transform.position;
             ResetLandingSink();
             ChangeState(PlayerStateType.Knockback);
@@ -258,12 +231,12 @@ namespace JumJump.Controller
 
         private void FreezeGameOverKnockbackIfDescending()
         {
-            if (_isGameOverFreezeLocked || _rigidbody.linearVelocity.y > 0f)
+            if (_knockback.IsFreezeLocked || _rigidbody.linearVelocity.y > 0f)
             {
                 return;
             }
 
-            _isGameOverFreezeLocked = true;
+            _knockback.Freeze();
             _rigidbody.constraints = RigidbodyConstraints2D.FreezeAll;
             _rigidbody.linearVelocity = Vector2.zero;
             _rigidbody.angularVelocity = 0f;
@@ -306,45 +279,22 @@ namespace JumJump.Controller
 
         private void BeginLandingSink(Vector3 basePosition)
         {
-            _landingSinkBasePosition = basePosition;
-            _landingSinkElapsed = 0f;
+            _landingSink.Begin(basePosition);
             ApplyLandingSink(0f);
         }
 
         private void ResetLandingSink()
         {
-            _landingSinkElapsed = float.PositiveInfinity;
-            _landingSinkBasePosition = _groundPosition;
-            PlaceRigidbody(_landingSinkBasePosition);
-        }
-
-        private void ShowShieldVisual()
-        {
-            _isShieldBreakAnimating = false;
-            _shieldBreakElapsed = 0f;
-            _shieldSpriteRenderer.sprite = _shieldIdleSprite;
-            _shieldVisualRoot.SetActive(true);
-            _shieldAnimator.Play(_shieldIdleAnimatorStateHash, 0, 0f);
-        }
-
-        private void PlayShieldBreakAnimation()
-        {
-            _isShieldBreakAnimating = true;
-            _shieldBreakElapsed = 0f;
-            _shieldVisualRoot.SetActive(true);
-            _shieldAnimator.Play(_shieldBreakAnimatorStateHash, 0, 0f);
+            _landingSink.Reset(_groundPosition);
+            PlaceRigidbody(_landingSink.BasePosition);
         }
 
         private void ReturnToShieldBlockStartPosition()
         {
             var startPosition = _groundPosition;
-            _isJumping = false;
-            _isRocketBoosting = false;
-            _isGameOverKnockback = false;
-            _isGameOverFreezeLocked = false;
             _jumpElapsed = 0f;
-            _rocketBoostElapsed = 0f;
-            _rocketTargetPlatform = null;
+            _rocketBoost.Reset();
+            _knockback.Reset();
             _groundPosition = startPosition;
             _previousPosition = startPosition;
             PlaceRigidbody(startPosition);
@@ -352,38 +302,18 @@ namespace JumJump.Controller
             ChangeState(PlayerStateType.Idle);
         }
 
-        private void HideShieldVisual()
-        {
-            _isShieldBreakAnimating = false;
-            _shieldBreakElapsed = 0f;
-            _shieldSpriteRenderer.sprite = _shieldIdleSprite;
-            _shieldVisualRoot.SetActive(false);
-        }
-
         private void UpdateShieldBreakAnimation(float deltaTime)
         {
-            if (!_isShieldBreakAnimating)
-            {
-                return;
-            }
-
-            _shieldBreakElapsed += deltaTime;
-            if (_shieldBreakElapsed >= GameConst.Player.ShieldBreakAnimationDuration)
-            {
-                HideShieldVisual();
-            }
+            _shield.TickBreakAnimation(deltaTime, _shieldVisualRoot, _shieldSpriteRenderer);
         }
 
         private void UpdateLandingSink(float deltaTime)
         {
-            var duration = Mathf.Max(0.01f, _configData.PlayerLandingSinkDuration);
-            if (_landingSinkElapsed >= duration)
+            if (!_landingSink.Advance(deltaTime, _configData.PlayerLandingSinkDuration, out var normalizedTime))
             {
                 return;
             }
 
-            _landingSinkElapsed += deltaTime;
-            var normalizedTime = Mathf.Clamp01(_landingSinkElapsed / duration);
             ApplyLandingSink(normalizedTime);
         }
 
@@ -393,35 +323,29 @@ namespace JumJump.Controller
             var sinkProgress = normalizedTime < DownPhase
                 ? Mathf.SmoothStep(0f, 1f, normalizedTime / DownPhase)
                 : Mathf.SmoothStep(1f, 0f, (normalizedTime - DownPhase) / (1f - DownPhase));
-            var position = _landingSinkBasePosition;
+            var position = _landingSink.BasePosition;
             position.y -= Mathf.Max(0f, _configData.PlayerLandingSinkOffset) * sinkProgress;
             PlaceRigidbody(position);
         }
 
         private void UpdateRocketBoost(float deltaTime)
         {
-            var duration = Mathf.Max(0.01f, _configData.PlayerRocketBoostDuration);
-            _rocketBoostElapsed += deltaTime;
-            var normalizedTime = Mathf.Clamp01(_rocketBoostElapsed / duration);
-            var easedTime = Mathf.SmoothStep(0f, 1f, normalizedTime);
-            var nextPosition = Vector3.Lerp(
-                _rocketBoostStartGroundPosition,
-                _rocketBoostTargetGroundPosition,
-                easedTime);
-
+            var isComplete = _rocketBoost.Tick(
+                deltaTime,
+                _configData.PlayerRocketBoostDuration,
+                out var nextPosition);
             _previousPosition = transform.position;
             _groundPosition = nextPosition;
             PlaceRigidbody(nextPosition);
 
-            if (normalizedTime < 1f)
+            if (!isComplete)
             {
                 return;
             }
 
-            var targetPlatform = _rocketTargetPlatform;
-            var targetGroundPosition = _rocketBoostTargetGroundPosition;
-            _isRocketBoosting = false;
-            _rocketTargetPlatform = null;
+            var targetPlatform = _rocketBoost.TargetPlatform;
+            var targetGroundPosition = _rocketBoost.TargetGroundPosition;
+            _rocketBoost.Reset();
 
             if (targetPlatform == null)
             {
@@ -446,19 +370,19 @@ namespace JumJump.Controller
 
         private void FixedUpdate()
         {
-            if (_isRocketBoosting)
+            if (_state == PlayerStateType.RocketBoost)
             {
                 UpdateRocketBoost(Time.fixedDeltaTime);
                 return;
             }
 
-            if (_isGameOverKnockback)
+            if (_state == PlayerStateType.Knockback)
             {
                 FreezeGameOverKnockbackIfDescending();
                 return;
             }
 
-            if (!_isJumping)
+            if (_state != PlayerStateType.Jump)
             {
                 return;
             }
@@ -482,15 +406,16 @@ namespace JumJump.Controller
             _idleAnimatorStateHash = Animator.StringToHash("Idle");
             _shieldIdleAnimatorStateHash = Animator.StringToHash("Empty");
             _shieldBreakAnimatorStateHash = Animator.StringToHash("Destory");
-            _shieldIdleSprite = _shieldSpriteRenderer.sprite;
+            _shield.CacheIdleSprite(_shieldSpriteRenderer.sprite);
             _defaultLocalScale = transform.localScale;
             _spawnPosition = transform.position;
             _groundPosition = _spawnPosition;
-            _landingSinkBasePosition = _spawnPosition;
-            _landingSinkElapsed = float.PositiveInfinity;
+            _landingSink.Reset(_spawnPosition);
+            _rocketBoost.Reset();
+            _knockback.Reset();
             _previousPosition = _spawnPosition;
             _state = PlayerStateType.Idle;
-            HideShieldVisual();
+            _shield.Reset(_shieldVisualRoot, _shieldSpriteRenderer);
             ApplyAnimatorState();
         }
 
@@ -522,7 +447,7 @@ namespace JumJump.Controller
 
         private void TryResolvePlatformTrigger(Collider2D other)
         {
-            if (!_isJumping || !IsDescending)
+            if (!IsJumping || !IsDescending)
             {
                 return;
             }
@@ -537,7 +462,7 @@ namespace JumJump.Controller
 
         private void TryResolvePlatformCollision(Collider2D other)
         {
-            if (!_isJumping || !IsDescending || other == null)
+            if (!IsJumping || !IsDescending || other == null)
             {
                 return;
             }

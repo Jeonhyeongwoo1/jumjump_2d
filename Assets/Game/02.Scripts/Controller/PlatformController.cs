@@ -19,23 +19,17 @@ namespace JumJump.Controller
         [SerializeField] private Rigidbody2D _rigidbody;
         [SerializeField] private Animator _animator;
 
-        private bool _isResolved;
-        private bool _isActive;
+        private PlatformStateType _state;
         private bool _isInteractionEnabled;
         private bool _shouldTickGimmick;
-        private bool _isShieldBlockedDissolving;
-        private bool _hasPendingEntryDelay;
-        private float _shieldBlockedDissolveElapsed;
-        private float _entryDelayElapsed;
-        private float _entryDelayDuration;
         private Action<PlatformController> _onReleaseAction;
         private IPlatformGimmickBehaviour _gimmickBehaviour;
         private PlatformGimmickType _gimmickType;
         private PlatformVisual _visual;
         private PlatformMotion _motion;
         private PlatformGimmickTimer _gimmickTimer;
-        private Vector3 _shieldBlockedDissolveStartPosition;
-        private Vector3 _shieldBlockedDissolveTargetPosition;
+        private PlatformEntryDelay _entryDelay;
+        private PlatformShieldBlockedDissolve _shieldBlockedDissolve;
         private IEventBus _eventBus;
         private PlayerRegistry _playerRegistry;
         private PlatformConfigData _platformConfigData;
@@ -92,7 +86,7 @@ namespace JumJump.Controller
 
         public bool TryResolveLanding(Player player)
         {
-            if (!_isActive || !_isInteractionEnabled || _isResolved || player == null)
+            if (_state != PlatformStateType.Moving || !_isInteractionEnabled || player == null)
             {
                 return false;
             }
@@ -127,7 +121,7 @@ namespace JumJump.Controller
 
         public bool TryResolveStackedLanding(Player player)
         {
-            if (!_isActive || !_isInteractionEnabled || !_isResolved || player == null ||
+            if (_state != PlatformStateType.Resolved || !_isInteractionEnabled || player == null ||
                 !player.CanLand || !player.IsDescending)
             {
                 return false;
@@ -145,14 +139,14 @@ namespace JumJump.Controller
 
         public void Release()
         {
-            if (!_isActive)
+            if (_state == PlatformStateType.Released)
             {
                 return;
             }
 
-            _isActive = false;
-            _isShieldBlockedDissolving = false;
-            _hasPendingEntryDelay = false;
+            _state = PlatformStateType.Released;
+            _entryDelay.Reset();
+            _shieldBlockedDissolve.Reset();
             _gimmickBehaviour?.Reset(this);
             ResetGimmickRuntime();
             gameObject.SetActive(false);
@@ -166,12 +160,12 @@ namespace JumJump.Controller
 
         private void FixedUpdate()
         {
-            if (!_isActive)
+            if (_state == PlatformStateType.Released)
             {
                 return;
             }
 
-            if (_isShieldBlockedDissolving)
+            if (_state == PlatformStateType.ShieldBlockedDissolving)
             {
                 TickShieldBlockedDissolve(Time.fixedDeltaTime);
                 return;
@@ -182,7 +176,7 @@ namespace JumJump.Controller
                 return;
             }
 
-            if (_isResolved)
+            if (_state != PlatformStateType.Moving)
             {
                 return;
             }
@@ -193,7 +187,7 @@ namespace JumJump.Controller
 
         private void Update()
         {
-            if (!_isActive || _isResolved || !_shouldTickGimmick || _gimmickBehaviour == null)
+            if (_state != PlatformStateType.Moving || !_shouldTickGimmick || _gimmickBehaviour == null)
             {
                 return;
             }
@@ -250,15 +244,12 @@ namespace JumJump.Controller
 
         internal void DelayMove(float delay)
         {
-            if (delay <= 0f)
+            if (!_entryDelay.Start(delay))
             {
                 return;
             }
 
             _motion.Pause();
-            _entryDelayElapsed = 0f;
-            _entryDelayDuration = delay;
-            _hasPendingEntryDelay = true;
         }
 
         internal void RevealPlatformVisual()
@@ -274,14 +265,10 @@ namespace JumJump.Controller
 
         private void ResetForSpawn()
         {
-            _isResolved = false;
-            _isActive = true;
+            _state = PlatformStateType.Moving;
             _isInteractionEnabled = true;
-            _isShieldBlockedDissolving = false;
-            _hasPendingEntryDelay = false;
-            _shieldBlockedDissolveElapsed = 0f;
-            _entryDelayElapsed = 0f;
-            _entryDelayDuration = 0f;
+            _entryDelay.Reset();
+            _shieldBlockedDissolve.Reset();
             ResetGimmickRuntime();
             SetPlatformAlpha(1f);
             _visual.ApplyScale(1f, 1f);
@@ -332,7 +319,7 @@ namespace JumJump.Controller
 
         private void ResolveLanding(Player player, float landingY)
         {
-            _isResolved = true;
+            _state = PlatformStateType.Resolved;
             _motion.Stop();
             _gimmickBehaviour?.OnLanding(this, player);
             SetLandingColliderTrigger(false);
@@ -369,7 +356,7 @@ namespace JumJump.Controller
                 return;
             }
 
-            _isResolved = true;
+            _state = PlatformStateType.Resolved;
             _motion.Stop();
             StopGimmickTick();
             var knockbackDirection = PlatformLandingResolver.ResolveKnockbackDirection(
@@ -381,7 +368,7 @@ namespace JumJump.Controller
 
         private void ResolveShieldBlock(Player player)
         {
-            _isResolved = true;
+            _state = PlatformStateType.ShieldBlockedDissolving;
             _motion.Stop();
             StopGimmickTick();
             SetInteractionEnabled(false);
@@ -390,32 +377,25 @@ namespace JumJump.Controller
 
         private void StartShieldBlockedDissolve(Player player)
         {
-            _isShieldBlockedDissolving = true;
-            _shieldBlockedDissolveElapsed = 0f;
-            _shieldBlockedDissolveStartPosition = transform.position;
             var retreatDirectionX = ResolveShieldBlockedRetreatDirectionX(player);
-            _shieldBlockedDissolveTargetPosition = _shieldBlockedDissolveStartPosition +
-                                                   new Vector3(
-                                                       retreatDirectionX * GameConst.Platform.ShieldBlockedRetreatDistance,
-                                                       0f,
-                                                       0f);
+            _shieldBlockedDissolve.Start(
+                transform.position,
+                retreatDirectionX,
+                GameConst.Platform.ShieldBlockedRetreatDistance);
         }
 
         private void TickShieldBlockedDissolve(float deltaTime)
         {
-            _shieldBlockedDissolveElapsed += deltaTime;
-            var normalizedTime = Mathf.Clamp01(
-                _shieldBlockedDissolveElapsed / Mathf.Max(0.01f, GameConst.Platform.ShieldBlockedFadeDuration));
-            var easedTime = Mathf.SmoothStep(0f, 1f, normalizedTime);
-            var nextPosition = Vector3.Lerp(
-                _shieldBlockedDissolveStartPosition,
-                _shieldBlockedDissolveTargetPosition,
-                easedTime);
+            var isComplete = _shieldBlockedDissolve.Tick(
+                deltaTime,
+                GameConst.Platform.ShieldBlockedFadeDuration,
+                out var nextPosition,
+                out var alpha);
             _rigidbody.MovePosition(nextPosition);
             transform.position = nextPosition;
-            SetPlatformAlpha(1f - easedTime);
+            SetPlatformAlpha(alpha);
 
-            if (normalizedTime >= 1f)
+            if (isComplete)
             {
                 _eventBus.Publish(new PlatformShieldBlockedEvent(this));
                 Release();
@@ -440,20 +420,16 @@ namespace JumJump.Controller
 
         private bool TickPendingEntryDelay(float deltaTime)
         {
-            if (!_hasPendingEntryDelay)
+            if (!_entryDelay.IsWaiting)
             {
                 return false;
             }
 
-            _entryDelayElapsed += deltaTime;
-            if (_entryDelayElapsed < _entryDelayDuration)
+            if (_entryDelay.Tick(deltaTime))
             {
                 return true;
             }
 
-            _hasPendingEntryDelay = false;
-            _entryDelayElapsed = 0f;
-            _entryDelayDuration = 0f;
             _motion.Resume();
             return false;
         }
