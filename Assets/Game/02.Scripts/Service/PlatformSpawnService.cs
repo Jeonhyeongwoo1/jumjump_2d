@@ -309,7 +309,7 @@ namespace JumJump.Service
                 }
 
                 platformY = platform.GetStackedNextCenterY();
-                platform.DelayMove(entryDuration * i);
+                platform.DelayMove(ResolveRocketPathEntryDelay(i, platformCount, entryDuration));
                 if (i < platformCount - 1)
                 {
                     platform.SetInteractionEnabled(false);
@@ -332,7 +332,18 @@ namespace JumJump.Service
         private float ResolveRocketPathEntryDuration(int platformCount)
         {
             var duration = Mathf.Max(0.01f, _playerConfigData.PlayerRocketBoostDuration);
-            return duration / Mathf.Max(1, platformCount);
+            return duration / Mathf.Max(1, platformCount) *
+                   Mathf.Max(0.01f, GameConst.Platform.RocketPathEntryDurationScale);
+        }
+
+        private float ResolveRocketPathEntryDelay(int platformIndex, int platformCount, float entryDuration)
+        {
+            var proposedDelay = entryDuration * (platformIndex + GameConst.Platform.RocketPathPlayerLeadEntryRatio);
+            var totalDuration = entryDuration * Mathf.Max(1, platformCount);
+            var latestArrivalTime = totalDuration -
+                                    entryDuration * GameConst.Platform.RocketPathFinalArrivalLeadEntryRatio;
+            var latestDelay = Mathf.Max(0f, latestArrivalTime - entryDuration);
+            return Mathf.Min(proposedDelay, latestDelay);
         }
 
         private float ResolveRocketPathMoveSpeed(float spawnX, float targetX, float duration)

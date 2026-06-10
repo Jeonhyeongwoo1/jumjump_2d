@@ -105,7 +105,11 @@ namespace JumJump.Controller
         {
             _jumpElapsed = 0f;
             _knockback.Reset();
-            _rocketBoost.Start(targetPlatform, _groundPosition, targetGroundPosition);
+            _rocketBoost.Start(
+                targetPlatform,
+                _groundPosition,
+                targetGroundPosition,
+                _configData.PlayerRocketDropHeight);
             _previousPosition = _groundPosition;
             ResetLandingSink();
             ChangeState(PlayerStateType.RocketBoost);
@@ -196,14 +200,29 @@ namespace JumJump.Controller
 
         private void ApplyJumpVelocity()
         {
+            _rigidbody.gravityScale = ResolveJumpGravityScale();
+            _rigidbody.linearVelocity = new Vector2(0f, ResolveJumpVelocity());
+        }
+
+        private void ApplyRocketDropVelocity()
+        {
+            _rigidbody.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+            _rigidbody.gravityScale = ResolveJumpGravityScale();
+            _rigidbody.linearVelocity = new Vector2(0f, -Mathf.Max(0f, _configData.PlayerRocketDropDownwardSpeed));
+        }
+
+        private float ResolveJumpVelocity()
+        {
             var halfDuration = Mathf.Max(0.01f, _configData.PlayerJumpDuration * 0.5f);
             var jumpHeight = Mathf.Max(0.01f, _configData.PlayerJumpHeight);
-            var gravityMagnitude = Mathf.Max(0.01f, -Physics2D.gravity.y);
-            var jumpVelocity = 2f * jumpHeight / halfDuration;
-            var gravityScale = jumpVelocity / (gravityMagnitude * halfDuration);
+            return 2f * jumpHeight / halfDuration;
+        }
 
-            _rigidbody.gravityScale = gravityScale;
-            _rigidbody.linearVelocity = new Vector2(0f, jumpVelocity);
+        private float ResolveJumpGravityScale()
+        {
+            var halfDuration = Mathf.Max(0.01f, _configData.PlayerJumpDuration * 0.5f);
+            var gravityMagnitude = Mathf.Max(0.01f, -Physics2D.gravity.y);
+            return ResolveJumpVelocity() / (gravityMagnitude * halfDuration);
         }
 
         private void PlayGameOverKnockback(Vector2 knockbackDirection)
@@ -344,7 +363,7 @@ namespace JumJump.Controller
             }
 
             var targetPlatform = _rocketBoost.TargetPlatform;
-            var targetGroundPosition = _rocketBoost.TargetGroundPosition;
+            var targetGroundPosition = _rocketBoost.LandingGroundPosition;
             _rocketBoost.Reset();
 
             if (targetPlatform == null)
@@ -353,7 +372,17 @@ namespace JumJump.Controller
                 return;
             }
 
-            LandOnPlatform(targetPlatform, targetGroundPosition);
+            StartRocketDrop();
+        }
+
+        private void StartRocketDrop()
+        {
+            _jumpElapsed = Mathf.Max(0.01f, _configData.PlayerJumpDuration);
+            _previousPosition = transform.position;
+            _groundPosition = transform.position;
+            ResetLandingSink();
+            ApplyRocketDropVelocity();
+            ChangeState(PlayerStateType.Jump);
         }
 
         private void Start()

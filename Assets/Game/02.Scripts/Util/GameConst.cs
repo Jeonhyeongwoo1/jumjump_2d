@@ -26,6 +26,9 @@ namespace JumJump.Util
             public const float ShieldBlockedFadeDuration = 0.45f;
             public const float ShieldBlockedRetreatDistance = 0.7f;
             public const float ShieldBlockedRespawnDelay = 1f;
+            public const float RocketPathPlayerLeadEntryRatio = 0.45f;
+            public const float RocketPathFinalArrivalLeadEntryRatio = 0.25f;
+            public const float RocketPathEntryDurationScale = 1.35f;
         }
 
         public static class Environment
