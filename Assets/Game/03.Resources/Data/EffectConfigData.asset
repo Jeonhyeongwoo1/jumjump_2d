@@ -16,3 +16,7 @@ MonoBehaviour:
   _hayLandingFXPoolKey: FX_HayLanding
   _hayLandingFXPoolCount: 8
   _hayLandingFXOffset: {x: 0, y: 0.1, z: 0}
+  _jumpBoxBoostFXAddressableKey: JumpBoxBoostFX
+  _jumpBoxBoostFXPoolKey: FX_JumpBoxBoost
+  _jumpBoxBoostFXPoolCount: 4
+  _jumpBoxBoostFXOffset: {x: 0, y: 0.1, z: 0}

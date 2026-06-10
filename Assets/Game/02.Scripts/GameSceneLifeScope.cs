@@ -60,6 +60,7 @@ namespace JumJump
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);
+            builder.Register<JumpBoxBoostFXService>(Lifetime.Scoped);
             builder.Register<ReadyGameFlowState>(Lifetime.Scoped);
             builder.Register<PlayingGameFlowState>(Lifetime.Scoped);
             builder.Register<GameOverGameFlowState>(Lifetime.Scoped);

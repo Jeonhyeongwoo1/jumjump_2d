@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Prefab
   m_GUID: c4f4633de9d8b584889e1a0522b1764c
   m_SerializeEntries:
+  - m_GUID: 1016b5cd8ac24ec40a82e812199cbeec
+    m_Address: JumpBoxBoostFX
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 310afc1c77e360e48bd0ee32c3c9425d
     m_Address: UI_DynamicFont
     m_ReadOnly: 0

@@ -17,6 +17,7 @@ namespace JumJump.Controller
         public PlatformGimmickType GimmickType => _gimmickType;
 
         [SerializeField] private SpriteRenderer _spriteRenderer;
+        [SerializeField] private SpriteRenderer _jumpSpriteRenderer;
         [SerializeField] private BoxCollider2D _landingCollider;
         [SerializeField] private Rigidbody2D _rigidbody;
         [SerializeField] private Animator _animator;
@@ -79,6 +80,13 @@ namespace JumJump.Controller
         {
             var platformPosition = transform.position;
             return new Vector3(platformPosition.x, GetLandingSurfaceY() + player.GroundContactOffset, platformPosition.z);
+        }
+
+        public Vector3 GetBoostFXPosition()
+        {
+            var platformPosition = transform.position;
+            platformPosition.y = GetLandingSurfaceY();
+            return platformPosition;
         }
 
         public float GetStackedNextCenterY()
@@ -179,7 +187,7 @@ namespace JumJump.Controller
 
         private void Awake()
         {
-            _visual.BindComponents(_spriteRenderer, _landingCollider, _animator);
+            _visual.BindComponents(_spriteRenderer, _jumpSpriteRenderer, _landingCollider, _animator);
         }
 
         private void FixedUpdate()
@@ -211,6 +219,8 @@ namespace JumJump.Controller
 
         private void Update()
         {
+            _visual.TickJumpAnimation(Time.deltaTime);
+
             if (_state != PlatformStateType.Moving || !_shouldTickGimmick || _gimmickBehaviour == null)
             {
                 return;
@@ -298,6 +308,7 @@ namespace JumJump.Controller
             _entryDelay.Reset();
             _shieldBlockedDissolve.Reset();
             ResetGimmickRuntime();
+            _visual.HideJumpAnimation();
             SetPlatformAlpha(1f);
             _visual.ApplyScale(1f, 1f);
             _visual.SetLandingColliderEnabled(true);
@@ -318,6 +329,7 @@ namespace JumJump.Controller
             _shieldBlockedDissolve.Reset();
             _gimmickBehaviour?.Reset(this);
             ResetGimmickRuntime();
+            _visual.HideJumpAnimation();
             SetInteractionEnabled(false);
             SetPlatformAlpha(1f);
         }

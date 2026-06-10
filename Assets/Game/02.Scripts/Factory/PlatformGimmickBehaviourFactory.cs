@@ -1,4 +1,5 @@
 using JumJump.Interface;
+using JumJump.Service;
 using JumJump.Service.PlatformGimmick;
 
 namespace JumJump.Factory
@@ -8,9 +9,11 @@ namespace JumJump.Factory
         private const int GimmickTypeCount = (int)PlatformGimmickType.Rocket + 1;
 
         private readonly IPlatformGimmickBehaviour[] _behaviours;
+        private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
 
-        public PlatformGimmickBehaviourFactory()
+        public PlatformGimmickBehaviourFactory(JumpBoxBoostFXService jumpBoxBoostFXService)
         {
+            _jumpBoxBoostFXService = jumpBoxBoostFXService;
             _behaviours = new IPlatformGimmickBehaviour[GimmickTypeCount];
             Register(new NormalPlatformGimmickBehaviour());
             Register(new SmallPlatformGimmickBehaviour());
@@ -20,7 +23,7 @@ namespace JumJump.Factory
             Register(new GhostPlatformGimmickBehaviour());
             Register(new RevealPlatformGimmickBehaviour());
             Register(new ShieldPlatformGimmickBehaviour());
-            Register(new RocketPlatformGimmickBehaviour());
+            Register(new RocketPlatformGimmickBehaviour(_jumpBoxBoostFXService));
         }
 
         public IPlatformGimmickBehaviour Get(PlatformGimmickType type)

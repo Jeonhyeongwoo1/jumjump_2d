@@ -9,28 +9,36 @@ namespace JumJump.Controller
         private const string JumpAnimationStateName = "JumpAnimation";
 
         private SpriteRenderer _spriteRenderer;
+        private SpriteRenderer _jumpSpriteRenderer;
         private BoxCollider2D _landingCollider;
         private Animator _animator;
         private UnityEngine.Camera _gameCamera;
+        private float _jumpAnimationRemaining;
         private int _jumpAnimationStateHash;
         private Sprite _baseSprite;
         private Vector3 _baseLocalScale;
         private Vector3 _baseSpriteLocalScale;
+        private Vector3 _baseJumpSpriteLocalScale;
         private Color _baseSpriteColor;
+        private Color _baseJumpSpriteColor;
         private Vector2 _baseSpriteSize;
+        private Vector2 _baseJumpSpriteSize;
         private Vector2 _baseColliderSize;
         private bool _hasCachedBaseSize;
 
         public void BindComponents(
             SpriteRenderer spriteRenderer,
+            SpriteRenderer jumpSpriteRenderer,
             BoxCollider2D landingCollider,
             Animator animator)
         {
             _spriteRenderer = spriteRenderer;
+            _jumpSpriteRenderer = jumpSpriteRenderer;
             _landingCollider = landingCollider;
             _animator = animator;
             _jumpAnimationStateHash = Animator.StringToHash(JumpAnimationStateName);
             _hasCachedBaseSize = false;
+            HideJumpAnimation();
         }
 
         public void BindCamera(UnityEngine.Camera gameCamera)
@@ -48,8 +56,11 @@ namespace JumJump.Controller
             _baseLocalScale = _landingCollider.transform.localScale;
             _baseSprite = _spriteRenderer.sprite;
             _baseSpriteLocalScale = _spriteRenderer.transform.localScale;
+            _baseJumpSpriteLocalScale = _jumpSpriteRenderer.transform.localScale;
             _baseSpriteColor = _spriteRenderer.color;
+            _baseJumpSpriteColor = _jumpSpriteRenderer.color;
             _baseSpriteSize = _spriteRenderer.size;
+            _baseJumpSpriteSize = _jumpSpriteRenderer.size;
             _baseColliderSize = ResolveBaseColliderSize(configData);
             _hasCachedBaseSize = true;
         }
@@ -83,6 +94,8 @@ namespace JumJump.Controller
                     _baseSpriteLocalScale.z);
             }
 
+            ApplyJumpSpriteScale(widthScale, heightScale);
+
             var colliderWidthScale = spriteOnRoot ? 1f : widthScale;
             var colliderHeightScale = spriteOnRoot ? 1f : heightScale;
             _landingCollider.size = new Vector2(
@@ -101,11 +114,37 @@ namespace JumJump.Controller
             var color = _baseSpriteColor;
             color.a *= Mathf.Clamp01(alpha);
             _spriteRenderer.color = color;
+
+            var jumpColor = _baseJumpSpriteColor;
+            jumpColor.a *= Mathf.Clamp01(alpha);
+            _jumpSpriteRenderer.color = jumpColor;
         }
 
         public void PlayJumpAnimation()
         {
+            _jumpAnimationRemaining = GameConst.Platform.JumpAnimationDuration;
+            _jumpSpriteRenderer.enabled = true;
             _animator.Play(_jumpAnimationStateHash, 0, 0f);
+        }
+
+        public void TickJumpAnimation(float deltaTime)
+        {
+            if (_jumpAnimationRemaining <= 0f)
+            {
+                return;
+            }
+
+            _jumpAnimationRemaining -= deltaTime;
+            if (_jumpAnimationRemaining <= 0f)
+            {
+                HideJumpAnimation();
+            }
+        }
+
+        public void HideJumpAnimation()
+        {
+            _jumpAnimationRemaining = 0f;
+            _jumpSpriteRenderer.enabled = false;
         }
 
         public void SetLandingColliderEnabled(bool isEnabled)
@@ -201,6 +240,24 @@ namespace JumJump.Controller
             }
 
             return colliderSize;
+        }
+
+        private void ApplyJumpSpriteScale(float widthScale, float heightScale)
+        {
+            if (_jumpSpriteRenderer.drawMode == SpriteDrawMode.Sliced ||
+                _jumpSpriteRenderer.drawMode == SpriteDrawMode.Tiled)
+            {
+                _jumpSpriteRenderer.size = new Vector2(
+                    _baseJumpSpriteSize.x * widthScale,
+                    _baseJumpSpriteSize.y * heightScale);
+                _jumpSpriteRenderer.transform.localScale = _baseJumpSpriteLocalScale;
+                return;
+            }
+
+            _jumpSpriteRenderer.transform.localScale = new Vector3(
+                _baseJumpSpriteLocalScale.x * widthScale,
+                _baseJumpSpriteLocalScale.y * heightScale,
+                _baseJumpSpriteLocalScale.z);
         }
     }
 }

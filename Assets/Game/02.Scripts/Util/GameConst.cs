@@ -30,6 +30,7 @@ namespace JumJump.Util
             public const float RocketPathPlayerLeadEntryRatio = 0.45f;
             public const float RocketPathFinalArrivalLeadEntryRatio = 0.25f;
             public const float RocketPathEntryDurationScale = 1.35f;
+            public const float JumpAnimationDuration = 0.22f;
         }
 
         public static class Score
