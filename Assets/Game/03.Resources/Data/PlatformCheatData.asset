@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b65f8904413d47f581bf8e942d18cc42, type: 3}
   m_Name: PlatformCheatData
   m_EditorClassIdentifier: 
-  _forcePlatformGimmick: 1
-  _forcedPlatformGimmickType: 9
+  _forcePlatformGimmick: 0
+  _forcedPlatformGimmickType: 0

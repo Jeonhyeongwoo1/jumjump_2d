@@ -15,10 +15,10 @@ namespace JumJump.Controller
         private BoxCollider2D _landingCollider;
         private Animator _animator;
         private UnityEngine.Camera _gameCamera;
-        private float _jumpAnimationRemaining;
         private int _jumpAnimationStateHash;
         private int _rocketAnimationStateHash;
         private int _shieldAnimationStateHash;
+        private int _activeJumpAnimationStateHash;
         private Sprite _baseSprite;
         private Vector3 _baseLocalScale;
         private Vector3 _baseSpriteLocalScale;
@@ -29,6 +29,7 @@ namespace JumJump.Controller
         private Vector2 _baseJumpSpriteSize;
         private Vector2 _baseColliderSize;
         private bool _hasCachedBaseSize;
+        private bool _isJumpAnimationPlaying;
 
         public void BindComponents(
             SpriteRenderer spriteRenderer,
@@ -128,29 +129,35 @@ namespace JumJump.Controller
 
         public void PlayJumpAnimation(PlatformGimmickType gimmickType)
         {
-            _jumpAnimationRemaining = GameConst.Platform.JumpAnimationDuration;
+            _activeJumpAnimationStateHash = ResolveJumpAnimationStateHash(gimmickType);
+            _isJumpAnimationPlaying = true;
             _spriteRenderer.enabled = false;
             _jumpSpriteRenderer.enabled = true;
-            _animator.Play(ResolveJumpAnimationStateHash(gimmickType), 0, 0f);
+            _animator.Play(_activeJumpAnimationStateHash, 0, 0f);
         }
 
-        public void TickJumpAnimation(float deltaTime)
+        public void TickJumpAnimation()
         {
-            if (_jumpAnimationRemaining <= 0f)
+            if (!_isJumpAnimationPlaying)
             {
                 return;
             }
 
-            _jumpAnimationRemaining -= deltaTime;
-            if (_jumpAnimationRemaining <= 0f)
+            var stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.shortNameHash != _activeJumpAnimationStateHash ||
+                stateInfo.normalizedTime < 1f ||
+                _animator.IsInTransition(0))
             {
-                HideJumpAnimation();
+                return;
             }
+
+            HideJumpAnimation();
         }
 
         public void HideJumpAnimation()
         {
-            _jumpAnimationRemaining = 0f;
+            _isJumpAnimationPlaying = false;
+            _activeJumpAnimationStateHash = 0;
             _jumpSpriteRenderer.enabled = false;
             _spriteRenderer.enabled = true;
         }

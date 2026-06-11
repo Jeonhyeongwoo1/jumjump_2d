@@ -111,12 +111,6 @@ namespace JumJump.Controller
             var landingY = GetLandingSurfaceY();
             if (PlatformLandingResolver.CanResolveLanding(player, landingY))
             {
-                if (player.TryBlockWithShield())
-                {
-                    ResolveShieldBlock(player);
-                    return true;
-                }
-
                 ResolveLanding(player, landingY);
                 return true;
             }
@@ -219,7 +213,7 @@ namespace JumJump.Controller
 
         private void Update()
         {
-            _visual.TickJumpAnimation(Time.deltaTime);
+            _visual.TickJumpAnimation();
 
             if (_state != PlatformStateType.Moving || !_shouldTickGimmick || _gimmickBehaviour == null)
             {
