@@ -7,6 +7,8 @@ namespace JumJump.Controller
     internal struct PlatformVisual
     {
         private const string JumpAnimationStateName = "JumpAnimation";
+        private const string RocketAnimationStateName = "RoketAnimation";
+        private const string ShieldAnimationStateName = "ShieldAnimation";
 
         private SpriteRenderer _spriteRenderer;
         private SpriteRenderer _jumpSpriteRenderer;
@@ -15,6 +17,8 @@ namespace JumJump.Controller
         private UnityEngine.Camera _gameCamera;
         private float _jumpAnimationRemaining;
         private int _jumpAnimationStateHash;
+        private int _rocketAnimationStateHash;
+        private int _shieldAnimationStateHash;
         private Sprite _baseSprite;
         private Vector3 _baseLocalScale;
         private Vector3 _baseSpriteLocalScale;
@@ -37,6 +41,8 @@ namespace JumJump.Controller
             _landingCollider = landingCollider;
             _animator = animator;
             _jumpAnimationStateHash = Animator.StringToHash(JumpAnimationStateName);
+            _rocketAnimationStateHash = Animator.StringToHash(RocketAnimationStateName);
+            _shieldAnimationStateHash = Animator.StringToHash(ShieldAnimationStateName);
             _hasCachedBaseSize = false;
             HideJumpAnimation();
         }
@@ -120,11 +126,12 @@ namespace JumJump.Controller
             _jumpSpriteRenderer.color = jumpColor;
         }
 
-        public void PlayJumpAnimation()
+        public void PlayJumpAnimation(PlatformGimmickType gimmickType)
         {
             _jumpAnimationRemaining = GameConst.Platform.JumpAnimationDuration;
+            _spriteRenderer.enabled = false;
             _jumpSpriteRenderer.enabled = true;
-            _animator.Play(_jumpAnimationStateHash, 0, 0f);
+            _animator.Play(ResolveJumpAnimationStateHash(gimmickType), 0, 0f);
         }
 
         public void TickJumpAnimation(float deltaTime)
@@ -145,6 +152,7 @@ namespace JumJump.Controller
         {
             _jumpAnimationRemaining = 0f;
             _jumpSpriteRenderer.enabled = false;
+            _spriteRenderer.enabled = true;
         }
 
         public void SetLandingColliderEnabled(bool isEnabled)
@@ -258,6 +266,19 @@ namespace JumJump.Controller
                 _baseJumpSpriteLocalScale.x * widthScale,
                 _baseJumpSpriteLocalScale.y * heightScale,
                 _baseJumpSpriteLocalScale.z);
+        }
+
+        private int ResolveJumpAnimationStateHash(PlatformGimmickType gimmickType)
+        {
+            switch (gimmickType)
+            {
+                case PlatformGimmickType.Rocket:
+                    return _rocketAnimationStateHash;
+                case PlatformGimmickType.Shield:
+                    return _shieldAnimationStateHash;
+                default:
+                    return _jumpAnimationStateHash;
+            }
         }
     }
 }

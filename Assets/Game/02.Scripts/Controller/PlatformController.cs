@@ -398,7 +398,7 @@ namespace JumJump.Controller
             return landingPosition;
         }
 
-        private void PlayJumpAnimation() => _visual.PlayJumpAnimation();
+        private void PlayJumpAnimation() => _visual.PlayJumpAnimation(_gimmickType);
 
         private void ResolveSideHit(Player player)
         {
