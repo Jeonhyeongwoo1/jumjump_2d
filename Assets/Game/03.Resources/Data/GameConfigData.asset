@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: GameConfigData
   m_EditorClassIdentifier: 
   _scorePerLanding: 1
+  _comboLandingCenterTolerance: 0.08
   _highScoreKey: JumJump.HighScore
   _tapActionPath: Player/Attack
   _cameraMinimumY: 0

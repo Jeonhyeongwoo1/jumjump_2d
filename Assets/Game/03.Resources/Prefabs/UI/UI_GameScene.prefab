@@ -229,7 +229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Presenter.UI_GameScene
   _scoreText: {fileID: 8385033982540604471}
-  _goldText: {fileID: 1173040715953218547}
+  _comboScoreText: {fileID: 1173040715953218547}
   _startCountdownPanel: {fileID: 7392165399819854563}
   _startCountdownText: {fileID: 346770996475970967}
 --- !u!1 &5159704086037290239
@@ -637,7 +637,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4487753814303807818, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_Name
-      value: GoldPanel
+      value: ComboPanel
       objectReference: {fileID: 0}
     - target: {fileID: 4819963814387292270, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
@@ -649,7 +649,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6392937468615448321, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_Name
-      value: GoldValueText
+      value: ComboValueText
       objectReference: {fileID: 0}
     - target: {fileID: 6965188749628519291, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_AnchorMax.y

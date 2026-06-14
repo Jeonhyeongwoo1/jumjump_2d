@@ -11,6 +11,7 @@ namespace JumJump.Controller
     [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(Animator))]
     public sealed class PlatformController : MonoBehaviour
     {
+        public float CenterX => transform.position.x;
         public float CenterY => transform.position.y;
         public float BottomY => _visual.GetBottomY();
         public float TopY => _visual.GetTopY();

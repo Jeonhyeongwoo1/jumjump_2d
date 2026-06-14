@@ -111,11 +111,13 @@ namespace JumJump.Event
     {
         public int Score { get; private set; }
         public int HighScore { get; private set; }
+        public int ComboScore { get; private set; }
 
-        public ScoreChangedEvent(int score, int highScore)
+        public ScoreChangedEvent(int score, int highScore, int comboScore)
         {
             Score = score;
             HighScore = highScore;
+            ComboScore = comboScore;
         }
     }
 
