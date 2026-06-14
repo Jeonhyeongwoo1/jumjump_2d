@@ -15,12 +15,15 @@ namespace JumJump.Editor
         private const int AtlasSize = 1024;
 
         private const string RequestFileName = ".codex-bake-nexon-fonts.request";
+        private const string CommonRequestFileName = ".codex-bake-fonts.request";
         private const string RunningFileName = ".codex-bake-nexon-fonts.running";
+        private const string CommonRunningFileName = ".codex-bake-fonts.running";
 
         private const string BakeCharacters =
             "0123456789+-.,!?/:()[]{}% " +
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
-            "One more try?RestartScoreHighBest";
+            "One more try?RestartScoreHighBestPERFECTCOMBOx" +
+            "콤보퍼펙트점수최고다시하기일반로켓쉴드";
 
         static NexonFontBakeTool()
         {
@@ -39,6 +42,24 @@ namespace JumJump.Editor
             AssetDatabase.Refresh();
         }
 
+        [MenuItem("JumJump/Bake Common Font Asset")]
+        [MenuItem("JumJump/Assets/Bake Common Font Asset")]
+        public static void BakeCommonFontAsset()
+        {
+            BakeFontAsset("CommonFonts.ttf");
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        [MenuItem("JumJump/Bake All Font Assets")]
+        [MenuItem("JumJump/Assets/Bake All Font Assets")]
+        public static void BakeAllFontAssets()
+        {
+            BakeNexonFontAssets();
+            BakeCommonFontAsset();
+        }
+
         [InitializeOnLoadMethod]
         private static void BakePendingRequest()
         {
@@ -49,14 +70,31 @@ namespace JumJump.Editor
                 return;
             }
 
-            var requestPath = Path.Combine(projectRoot, RequestFileName);
-            var runningPath = Path.Combine(projectRoot, RunningFileName);
-
-            if (!File.Exists(requestPath))
+            if (TryBakePendingRequest(
+                    projectRoot,
+                    CommonRequestFileName,
+                    CommonRunningFileName,
+                    BakeAllFontAssets))
             {
                 return;
             }
 
+            TryBakePendingRequest(projectRoot, RequestFileName, RunningFileName, BakeAllFontAssets);
+        }
+
+        private static bool TryBakePendingRequest(
+            string projectRoot,
+            string requestFileName,
+            string runningFileName,
+            System.Action bakeAction)
+        {
+            var requestPath = Path.Combine(projectRoot, requestFileName);
+            if (!File.Exists(requestPath))
+            {
+                return false;
+            }
+
+            var runningPath = Path.Combine(projectRoot, runningFileName);
             Debug.Log($"[{nameof(NexonFontBakeTool)}] Font bake request detected: {requestPath}");
 
             try
@@ -70,12 +108,12 @@ namespace JumJump.Editor
             }
             catch (IOException)
             {
-                return;
+                return false;
             }
 
             try
             {
-                BakeNexonFontAssets();
+                bakeAction();
             }
             finally
             {
@@ -84,6 +122,8 @@ namespace JumJump.Editor
                     File.Delete(runningPath);
                 }
             }
+
+            return true;
         }
 
         private static void BakeFontAsset(string fontFileName)

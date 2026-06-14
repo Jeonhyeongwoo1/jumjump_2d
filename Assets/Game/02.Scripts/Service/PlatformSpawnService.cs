@@ -404,7 +404,7 @@ namespace JumJump.Service
 
         private float ResolveBaseMoveSpeed()
         {
-            var scoreFactor = Mathf.Clamp01(_scoreService.Score / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
+            var scoreFactor = Mathf.Clamp01(_scoreService.BaseScore / Mathf.Max(1f, _configData.PlatformScoreSpeedMaxScore));
             var baseMoveSpeed = Mathf.Max(
                 0f,
                 _configData.PlatformBaseMoveSpeed + scoreFactor * _configData.PlatformMaxMoveSpeedBonus);

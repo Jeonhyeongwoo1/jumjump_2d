@@ -11,10 +11,12 @@ namespace JumJump.Service
     public sealed class ScoreService : IInitializable, ITickable, IDisposable
     {
         public int Score => _score;
+        public int BaseScore => _baseScore;
         public int HighScore => _highScore;
         public int ComboScore => _comboScore;
 
         private int _score;
+        private int _baseScore;
         private int _highScore;
         private int _comboScore;
         private int _pendingAnimatedScore;
@@ -53,7 +55,8 @@ namespace JumJump.Service
 
             _pendingAnimatedScoreElapsed = 0f;
             _pendingAnimatedScore--;
-            AddScore(1);
+            AddBaseScore(1);
+            AddScore(1, 1, 0, false);
         }
 
         public void Dispose()
@@ -67,7 +70,10 @@ namespace JumJump.Service
         private void OnPlayerLanded(in PlayerLandedEvent ev)
         {
             UpdateComboScore(ev);
-            AddScore(ResolveLandingScore());
+            var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
+            var comboBonus = ResolveComboBonus();
+            AddBaseScore(baseScore);
+            AddScore(baseScore + comboBonus, baseScore, comboBonus, _comboScore > 0);
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -90,7 +96,7 @@ namespace JumJump.Service
             _pendingAnimatedScore += amount;
         }
 
-        private void AddScore(int amount)
+        private void AddScore(int amount, int baseScoreDelta, int comboBonusDelta, bool isComboLandingScore)
         {
             if (amount <= 0)
             {
@@ -106,7 +112,17 @@ namespace JumJump.Service
                 PlayerPrefs.Save();
             }
 
-            PublishScoreChanged();
+            PublishScoreChanged(amount, baseScoreDelta, comboBonusDelta, isComboLandingScore);
+        }
+
+        private void AddBaseScore(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            _baseScore += amount;
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
@@ -114,8 +130,9 @@ namespace JumJump.Service
             _pendingAnimatedScore = 0;
             _pendingAnimatedScoreElapsed = 0f;
             _score = 0;
+            _baseScore = 0;
             _comboScore = 0;
-            PublishScoreChanged();
+            PublishScoreChanged(0, 0, 0, false);
         }
 
         private void UpdateComboScore(in PlayerLandedEvent ev)
@@ -144,19 +161,27 @@ namespace JumJump.Service
             }
 
             _comboScore = 0;
-            PublishScoreChanged();
+            PublishScoreChanged(0, 0, 0, false);
         }
 
-        private int ResolveLandingScore()
-        {
-            var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
-            var comboBonus = Mathf.Max(0, _comboScore - 1);
-            return baseScore + comboBonus;
-        }
+        private int ResolveComboBonus() => Mathf.Max(0, _comboScore - 1);
 
-        private void PublishScoreChanged()
+        private void PublishScoreChanged() => PublishScoreChanged(0, 0, 0, false);
+
+        private void PublishScoreChanged(
+            int scoreDelta,
+            int baseScoreDelta,
+            int comboBonusDelta,
+            bool isComboLandingScore)
         {
-            _eventBus.Publish(new ScoreChangedEvent(_score, _highScore, _comboScore));
+            _eventBus.Publish(new ScoreChangedEvent(
+                _score,
+                _highScore,
+                _comboScore,
+                scoreDelta,
+                baseScoreDelta,
+                comboBonusDelta,
+                isComboLandingScore));
         }
     }
 }

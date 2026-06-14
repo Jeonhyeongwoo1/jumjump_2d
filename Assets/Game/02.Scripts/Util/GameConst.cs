@@ -55,6 +55,22 @@ namespace JumJump.Util
             public const float RiseHeight = 0.8f;
             public const float SpawnOffsetX = 0.5f;
             public const float SpawnOffsetY = 0.3f;
+            public const float ComboScale = 1.18f;
+            public const byte NormalScoreColorR = 255;
+            public const byte NormalScoreColorG = 230;
+            public const byte NormalScoreColorB = 109;
+            public const byte ComboGradientTopLeftR = 99;
+            public const byte ComboGradientTopLeftG = 245;
+            public const byte ComboGradientTopLeftB = 200;
+            public const byte ComboGradientTopRightR = 255;
+            public const byte ComboGradientTopRightG = 215;
+            public const byte ComboGradientTopRightB = 0;
+            public const byte ComboGradientBottomLeftR = 255;
+            public const byte ComboGradientBottomLeftG = 95;
+            public const byte ComboGradientBottomLeftB = 162;
+            public const byte ComboGradientBottomRightR = 255;
+            public const byte ComboGradientBottomRightG = 184;
+            public const byte ComboGradientBottomRightB = 77;
         }
 
         public static class Player

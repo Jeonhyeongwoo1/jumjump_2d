@@ -112,12 +112,27 @@ namespace JumJump.Event
         public int Score { get; private set; }
         public int HighScore { get; private set; }
         public int ComboScore { get; private set; }
+        public int ScoreDelta { get; private set; }
+        public int BaseScoreDelta { get; private set; }
+        public int ComboBonusDelta { get; private set; }
+        public bool IsComboLandingScore { get; private set; }
 
-        public ScoreChangedEvent(int score, int highScore, int comboScore)
+        public ScoreChangedEvent(
+            int score,
+            int highScore,
+            int comboScore,
+            int scoreDelta,
+            int baseScoreDelta,
+            int comboBonusDelta,
+            bool isComboLandingScore)
         {
             Score = score;
             HighScore = highScore;
             ComboScore = comboScore;
+            ScoreDelta = scoreDelta;
+            BaseScoreDelta = baseScoreDelta;
+            ComboBonusDelta = comboBonusDelta;
+            IsComboLandingScore = isComboLandingScore;
         }
     }
 

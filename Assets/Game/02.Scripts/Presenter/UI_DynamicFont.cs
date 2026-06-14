@@ -13,13 +13,16 @@ namespace JumJump.Presenter
 
         private Action<UI_DynamicFont> _onRelease;
         private CancellationTokenSource _cts;
+        private Vector3 _baseScale;
 
-        public void Show(string text, Vector3 worldPosition, Action<UI_DynamicFont> onRelease)
+        public void Show(string text, Vector3 worldPosition, bool isComboStyle, Action<UI_DynamicFont> onRelease)
         {
             _onRelease = onRelease;
             transform.position = worldPosition;
+            transform.localScale = _baseScale * ResolveScale(isComboStyle);
             _text.text = text;
             _text.alpha = 1f;
+            ApplyTextStyle(isComboStyle);
 
             _cts?.Cancel();
             _cts?.Dispose();
@@ -45,6 +48,51 @@ namespace JumJump.Presenter
             {
                 _onRelease?.Invoke(this);
             }
+        }
+
+        private void ApplyTextStyle(bool isComboStyle)
+        {
+            _text.enableVertexGradient = isComboStyle;
+            if (!isComboStyle)
+            {
+                _text.color = new Color32(
+                    GameConst.DynamicFont.NormalScoreColorR,
+                    GameConst.DynamicFont.NormalScoreColorG,
+                    GameConst.DynamicFont.NormalScoreColorB,
+                    byte.MaxValue);
+                return;
+            }
+
+            _text.color = Color.white;
+            _text.colorGradient = new VertexGradient(
+                new Color32(
+                    GameConst.DynamicFont.ComboGradientTopLeftR,
+                    GameConst.DynamicFont.ComboGradientTopLeftG,
+                    GameConst.DynamicFont.ComboGradientTopLeftB,
+                    byte.MaxValue),
+                new Color32(
+                    GameConst.DynamicFont.ComboGradientTopRightR,
+                    GameConst.DynamicFont.ComboGradientTopRightG,
+                    GameConst.DynamicFont.ComboGradientTopRightB,
+                    byte.MaxValue),
+                new Color32(
+                    GameConst.DynamicFont.ComboGradientBottomLeftR,
+                    GameConst.DynamicFont.ComboGradientBottomLeftG,
+                    GameConst.DynamicFont.ComboGradientBottomLeftB,
+                    byte.MaxValue),
+                new Color32(
+                    GameConst.DynamicFont.ComboGradientBottomRightR,
+                    GameConst.DynamicFont.ComboGradientBottomRightG,
+                    GameConst.DynamicFont.ComboGradientBottomRightB,
+                    byte.MaxValue));
+        }
+
+        private float ResolveScale(bool isComboStyle) =>
+            isComboStyle ? GameConst.DynamicFont.ComboScale : 1f;
+
+        private void Awake()
+        {
+            _baseScale = transform.localScale;
         }
 
         private void OnDestroy()

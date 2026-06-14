@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c3b40115e99908c4f9e31e199adbe49f
+guid: 167cc1080c5d08b4b94d528355321456
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - NEXON Lv1 Gothic
+  - Ownglyph BERRY RW
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

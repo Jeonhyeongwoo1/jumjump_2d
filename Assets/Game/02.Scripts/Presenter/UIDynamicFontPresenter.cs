@@ -64,7 +64,7 @@ namespace JumJump.Presenter
 
         private void OnScoreChanged(in ScoreChangedEvent ev)
         {
-            var delta = ev.Score - _previousScore;
+            var delta = ev.ScoreDelta;
             _previousScore = ev.Score;
 
             if (delta <= 0)
@@ -87,7 +87,22 @@ namespace JumJump.Presenter
                 return;
             }
 
-            view.Show($"+{delta}", spawnPosition, Release);
+            view.Show(ResolveScoreText(ev, delta), spawnPosition, ev.IsComboLandingScore, Release);
+        }
+
+        private string ResolveScoreText(in ScoreChangedEvent ev, int delta)
+        {
+            if (!ev.IsComboLandingScore)
+            {
+                return $"+{delta}";
+            }
+
+            if (ev.ComboBonusDelta <= 0)
+            {
+                return $"PERFECT +{delta}";
+            }
+
+            return $"COMBO +{delta}";
         }
 
         private void Release(UI_DynamicFont view)
