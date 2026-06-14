@@ -75,5 +75,9 @@ namespace JumJump.Service.GameFlowState
             context.ChangeState(GameStateType.Ready);
             _eventBus.Publish(new GameResetEvent());
         }
+
+        public void OnReviveRequested(IGameFlowStateContext context)
+        {
+        }
     }
 }

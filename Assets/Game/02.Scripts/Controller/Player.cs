@@ -15,6 +15,7 @@ namespace JumJump.Controller
                                NormalizedJumpTime >= _configData.PlayerLandingEnabledNormalizedTime;
         public bool IsDescending => IsJumping && _rigidbody.linearVelocity.y <= 0f;
         public Vector3 Position => transform.position;
+        public float SpawnX => _spawnPosition.x;
         public Vector3 PreviousPosition => _previousPosition;
         public float BottomY => ResolveBottomY(Position);
         public float PreviousBottomY => ResolveBottomY(_previousPosition);
@@ -79,6 +80,12 @@ namespace JumJump.Controller
         public void LandOnStackedPlatform(PlatformController platform, Vector3 landingPosition)
         {
             PlaceAtGroundPosition(landingPosition, true);
+        }
+
+        public void ReviveAt(Vector3 groundPosition)
+        {
+            ApplyFacingScale(1f);
+            PlaceAtGroundPosition(groundPosition, false);
         }
 
         public void GrantShield()

@@ -11,7 +11,15 @@ namespace JumJump.Event
     {
     }
 
+    public struct ReviveRequestedEvent
+    {
+    }
+
     public struct GameStartedEvent
+    {
+    }
+
+    public struct GameRevivedEvent
     {
     }
 

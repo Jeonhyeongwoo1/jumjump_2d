@@ -36,6 +36,7 @@ namespace JumJump.Service
             _eventBus.Subscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Subscribe<ReviveRequestedEvent>(OnReviveRequested);
             ChangeState(GameStateType.Ready);
         }
 
@@ -50,6 +51,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Unsubscribe<ReviveRequestedEvent>(OnReviveRequested);
             _currentState?.OnExit();
             _currentState = null;
         }
@@ -98,6 +100,11 @@ namespace JumJump.Service
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
             _currentState?.OnRestartRequested(this);
+        }
+
+        private void OnReviveRequested(in ReviveRequestedEvent ev)
+        {
+            _currentState?.OnReviveRequested(this);
         }
 
         private IGameFlowState GetState(GameStateType stateType)

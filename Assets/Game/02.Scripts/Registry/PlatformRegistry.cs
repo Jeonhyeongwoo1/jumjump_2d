@@ -61,6 +61,26 @@ namespace JumJump.Registry
             }
         }
 
+        public void ReleaseAbove(float y)
+        {
+            for (var i = _platforms.Count - 1; i >= 0; i--)
+            {
+                var platform = _platforms[i];
+                if (platform == null)
+                {
+                    _platforms.RemoveAt(i);
+                    continue;
+                }
+
+                if (platform.CenterY <= y + GameConst.Platform.CleanupYMargin)
+                {
+                    continue;
+                }
+
+                platform.Release();
+            }
+        }
+
         public void ShowAllForResultView()
         {
             for (var i = _platforms.Count - 1; i >= 0; i--)

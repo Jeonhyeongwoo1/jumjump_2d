@@ -80,7 +80,7 @@ namespace JumJump.Presenter
         private void OnAdClicked()
         {
             ClosePopup(false);
-            _eventBus.Publish(new RestartRequestedEvent());
+            _eventBus.Publish(new ReviveRequestedEvent());
         }
 
         private void OnCloseClicked()

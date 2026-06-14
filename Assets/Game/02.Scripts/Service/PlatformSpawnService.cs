@@ -23,8 +23,11 @@ namespace JumJump.Service
         private bool _hasPendingDoublePreSpawn;
         private bool _hasPendingDoubleActivation;
         private bool _hasPendingShieldBlockedRespawn;
+        private bool _hasPendingReviveSpawn;
         private PlatformController _doubleSourcePlatform;
         private PlatformController _prefetchedDoublePlatform;
+        private PlatformController _lastLandedPlatform;
+        private float _pendingRevivePlatformY;
         private readonly IEventBus _eventBus;
         private readonly PlatformFactory _platformFactory;
         private readonly PlatformRegistry _platformRegistry;
@@ -73,6 +76,7 @@ namespace JumJump.Service
             _eventBus.Subscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Subscribe<PlatformShieldBlockedEvent>(OnPlatformShieldBlocked);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Subscribe<GameRevivedEvent>(OnGameRevived);
         }
 
         public void Tick()
@@ -89,6 +93,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Unsubscribe<PlatformShieldBlockedEvent>(OnPlatformShieldBlocked);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Unsubscribe<GameRevivedEvent>(OnGameRevived);
         }
 
         private void TickPendingDoublePreSpawn()
@@ -134,6 +139,9 @@ namespace JumJump.Service
 
             _platformRegistry.Clear();
             _nextPlatformIndex = 0;
+            _lastLandedPlatform = null;
+            _hasPendingReviveSpawn = false;
+            _pendingRevivePlatformY = 0f;
             ClearPendingDoubleSpawn();
             ClearPendingShieldBlockedRespawn();
             player.ResetForRound();
@@ -435,6 +443,7 @@ namespace JumJump.Service
                 return;
             }
 
+            _lastLandedPlatform = ev.Platform;
             _scoreBoardService.ReleaseForPlatform(ev.Platform);
             _platformRegistry.ArchiveBelow(ResolveCleanupBelowY(ev.Platform));
             if (ev.Platform.GimmickType == PlatformGimmickType.Rocket)
@@ -483,12 +492,52 @@ namespace JumJump.Service
 
         private void OnGameStarted(in GameStartedEvent ev)
         {
+            if (_hasPendingReviveSpawn)
+            {
+                _hasPendingReviveSpawn = false;
+                SpawnIncomingPlatformAtY(_pendingRevivePlatformY);
+                _pendingRevivePlatformY = 0f;
+                return;
+            }
+
             SpawnIncomingPlatform();
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
             ResetRound();
+        }
+
+        private void OnGameRevived(in GameRevivedEvent ev)
+        {
+            TryPrepareReviveAtLastLandedPlatform();
+        }
+
+        private void TryPrepareReviveAtLastLandedPlatform()
+        {
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot revive.");
+                return;
+            }
+
+            if (_lastLandedPlatform == null)
+            {
+                Debug.LogError($"[{nameof(PlatformSpawnService)}] Last landed platform missing; cannot revive.");
+                ResetRound();
+                return;
+            }
+
+            ClearPendingDoubleSpawn();
+            ClearPendingShieldBlockedRespawn();
+            _platformRegistry.ReleaseAbove(_lastLandedPlatform.CenterY);
+            _platformRegistry.ArchiveBelow(ResolveCleanupBelowY(_lastLandedPlatform));
+            var revivePosition = _lastLandedPlatform.GetLandingPosition(player);
+            revivePosition.x = player.SpawnX;
+            player.ReviveAt(revivePosition);
+            _pendingRevivePlatformY = _lastLandedPlatform.GetStackedNextCenterY();
+            _hasPendingReviveSpawn = true;
         }
     }
 }

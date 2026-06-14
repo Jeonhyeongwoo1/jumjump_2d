@@ -88,6 +88,10 @@ namespace JumJump.Service.GameFlowState
             BeginStartCountdown();
         }
 
+        public void OnReviveRequested(IGameFlowStateContext context)
+        {
+        }
+
         private void OnResourcesReady(in GameResourcesReadyEvent ev)
         {
             _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);

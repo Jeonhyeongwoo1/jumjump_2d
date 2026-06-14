@@ -10,5 +10,6 @@ namespace JumJump.Interface
         void OnTapRequested(IGameFlowStateContext context);
         void OnPlayerMissedLanding(IGameFlowStateContext context);
         void OnRestartRequested(IGameFlowStateContext context);
+        void OnReviveRequested(IGameFlowStateContext context);
     }
 }
