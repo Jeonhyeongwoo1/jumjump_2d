@@ -57,6 +57,7 @@ namespace JumJump
             builder.Register<UIGameScenePresenter>(Lifetime.Scoped);
             builder.Register<UIGameOverPopupPresenter>(Lifetime.Scoped);
             builder.Register<UIDynamicFontPresenter>(Lifetime.Scoped);
+            builder.Register<ScoreBoardService>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);

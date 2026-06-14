@@ -19,6 +19,7 @@ namespace JumJump.Service
         private int _baseScore;
         private int _highScore;
         private int _comboScore;
+        private int _comboScoreProgress;
         private int _pendingAnimatedScore;
         private float _pendingAnimatedScoreElapsed;
         private readonly IEventBus _eventBus;
@@ -67,13 +68,24 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
         }
 
+        public bool ShouldPreviewHighScoreBoardOnNextLanding()
+        {
+            if (_highScore <= GameConst.Score.ScoreBoardMinimumHighScore || _score >= _highScore)
+            {
+                return false;
+            }
+
+            var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
+            var predictedScore = _score + baseScore + ResolveCurrentComboScoreForLanding();
+            return _highScore - predictedScore <= GameConst.Score.ScoreBoardPreviewRemainingScore;
+        }
+
         private void OnPlayerLanded(in PlayerLandedEvent ev)
         {
-            UpdateComboScore(ev);
+            var comboBonus = UpdateComboScore(ev);
             var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
-            var comboBonus = ResolveComboBonus();
             AddBaseScore(baseScore);
-            AddScore(baseScore + comboBonus, baseScore, comboBonus, _comboScore > 0);
+            AddScore(baseScore + comboBonus, baseScore, comboBonus, comboBonus > 0);
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -132,39 +144,68 @@ namespace JumJump.Service
             _score = 0;
             _baseScore = 0;
             _comboScore = 0;
+            _comboScoreProgress = 0;
             PublishScoreChanged(0, 0, 0, false);
         }
 
-        private void UpdateComboScore(in PlayerLandedEvent ev)
+        private int UpdateComboScore(in PlayerLandedEvent ev)
         {
             if (ev.Platform == null)
             {
                 ResetComboScore();
-                return;
+                return 0;
             }
 
             var tolerance = Mathf.Max(0f, _configData.ComboLandingCenterTolerance);
             if (Mathf.Abs(ev.Platform.CenterX - ev.LandingPosition.x) <= tolerance)
             {
-                _comboScore++;
-                return;
+                return AdvanceComboScore();
             }
 
-            _comboScore = 0;
+            ResetComboScore();
+            return 0;
         }
 
         private void ResetComboScore()
         {
-            if (_comboScore <= 0)
+            if (_comboScore <= 0 && _comboScoreProgress <= 0)
             {
                 return;
             }
 
             _comboScore = 0;
+            _comboScoreProgress = 0;
             PublishScoreChanged(0, 0, 0, false);
         }
 
-        private int ResolveComboBonus() => Mathf.Max(0, _comboScore - 1);
+        private int AdvanceComboScore()
+        {
+            if (_comboScore <= 0)
+            {
+                _comboScore = 1;
+                _comboScoreProgress = 0;
+            }
+
+            var comboScoreForLanding = _comboScore;
+            _comboScoreProgress++;
+            if (_comboScoreProgress >= _comboScore)
+            {
+                _comboScore++;
+                _comboScoreProgress = 0;
+            }
+
+            return comboScoreForLanding;
+        }
+
+        private int ResolveCurrentComboScoreForLanding()
+        {
+            if (_comboScore <= 0)
+            {
+                return 1;
+            }
+
+            return _comboScore;
+        }
 
         private void PublishScoreChanged() => PublishScoreChanged(0, 0, 0, false);
 

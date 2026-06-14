@@ -52,6 +52,12 @@ namespace JumJump.Presenter
 
         private void ApplyTextStyle(bool isComboStyle)
         {
+            _text.outlineWidth = GameConst.DynamicFont.OutlineWidth;
+            _text.outlineColor = new Color32(
+                GameConst.DynamicFont.OutlineColorR,
+                GameConst.DynamicFont.OutlineColorG,
+                GameConst.DynamicFont.OutlineColorB,
+                byte.MaxValue);
             _text.enableVertexGradient = isComboStyle;
             if (!isComboStyle)
             {

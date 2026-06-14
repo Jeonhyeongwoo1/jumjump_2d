@@ -16,6 +16,7 @@ namespace JumJump.Service
         private readonly PlatformFactory _platformFactory;
         private readonly PlayerFactory _playerFactory;
         private readonly UIDynamicFontPresenter _dynamicFontPresenter;
+        private readonly ScoreBoardService _scoreBoardService;
         private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
 
         public GameBootstrapService(
@@ -24,6 +25,7 @@ namespace JumJump.Service
             PlatformFactory platformFactory,
             PlayerFactory playerFactory,
             UIDynamicFontPresenter dynamicFontPresenter,
+            ScoreBoardService scoreBoardService,
             JumpBoxBoostFXService jumpBoxBoostFXService)
         {
             _eventBus = eventBus;
@@ -31,6 +33,7 @@ namespace JumJump.Service
             _platformFactory = platformFactory;
             _playerFactory = playerFactory;
             _dynamicFontPresenter = dynamicFontPresenter;
+            _scoreBoardService = scoreBoardService;
             _jumpBoxBoostFXService = jumpBoxBoostFXService;
         }
 
@@ -40,6 +43,7 @@ namespace JumJump.Service
             _platformFactory.Warmup();
             _playerFactory.Warmup();
             _dynamicFontPresenter.Warmup();
+            _scoreBoardService.Warmup();
             await _jumpBoxBoostFXService.WarmupAsync(cancellation);
 
             var player = _playerFactory.Spawn();

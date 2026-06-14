@@ -11,6 +11,8 @@ namespace JumJump.Data
         public string GameOverPopupAddressableKey => _gameOverPopupAddressableKey;
         public string DynamicFontAddressableKey => _dynamicFontAddressableKey;
         public string PlatformAddressableKey => _platformAddressableKey;
+        public string ScoreBoardAddressableKey => _scoreBoardAddressableKey;
+        public string[] ScoreBoardSpriteAddressableKeys => _scoreBoardSpriteAddressableKeys;
 
         public string PlayerPoolKey => _playerPoolKey;
         public int PlayerPrewarmCount => _playerPrewarmCount;
@@ -18,6 +20,8 @@ namespace JumJump.Data
         public int DynamicFontPrewarmCount => _dynamicFontPrewarmCount;
         public string PlatformPoolKey => _platformPoolKey;
         public int PlatformPrewarmCount => _platformPrewarmCount;
+        public string ScoreBoardPoolKey => _scoreBoardPoolKey;
+        public int ScoreBoardPrewarmCount => _scoreBoardPrewarmCount;
 
         [Header("Addressables")]
         [SerializeField] private string _preLoadLabel = "PreLoad";
@@ -26,6 +30,15 @@ namespace JumJump.Data
         [SerializeField] private string _gameSceneUiAddressableKey = "UI_GameScene";
         [SerializeField] private string _gameOverPopupAddressableKey = "UI_GameOverPopup";
         [SerializeField] private string _dynamicFontAddressableKey = "UI_DynamicFont";
+        [SerializeField] private string _scoreBoardAddressableKey = "ScoreBoard";
+        [SerializeField] private string[] _scoreBoardSpriteAddressableKeys =
+        {
+            "Scoreboard_1.sprite",
+            "Scoreboard_2.sprite",
+            "Scoreboard_3.sprite",
+            "Scoreboard_4.sprite",
+            "Scoreboard_5.sprite"
+        };
 
         [Header("Pooling")]
         [SerializeField] private string _playerPoolKey = "Player";
@@ -34,5 +47,7 @@ namespace JumJump.Data
         [SerializeField] private int _platformPrewarmCount = 12;
         [SerializeField] private string _dynamicFontPoolKey = "UI_DynamicFont";
         [SerializeField] private int _dynamicFontPrewarmCount = 5;
+        [SerializeField] private string _scoreBoardPoolKey = "ScoreBoard";
+        [SerializeField] private int _scoreBoardPrewarmCount = 1;
     }
 }

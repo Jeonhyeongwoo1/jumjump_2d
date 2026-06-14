@@ -79,6 +79,14 @@ namespace JumJump.Editor
             Debug.Log($"[{nameof(JumJumpSceneSetupTool)}] Rebuilt scene: {ScenePath}");
         }
 
+        [MenuItem("JumJump/Tools/Clear PlayerPrefs")]
+        public static void ClearPlayerPrefs()
+        {
+            PlayerPrefs.DeleteAll();
+            PlayerPrefs.Save();
+            Debug.Log($"[{nameof(JumJumpSceneSetupTool)}] Cleared PlayerPrefs.");
+        }
+
         private static void RegisterAddressable(string assetPath, string address, string label)
         {
             var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);

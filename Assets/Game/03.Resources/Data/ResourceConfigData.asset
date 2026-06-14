@@ -18,9 +18,18 @@ MonoBehaviour:
   _gameSceneUiAddressableKey: UI_GameScene
   _gameOverPopupAddressableKey: UI_GameOverPopup
   _dynamicFontAddressableKey: UI_DynamicFont
+  _scoreBoardAddressableKey: ScoreBoard
+  _scoreBoardSpriteAddressableKeys:
+  - Scoreboard_1.sprite
+  - Scoreboard_2.sprite
+  - Scoreboard_3.sprite
+  - Scoreboard_4.sprite
+  - Scoreboard_5.sprite
   _playerPoolKey: Player
   _playerPrewarmCount: 1
   _platformPoolKey: Platform
   _platformPrewarmCount: 12
   _dynamicFontPoolKey: UI_DynamicFont
   _dynamicFontPrewarmCount: 5
+  _scoreBoardPoolKey: ScoreBoard
+  _scoreBoardPrewarmCount: 1

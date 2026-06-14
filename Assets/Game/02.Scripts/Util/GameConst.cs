@@ -35,6 +35,8 @@ namespace JumJump.Util
         public static class Score
         {
             public const float RocketBoostIncrementInterval = 0.06f;
+            public const int ScoreBoardMinimumHighScore = 50;
+            public const int ScoreBoardPreviewRemainingScore = 3;
         }
 
         public static class Camera
@@ -56,21 +58,25 @@ namespace JumJump.Util
             public const float SpawnOffsetX = 0.5f;
             public const float SpawnOffsetY = 0.3f;
             public const float ComboScale = 1.18f;
+            public const float OutlineWidth = 0.16f;
             public const byte NormalScoreColorR = 255;
-            public const byte NormalScoreColorG = 230;
-            public const byte NormalScoreColorB = 109;
-            public const byte ComboGradientTopLeftR = 99;
-            public const byte ComboGradientTopLeftG = 245;
-            public const byte ComboGradientTopLeftB = 200;
+            public const byte NormalScoreColorG = 255;
+            public const byte NormalScoreColorB = 255;
+            public const byte OutlineColorR = 26;
+            public const byte OutlineColorG = 18;
+            public const byte OutlineColorB = 8;
+            public const byte ComboGradientTopLeftR = 255;
+            public const byte ComboGradientTopLeftG = 255;
+            public const byte ComboGradientTopLeftB = 255;
             public const byte ComboGradientTopRightR = 255;
-            public const byte ComboGradientTopRightG = 215;
-            public const byte ComboGradientTopRightB = 0;
+            public const byte ComboGradientTopRightG = 255;
+            public const byte ComboGradientTopRightB = 255;
             public const byte ComboGradientBottomLeftR = 255;
-            public const byte ComboGradientBottomLeftG = 95;
-            public const byte ComboGradientBottomLeftB = 162;
+            public const byte ComboGradientBottomLeftG = 236;
+            public const byte ComboGradientBottomLeftB = 61;
             public const byte ComboGradientBottomRightR = 255;
-            public const byte ComboGradientBottomRightG = 184;
-            public const byte ComboGradientBottomRightB = 77;
+            public const byte ComboGradientBottomRightG = 236;
+            public const byte ComboGradientBottomRightB = 61;
         }
 
         public static class Player
