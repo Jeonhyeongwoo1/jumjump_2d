@@ -7,7 +7,7 @@ namespace JumJump.Presenter
     public sealed class UI_GameScene : BaseSceneUI
     {
         [SerializeField] private TMP_Text _scoreText;
-        [SerializeField] private TMP_Text _comboScoreText;
+        [SerializeField] private TMP_Text _goldText;
         [SerializeField] private GameObject _startCountdownPanel;
         [SerializeField] private TMP_Text _startCountdownText;
 
@@ -18,7 +18,7 @@ namespace JumJump.Presenter
         }
 
         public void SetScore(int score) => _scoreText.text = score.ToString();
-        public void SetComboScore(int comboScore) => _comboScoreText.text = comboScore.ToString();
+        public void SetGold(int gold) => _goldText.text = gold.ToString();
 
         public void ShowStartCountdown(int seconds)
         {

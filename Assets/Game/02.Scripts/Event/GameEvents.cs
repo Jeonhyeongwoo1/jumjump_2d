@@ -144,6 +144,18 @@ namespace JumJump.Event
         }
     }
 
+    public struct GoldChangedEvent
+    {
+        public int Gold { get; private set; }
+        public int GoldDelta { get; private set; }
+
+        public GoldChangedEvent(int gold, int goldDelta)
+        {
+            Gold = gold;
+            GoldDelta = goldDelta;
+        }
+    }
+
     public struct GameOverEvent
     {
         public int Score { get; private set; }

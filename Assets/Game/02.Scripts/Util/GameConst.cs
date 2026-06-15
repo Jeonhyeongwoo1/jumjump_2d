@@ -36,7 +36,8 @@ namespace JumJump.Util
         {
             public const float RocketBoostIncrementInterval = 0.06f;
             public const int ScoreBoardMinimumHighScore = 50;
-            public const int ScoreBoardPreviewRemainingScore = 3;
+            public const float ScoreBoardTargetOffsetY = 0.85f;
+            public const int ScoreBoardSortingOrder = 20;
         }
 
         public static class Camera

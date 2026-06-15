@@ -39,6 +39,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - PreLoad
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7dcac0f44d14eb546b14d12d332fda3c
+    m_Address: PF_CoinCollectFX
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 982d0e8d83bb7db4595fdb602f62ef19
     m_Address: Player
     m_ReadOnly: 0

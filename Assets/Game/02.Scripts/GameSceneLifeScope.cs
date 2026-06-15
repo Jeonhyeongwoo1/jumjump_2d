@@ -44,6 +44,7 @@ namespace JumJump
             builder.Register<PoolService>(Lifetime.Scoped);
             builder.Register<PlatformRegistry>(Lifetime.Scoped);
             builder.Register<PlayerRegistry>(Lifetime.Scoped);
+            builder.Register<PlayerDataRegistry>(Lifetime.Scoped);
             builder.RegisterInstance(_inputActions);
             builder.RegisterInstance(_platformPoolRoot);
             builder.RegisterInstance(_gameCamera);

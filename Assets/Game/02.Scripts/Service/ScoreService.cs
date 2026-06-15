@@ -2,6 +2,7 @@ using System;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
 using VContainer.Unity;
@@ -12,33 +13,43 @@ namespace JumJump.Service
     {
         public int Score => _score;
         public int BaseScore => _baseScore;
-        public int HighScore => _highScore;
+        public int HighScore => _playerDataRegistry.HighScore;
+        public int RoundHighScoreTarget => _roundHighScoreTarget;
         public int ComboScore => _comboScore;
+        public int Gold => _playerDataRegistry.Gold;
 
         private int _score;
         private int _baseScore;
-        private int _highScore;
+        private int _roundHighScoreTarget;
         private int _comboScore;
         private int _comboScoreProgress;
         private int _pendingAnimatedScore;
         private float _pendingAnimatedScoreElapsed;
         private readonly IEventBus _eventBus;
         private readonly GameConfigData _configData;
+        private readonly PlayerDataRegistry _playerDataRegistry;
 
-        public ScoreService(IEventBus eventBus, GameConfigData configData)
+        public ScoreService(
+            IEventBus eventBus,
+            GameConfigData configData,
+            PlayerDataRegistry playerDataRegistry)
         {
             _eventBus = eventBus;
             _configData = configData;
+            _playerDataRegistry = playerDataRegistry;
         }
 
         public void Initialize()
         {
-            _highScore = PlayerPrefs.GetInt(_configData.HighScoreKey, 0);
+            _playerDataRegistry.Load();
+            _roundHighScoreTarget = HighScore;
             _eventBus.Subscribe<PlayerLandedEvent>(OnPlayerLanded);
             _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Subscribe<RocketBoostPlatformsPassedEvent>(OnRocketBoostPlatformsPassed);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Subscribe<GameOverResultViewRequestedEvent>(OnGameOverResultViewRequested);
             PublishScoreChanged();
+            PublishGoldChanged(0);
         }
 
         public void Tick()
@@ -66,18 +77,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Unsubscribe<RocketBoostPlatformsPassedEvent>(OnRocketBoostPlatformsPassed);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
-        }
-
-        public bool ShouldPreviewHighScoreBoardOnNextLanding()
-        {
-            if (_highScore <= GameConst.Score.ScoreBoardMinimumHighScore || _score >= _highScore)
-            {
-                return false;
-            }
-
-            var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
-            var predictedScore = _score + baseScore + ResolveCurrentComboScoreForLanding();
-            return _highScore - predictedScore <= GameConst.Score.ScoreBoardPreviewRemainingScore;
+            _eventBus.Unsubscribe<GameOverResultViewRequestedEvent>(OnGameOverResultViewRequested);
         }
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)
@@ -86,6 +86,7 @@ namespace JumJump.Service
             var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
             AddBaseScore(baseScore);
             AddScore(baseScore + comboBonus, baseScore, comboBonus, comboBonus > 0);
+            AddGold(1);
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -95,7 +96,9 @@ namespace JumJump.Service
 
         private void OnRocketBoostPlatformsPassed(in RocketBoostPlatformsPassedEvent ev)
         {
-            QueueAnimatedScore(Mathf.Max(0, ev.PlatformCount) * Mathf.Max(0, _configData.ScorePerLanding));
+            var platformCount = Mathf.Max(0, ev.PlatformCount);
+            QueueAnimatedScore(platformCount * Mathf.Max(0, _configData.ScorePerLanding));
+            AddGold(platformCount);
         }
 
         private void QueueAnimatedScore(int amount)
@@ -116,13 +119,7 @@ namespace JumJump.Service
             }
 
             _score += amount;
-
-            if (_score > _highScore)
-            {
-                _highScore = _score;
-                PlayerPrefs.SetInt(_configData.HighScoreKey, _highScore);
-                PlayerPrefs.Save();
-            }
+            _playerDataRegistry.TryUpdateHighScore(_score);
 
             PublishScoreChanged(amount, baseScoreDelta, comboBonusDelta, isComboLandingScore);
         }
@@ -137,15 +134,34 @@ namespace JumJump.Service
             _baseScore += amount;
         }
 
+        private void AddGold(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            if (_playerDataRegistry.AddGold(amount))
+            {
+                PublishGoldChanged(amount);
+            }
+        }
+
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
             _pendingAnimatedScore = 0;
             _pendingAnimatedScoreElapsed = 0f;
             _score = 0;
             _baseScore = 0;
+            _roundHighScoreTarget = HighScore;
             _comboScore = 0;
             _comboScoreProgress = 0;
             PublishScoreChanged(0, 0, 0, false);
+        }
+
+        private void OnGameOverResultViewRequested(in GameOverResultViewRequestedEvent ev)
+        {
+            _playerDataRegistry.Save();
         }
 
         private int UpdateComboScore(in PlayerLandedEvent ev)
@@ -197,17 +213,12 @@ namespace JumJump.Service
             return comboScoreForLanding;
         }
 
-        private int ResolveCurrentComboScoreForLanding()
-        {
-            if (_comboScore <= 0)
-            {
-                return 1;
-            }
-
-            return _comboScore;
-        }
-
         private void PublishScoreChanged() => PublishScoreChanged(0, 0, 0, false);
+
+        private void PublishGoldChanged(int goldDelta)
+        {
+            _eventBus.Publish(new GoldChangedEvent(Gold, goldDelta));
+        }
 
         private void PublishScoreChanged(
             int scoreDelta,
@@ -217,7 +228,7 @@ namespace JumJump.Service
         {
             _eventBus.Publish(new ScoreChangedEvent(
                 _score,
-                _highScore,
+                HighScore,
                 _comboScore,
                 scoreDelta,
                 baseScoreDelta,

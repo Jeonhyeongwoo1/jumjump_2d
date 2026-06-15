@@ -229,7 +229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Presenter.UI_GameScene
   _scoreText: {fileID: 8385033982540604471}
-  _comboScoreText: {fileID: 1173040715953218547}
+  _goldText: {fileID: 1173040715953218547}
   _startCountdownPanel: {fileID: 7392165399819854563}
   _startCountdownText: {fileID: 346770996475970967}
 --- !u!1 &5159704086037290239
@@ -300,7 +300,7 @@ MonoBehaviour:
   m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
-  m_sharedMaterial: {fileID: 3164739627543069255, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
+  m_sharedMaterial: {fileID: 8434947291595602949, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -550,7 +550,7 @@ MonoBehaviour:
   m_text: 3
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
-  m_sharedMaterial: {fileID: 3164739627543069255, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
+  m_sharedMaterial: {fileID: 8434947291595602949, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -654,7 +654,7 @@ PrefabInstance:
     - target: {fileID: 4819963814387292270, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 3164739627543069255, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
+      objectReference: {fileID: 8434947291595602949, guid: 1c7c8a6fe2d580045937c0ab7e0ef198, type: 2}
     - target: {fileID: 4819963814387292270, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_hasFontAssetChanged
       value: 0
@@ -669,7 +669,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6392937468615448321, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_Name
-      value: ComboValueText
+      value: GoldValueTExt
       objectReference: {fileID: 0}
     - target: {fileID: 6965188749628519291, guid: d36591cb023c44490abab04824979a76, type: 3}
       propertyPath: m_AnchorMax.y

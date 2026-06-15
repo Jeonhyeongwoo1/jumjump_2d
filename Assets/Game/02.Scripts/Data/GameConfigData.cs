@@ -8,6 +8,7 @@ namespace JumJump.Data
         public int ScorePerLanding => _scorePerLanding;
         public float ComboLandingCenterTolerance => _comboLandingCenterTolerance;
         public string HighScoreKey => _highScoreKey;
+        public string GoldKey => _goldKey;
         public string TapActionPath => _tapActionPath;
         public float CameraMinimumY => _cameraMinimumY;
         public float CameraSmoothSpeed => _cameraSmoothSpeed;
@@ -20,6 +21,7 @@ namespace JumJump.Data
 
         [Header("Persistence")]
         [SerializeField] private string _highScoreKey = "JumJump.HighScore";
+        [SerializeField] private string _goldKey = "JumJump.Gold";
 
         [Header("Input")]
         [SerializeField] private string _tapActionPath = "Player/Attack";

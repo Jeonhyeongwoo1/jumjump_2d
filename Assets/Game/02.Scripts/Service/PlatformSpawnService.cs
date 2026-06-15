@@ -36,7 +36,6 @@ namespace JumJump.Service
         private readonly PlatformGimmickBehaviourFactory _platformGimmickBehaviourFactory;
         private readonly PlatformGimmickSelector _gimmickSelector;
         private readonly PlatformSpawnPositionResolver _positionResolver;
-        private readonly ScoreBoardService _scoreBoardService;
         private readonly PlatformConfigData _configData;
         private readonly GameConfigData _gameConfigData;
         private readonly PlayerConfigData _playerConfigData;
@@ -50,7 +49,6 @@ namespace JumJump.Service
             PlatformGimmickBehaviourFactory platformGimmickBehaviourFactory,
             PlatformGimmickSelector gimmickSelector,
             PlatformSpawnPositionResolver positionResolver,
-            ScoreBoardService scoreBoardService,
             PlatformConfigData configData,
             GameConfigData gameConfigData,
             PlayerConfigData playerConfigData)
@@ -63,7 +61,6 @@ namespace JumJump.Service
             _platformGimmickBehaviourFactory = platformGimmickBehaviourFactory;
             _gimmickSelector = gimmickSelector;
             _positionResolver = positionResolver;
-            _scoreBoardService = scoreBoardService;
             _configData = configData;
             _gameConfigData = gameConfigData;
             _playerConfigData = playerConfigData;
@@ -257,8 +254,7 @@ namespace JumJump.Service
             Vector3 position,
             float targetX,
             float moveSpeed,
-            PlatformGimmickSetting gimmickSetting,
-            bool canShowScoreBoard = true)
+            PlatformGimmickSetting gimmickSetting)
         {
             var gimmickType = gimmickSetting == null ? PlatformGimmickType.Normal : gimmickSetting.Type;
             var platform = _platformFactory.Get(gimmickType);
@@ -276,10 +272,6 @@ namespace JumJump.Service
                 gimmickBehaviour,
                 gimmickSetting);
             _platformRegistry.Register(platform);
-            if (canShowScoreBoard)
-            {
-                _scoreBoardService.TryShowForPlatform(platform, new Vector3(targetX, position.y, position.z));
-            }
 
             _nextPlatformIndex++;
             return platform;
@@ -320,8 +312,7 @@ namespace JumJump.Service
                     new Vector3(spawnX, platformY, 0f),
                     targetX,
                     moveSpeed,
-                    normalSetting,
-                    i == platformCount - 1);
+                    normalSetting);
                 if (platform == null)
                 {
                     continue;
@@ -444,7 +435,6 @@ namespace JumJump.Service
             }
 
             _lastLandedPlatform = ev.Platform;
-            _scoreBoardService.ReleaseForPlatform(ev.Platform);
             _platformRegistry.ArchiveBelow(ResolveCleanupBelowY(ev.Platform));
             if (ev.Platform.GimmickType == PlatformGimmickType.Rocket)
             {
@@ -478,7 +468,6 @@ namespace JumJump.Service
                 return;
             }
 
-            _scoreBoardService.ReleaseForPlatform(ev.Platform);
             _platformRegistry.Unregister(ev.Platform);
             ClearPendingDoubleSpawn();
             _pendingShieldBlockedRespawnElapsed = 0f;

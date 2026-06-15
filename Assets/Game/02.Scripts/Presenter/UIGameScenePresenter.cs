@@ -28,14 +28,16 @@ namespace JumJump.Presenter
 
             _view = view;
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
+            _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
-            _view.SetComboScore(_scoreService.ComboScore);
+            _view.SetGold(_scoreService.Gold);
             _view.HideStartCountdown();
         }
 
         public void Unbind()
         {
             _eventBus.Unsubscribe<ScoreChangedEvent>(OnScoreChanged);
+            _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
             _view = null;
         }
 
@@ -47,7 +49,11 @@ namespace JumJump.Presenter
         private void OnScoreChanged(in ScoreChangedEvent ev)
         {
             _view?.SetScore(ev.Score);
-            _view?.SetComboScore(ev.ComboScore);
+        }
+
+        private void OnGoldChanged(in GoldChangedEvent ev)
+        {
+            _view?.SetGold(ev.Gold);
         }
 
         public void ShowStartCountdown(int seconds)
