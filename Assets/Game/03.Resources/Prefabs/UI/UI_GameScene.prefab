@@ -232,6 +232,10 @@ MonoBehaviour:
   _goldText: {fileID: 1173040715953218547}
   _startCountdownPanel: {fileID: 7392165399819854563}
   _startCountdownText: {fileID: 346770996475970967}
+  _scorePopDuration: 0.18
+  _scoreSettleDuration: 0.12
+  _scorePopScale: 1.18
+  _scoreFlashColor: {r: 1, g: 0.82, b: 0.25, a: 1}
 --- !u!1 &5159704086037290239
 GameObject:
   m_ObjectHideFlags: 0
@@ -324,12 +328,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 39
+  m_fontSize: 80
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 39
+  m_fontSizeMax: 80
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -403,8 +407,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: -255}
-  m_SizeDelta: {x: 250.12, y: 65.1}
+  m_AnchoredPosition: {x: -0.000061035156, y: -280.31592}
+  m_SizeDelta: {x: 250.12, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7392165399819854563
 GameObject:

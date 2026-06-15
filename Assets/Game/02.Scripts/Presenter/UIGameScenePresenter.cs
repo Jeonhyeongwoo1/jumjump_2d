@@ -48,7 +48,18 @@ namespace JumJump.Presenter
 
         private void OnScoreChanged(in ScoreChangedEvent ev)
         {
-            _view?.SetScore(ev.Score);
+            if (_view == null)
+            {
+                return;
+            }
+
+            if (ev.ScoreDelta > 0)
+            {
+                _view.SetScoreAnimated(ev.Score);
+                return;
+            }
+
+            _view.SetScore(ev.Score);
         }
 
         private void OnGoldChanged(in GoldChangedEvent ev)

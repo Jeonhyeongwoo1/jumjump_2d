@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using JumJump.Util;
@@ -10,14 +11,30 @@ namespace JumJump.Presenter
         [SerializeField] private TMP_Text _goldText;
         [SerializeField] private GameObject _startCountdownPanel;
         [SerializeField] private TMP_Text _startCountdownText;
+        [SerializeField] private float _scorePopDuration = 0.18f;
+        [SerializeField] private float _scoreSettleDuration = 0.12f;
+        [SerializeField] private float _scorePopScale = 1.18f;
+        [SerializeField] private Color _scoreFlashColor = new Color(1f, 0.82f, 0.25f, 1f);
+
+        private Coroutine _scoreAnimationRoutine;
+        private Vector3 _scoreTextDefaultScale;
+        private Color _scoreTextDefaultColor;
 
         protected override void Awake()
         {
             base.Awake();
+            _scoreTextDefaultScale = _scoreText.rectTransform.localScale;
+            _scoreTextDefaultColor = _scoreText.color;
             HideStartCountdown();
         }
 
         public void SetScore(int score) => _scoreText.text = score.ToString();
+        public void SetScoreAnimated(int score)
+        {
+            SetScore(score);
+            RestartScoreAnimation();
+        }
+
         public void SetGold(int gold) => _goldText.text = gold.ToString();
 
         public void ShowStartCountdown(int seconds)
@@ -45,6 +62,54 @@ namespace JumJump.Presenter
             _startCountdownText.rectTransform.localScale = Vector3.one;
             _startCountdownText.alpha = 1f;
             _startCountdownPanel.SetActive(false);
+        }
+
+        private void RestartScoreAnimation()
+        {
+            if (_scoreAnimationRoutine != null)
+            {
+                StopCoroutine(_scoreAnimationRoutine);
+            }
+
+            _scoreAnimationRoutine = StartCoroutine(ScoreAnimationRoutine());
+        }
+
+        private IEnumerator ScoreAnimationRoutine()
+        {
+            var popDuration = Mathf.Max(0.01f, _scorePopDuration);
+            var settleDuration = Mathf.Max(0.01f, _scoreSettleDuration);
+            var elapsed = 0f;
+            var popScale = _scoreTextDefaultScale * Mathf.Max(1f, _scorePopScale);
+
+            while (elapsed < popDuration)
+            {
+                elapsed += Time.deltaTime;
+                var normalized = Mathf.Clamp01(elapsed / popDuration);
+                var eased = Mathf.SmoothStep(0f, 1f, normalized);
+                _scoreText.rectTransform.localScale = Vector3.Lerp(_scoreTextDefaultScale, popScale, eased);
+                _scoreText.color = Color.Lerp(_scoreTextDefaultColor, _scoreFlashColor, eased);
+                yield return null;
+            }
+
+            elapsed = 0f;
+            while (elapsed < settleDuration)
+            {
+                elapsed += Time.deltaTime;
+                var normalized = Mathf.Clamp01(elapsed / settleDuration);
+                var eased = Mathf.SmoothStep(0f, 1f, normalized);
+                _scoreText.rectTransform.localScale = Vector3.Lerp(popScale, _scoreTextDefaultScale, eased);
+                _scoreText.color = Color.Lerp(_scoreFlashColor, _scoreTextDefaultColor, eased);
+                yield return null;
+            }
+
+            ResetScoreTextAnimation();
+            _scoreAnimationRoutine = null;
+        }
+
+        private void ResetScoreTextAnimation()
+        {
+            _scoreText.rectTransform.localScale = _scoreTextDefaultScale;
+            _scoreText.color = _scoreTextDefaultColor;
         }
 
         private float ResolveStartCountdownScale(float progress)
@@ -97,6 +162,17 @@ namespace JumJump.Presenter
             var fadeT = (progress - GameConst.UI.StartCountdownFadeOutStart) /
                     (1f - GameConst.UI.StartCountdownFadeOutStart);
             return Mathf.Lerp(1f, 0f, Mathf.SmoothStep(0f, 1f, fadeT));
+        }
+
+        private void OnDisable()
+        {
+            if (_scoreAnimationRoutine != null)
+            {
+                StopCoroutine(_scoreAnimationRoutine);
+                _scoreAnimationRoutine = null;
+            }
+
+            ResetScoreTextAnimation();
         }
     }
 }

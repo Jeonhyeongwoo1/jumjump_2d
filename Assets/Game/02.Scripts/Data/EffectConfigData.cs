@@ -35,6 +35,6 @@ namespace JumJump.Data
         [SerializeField] private string _coinCollectFXAddressableKey = "PF_CoinCollectFX";
         [SerializeField] private string _coinCollectFXPoolKey = "FX_CoinCollect";
         [SerializeField] private int _coinCollectFXPoolCount = 4;
-        [SerializeField] private Vector3 _coinCollectFXOffset = new Vector3(0f, 0.55f, 0f);
+        [SerializeField] private Vector3 _coinCollectFXOffset = new Vector3(0f, 0.66f, 0f);
     }
 }
