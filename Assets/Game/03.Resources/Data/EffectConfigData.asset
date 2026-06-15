@@ -20,3 +20,7 @@ MonoBehaviour:
   _jumpBoxBoostFXPoolKey: FX_JumpBoxBoost
   _jumpBoxBoostFXPoolCount: 4
   _jumpBoxBoostFXOffset: {x: 0, y: 0.1, z: 0}
+  _coinCollectFXAddressableKey: PF_CoinCollectFX
+  _coinCollectFXPoolKey: FX_CoinCollect
+  _coinCollectFXPoolCount: 4
+  _coinCollectFXOffset: {x: 0, y: 0.55, z: 0}

@@ -67,6 +67,7 @@ namespace JumJump
             builder.Register<PlayingGameFlowState>(Lifetime.Scoped);
             builder.Register<GameOverGameFlowState>(Lifetime.Scoped);
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<CoinCollectFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<HayLandingFXService>(Lifetime.Scoped).AsSelf();

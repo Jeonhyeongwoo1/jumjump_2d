@@ -14,6 +14,10 @@ namespace JumJump.Data
         public string JumpBoxBoostFXPoolKey => _jumpBoxBoostFXPoolKey;
         public int JumpBoxBoostFXPoolCount => _jumpBoxBoostFXPoolCount;
         public Vector3 JumpBoxBoostFXOffset => _jumpBoxBoostFXOffset;
+        public string CoinCollectFXAddressableKey => _coinCollectFXAddressableKey;
+        public string CoinCollectFXPoolKey => _coinCollectFXPoolKey;
+        public int CoinCollectFXPoolCount => _coinCollectFXPoolCount;
+        public Vector3 CoinCollectFXOffset => _coinCollectFXOffset;
 
         [Header("Hay Landing FX")]
         [SerializeField] private HayLandingFX _hayLandingFXPrefab;
@@ -26,5 +30,11 @@ namespace JumJump.Data
         [SerializeField] private string _jumpBoxBoostFXPoolKey = "FX_JumpBoxBoost";
         [SerializeField] private int _jumpBoxBoostFXPoolCount = 4;
         [SerializeField] private Vector3 _jumpBoxBoostFXOffset = new Vector3(0f, 0.1f, 0f);
+
+        [Header("Coin Collect FX")]
+        [SerializeField] private string _coinCollectFXAddressableKey = "PF_CoinCollectFX";
+        [SerializeField] private string _coinCollectFXPoolKey = "FX_CoinCollect";
+        [SerializeField] private int _coinCollectFXPoolCount = 4;
+        [SerializeField] private Vector3 _coinCollectFXOffset = new Vector3(0f, 0.55f, 0f);
     }
 }

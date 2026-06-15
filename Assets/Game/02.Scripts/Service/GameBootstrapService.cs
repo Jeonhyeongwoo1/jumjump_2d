@@ -18,6 +18,7 @@ namespace JumJump.Service
         private readonly UIDynamicFontPresenter _dynamicFontPresenter;
         private readonly ScoreBoardService _scoreBoardService;
         private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
+        private readonly CoinCollectFXService _coinCollectFXService;
 
         public GameBootstrapService(
             IEventBus eventBus,
@@ -26,7 +27,8 @@ namespace JumJump.Service
             PlayerFactory playerFactory,
             UIDynamicFontPresenter dynamicFontPresenter,
             ScoreBoardService scoreBoardService,
-            JumpBoxBoostFXService jumpBoxBoostFXService)
+            JumpBoxBoostFXService jumpBoxBoostFXService,
+            CoinCollectFXService coinCollectFXService)
         {
             _eventBus = eventBus;
             _resourceService = resourceService;
@@ -35,6 +37,7 @@ namespace JumJump.Service
             _dynamicFontPresenter = dynamicFontPresenter;
             _scoreBoardService = scoreBoardService;
             _jumpBoxBoostFXService = jumpBoxBoostFXService;
+            _coinCollectFXService = coinCollectFXService;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -45,6 +48,7 @@ namespace JumJump.Service
             _dynamicFontPresenter.Warmup();
             _scoreBoardService.Warmup();
             await _jumpBoxBoostFXService.WarmupAsync(cancellation);
+            await _coinCollectFXService.WarmupAsync(cancellation);
 
             var player = _playerFactory.Spawn();
             if (player == null)

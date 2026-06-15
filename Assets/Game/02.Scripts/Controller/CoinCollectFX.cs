@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -14,7 +15,16 @@ namespace JumJump.Controller
         [SerializeField] private bool _autoDisable;
         [SerializeField] private float _destroyDelay = 0.8f;
 
+        private Action<CoinCollectFX> _onReturnedToPool = _ => { };
         private Coroutine _playRoutine;
+        private bool _hasPoolBinding;
+        private bool _isActive;
+
+        public void Bind(Action<CoinCollectFX> onReturnedToPool)
+        {
+            _onReturnedToPool = onReturnedToPool;
+            _hasPoolBinding = true;
+        }
 
         public void Play(Vector3 worldPosition)
         {
@@ -26,6 +36,7 @@ namespace JumJump.Controller
 
             transform.position = worldPosition;
             gameObject.SetActive(true);
+            _isActive = true;
             StopAndClear();
             _playRoutine = StartCoroutine(PlayRoutine());
         }
@@ -37,6 +48,19 @@ namespace JumJump.Controller
             StopParticle(_sparkleBurst);
             StopParticle(_floatingDots);
             StopParticle(_coinPop);
+        }
+
+        public void SetPooled()
+        {
+            _isActive = false;
+            if (_playRoutine != null)
+            {
+                StopCoroutine(_playRoutine);
+                _playRoutine = null;
+            }
+
+            StopAndClear();
+            gameObject.SetActive(false);
         }
 
         private IEnumerator PlayRoutine()
@@ -58,6 +82,18 @@ namespace JumJump.Controller
 
         private void CompletePlayback()
         {
+            if (!_isActive)
+            {
+                return;
+            }
+
+            _isActive = false;
+            if (_hasPoolBinding)
+            {
+                _onReturnedToPool.Invoke(this);
+                return;
+            }
+
             if (_autoDestroy)
             {
                 Destroy(gameObject);
