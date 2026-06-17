@@ -53,6 +53,12 @@ MonoBehaviour:
   _bodyCollider: {fileID: 5848641528617622365}
   _rigidbody: {fileID: 254102305136680538}
   _animator: {fileID: 2143644201591714277}
+  _defaultSkin: {fileID: 11400000, guid: 43d2f162df144457bad10c03bdf9c123, type: 2}
+  _skinCatalog:
+  - {fileID: 11400000, guid: 43d2f162df144457bad10c03bdf9c123, type: 2}
+  - {fileID: 11400000, guid: cad52300e0d04e24b12067dcc69f9a4b, type: 2}
+  - {fileID: 11400000, guid: 56d8e25b6ef54e31b62796e8e3b4c63f, type: 2}
+  - {fileID: 11400000, guid: 3e14569723d142e59a770676af80a1e1, type: 2}
   _shieldVisualRoot: {fileID: 1436670134180710008}
   _shieldSpriteRenderer: {fileID: 6789844307173957653}
   _shieldAnimator: {fileID: 6695486725703270792}

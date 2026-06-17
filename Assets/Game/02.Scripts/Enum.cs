@@ -15,6 +15,14 @@ namespace JumJump
         Knockback
     }
 
+    public enum PlayerSkinType
+    {
+        Player_1 = 1001,
+        Player_2 = 1002,
+        Player_3 = 1003,
+        Player_4 = 1004
+    }
+
     public enum PlatformStateType
     {
         Moving,

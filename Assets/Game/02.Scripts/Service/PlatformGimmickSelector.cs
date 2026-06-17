@@ -6,16 +6,16 @@ namespace JumJump.Service
     public sealed class PlatformGimmickSelector
     {
         private readonly PlatformConfigData _configData;
-        private readonly PlatformCheatData _platformCheatData;
+        private readonly GameCheatConfigData _gameCheatConfigData;
         private readonly ScoreService _scoreService;
 
         public PlatformGimmickSelector(
             PlatformConfigData configData,
-            PlatformCheatData platformCheatData,
+            GameCheatConfigData gameCheatConfigData,
             ScoreService scoreService)
         {
             _configData = configData;
-            _platformCheatData = platformCheatData;
+            _gameCheatConfigData = gameCheatConfigData;
             _scoreService = scoreService;
         }
 
@@ -23,9 +23,9 @@ namespace JumJump.Service
         {
             var settings = _configData.PlatformGimmickSettings;
             var normalSetting = Find(PlatformGimmickType.Normal);
-            if (_platformCheatData != null && _platformCheatData.ForcePlatformGimmick)
+            if (_gameCheatConfigData.ForcePlatformGimmick)
             {
-                var forcedSetting = Find(_platformCheatData.ForcedPlatformGimmickType);
+                var forcedSetting = Find(_gameCheatConfigData.ForcedPlatformGimmickType);
                 return forcedSetting ?? normalSetting;
             }
 

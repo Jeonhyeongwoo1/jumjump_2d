@@ -1,5 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JumJump.Controller;
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
@@ -19,6 +21,7 @@ namespace JumJump.Service
         private readonly ScoreBoardService _scoreBoardService;
         private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
         private readonly CoinCollectFXService _coinCollectFXService;
+        private readonly GameCheatConfigData _gameCheatConfigData;
 
         public GameBootstrapService(
             IEventBus eventBus,
@@ -28,7 +31,8 @@ namespace JumJump.Service
             UIDynamicFontPresenter dynamicFontPresenter,
             ScoreBoardService scoreBoardService,
             JumpBoxBoostFXService jumpBoxBoostFXService,
-            CoinCollectFXService coinCollectFXService)
+            CoinCollectFXService coinCollectFXService,
+            GameCheatConfigData gameCheatConfigData)
         {
             _eventBus = eventBus;
             _resourceService = resourceService;
@@ -38,6 +42,7 @@ namespace JumJump.Service
             _scoreBoardService = scoreBoardService;
             _jumpBoxBoostFXService = jumpBoxBoostFXService;
             _coinCollectFXService = coinCollectFXService;
+            _gameCheatConfigData = gameCheatConfigData;
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -57,8 +62,24 @@ namespace JumJump.Service
                 return;
             }
 
+            ApplyPlayerSkinCheat(player);
+
             _eventBus.Publish(new PlayerSpawnedEvent(player));
             _eventBus.Publish(new GameResourcesReadyEvent());
+        }
+
+        private void ApplyPlayerSkinCheat(Player player)
+        {
+            if (!_gameCheatConfigData.ForcePlayerSkin)
+            {
+                return;
+            }
+
+            var skinId = (int)_gameCheatConfigData.ForcedPlayerSkinType;
+            if (!player.TryApplySkin(skinId))
+            {
+                Debug.LogError($"[{nameof(GameBootstrapService)}] Failed to apply forced player skin: {_gameCheatConfigData.ForcedPlayerSkinType}");
+            }
         }
     }
 }

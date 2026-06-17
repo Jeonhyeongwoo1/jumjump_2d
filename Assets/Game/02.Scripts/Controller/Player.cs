@@ -10,6 +10,9 @@ namespace JumJump.Controller
     [RequireComponent(typeof(Rigidbody2D))]
     public sealed class Player : MonoBehaviour
     {
+        private const string IdleAnimatorStateName = "Idle";
+        private const int BaseLayerIndex = 0;
+
         public bool IsJumping => _state == PlayerStateType.Jump;
         public bool CanLand => IsJumping &&
                                NormalizedJumpTime >= _configData.PlayerLandingEnabledNormalizedTime;
@@ -25,6 +28,8 @@ namespace JumJump.Controller
         [SerializeField] private Collider2D _bodyCollider;
         [SerializeField] private Rigidbody2D _rigidbody;
         [SerializeField] private Animator _animator;
+        [SerializeField] private PlayerSkinData _defaultSkin;
+        [SerializeField] private PlayerSkinData[] _skinCatalog = { };
         [SerializeField] private GameObject _shieldVisualRoot;
         [SerializeField] private SpriteRenderer _shieldSpriteRenderer;
         [SerializeField] private Animator _shieldAnimator;
@@ -68,6 +73,38 @@ namespace JumJump.Controller
             ResetLandingSink();
             _shield.Reset(_shieldVisualRoot, _shieldSpriteRenderer);
             ChangeState(PlayerStateType.Idle);
+        }
+
+        public void ApplySkin(PlayerSkinData skinData)
+        {
+            var currentStateInfo = _animator.GetCurrentAnimatorStateInfo(BaseLayerIndex);
+            _animator.runtimeAnimatorController = skinData.AnimatorController;
+            ApplyAnimatorState();
+
+            if (currentStateInfo.shortNameHash != 0)
+            {
+                _animator.Play(
+                    currentStateInfo.shortNameHash,
+                    BaseLayerIndex,
+                    currentStateInfo.normalizedTime);
+            }
+        }
+
+        public bool TryApplySkin(int skinId)
+        {
+            for (var i = 0; i < _skinCatalog.Length; i++)
+            {
+                var skinData = _skinCatalog[i];
+                if (skinData.SkinId != skinId)
+                {
+                    continue;
+                }
+
+                ApplySkin(skinData);
+                return true;
+            }
+
+            return false;
         }
 
         public void LandOnPlatform(PlatformController platform, Vector3 landingPosition)
@@ -192,7 +229,7 @@ namespace JumJump.Controller
 
         private void PlayIdleAnimatorState()
         {
-            _animator.Play(_idleAnimatorStateHash, 0, 0f);
+            _animator.Play(_idleAnimatorStateHash, BaseLayerIndex, 0f);
         }
 
         private void PlaceRigidbody(Vector3 position)
@@ -439,9 +476,10 @@ namespace JumJump.Controller
 
             _isJumpingAnimatorParameterHash = Animator.StringToHash("IsJumping");
             _isDeadAnimatorParameterHash = Animator.StringToHash("IsDead");
-            _idleAnimatorStateHash = Animator.StringToHash("Idle");
+            _idleAnimatorStateHash = Animator.StringToHash(IdleAnimatorStateName);
             _shieldIdleAnimatorStateHash = Animator.StringToHash("Empty");
             _shieldBreakAnimatorStateHash = Animator.StringToHash("Destory");
+            ApplySkin(_defaultSkin);
             _shield.CacheIdleSprite(_shieldSpriteRenderer.sprite);
             _defaultLocalScale = transform.localScale;
             _spawnPosition = transform.position;

@@ -9,6 +9,7 @@ using JumJump.Service;
 using JumJump.Service.GameFlowState;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -22,7 +23,8 @@ namespace JumJump
         [SerializeField] private PlatformConfigData _platformConfigData;
         [SerializeField] private BackgroundConfigData _backgroundConfigData;
         [SerializeField] private EffectConfigData _effectConfigData;
-        [SerializeField] private PlatformCheatData _platformCheatData;
+        [FormerlySerializedAs("_platformCheatData")]
+        [SerializeField] private GameCheatConfigData _gameCheatConfigData;
         [SerializeField] private InputActionAsset _inputActions;
         [SerializeField] private VerticalFollowCamera _followCamera;
         [SerializeField] private UnityEngine.Camera _gameCamera;
@@ -38,7 +40,7 @@ namespace JumJump
             builder.RegisterInstance(_platformConfigData);
             builder.RegisterInstance(_backgroundConfigData);
             builder.RegisterInstance(_effectConfigData);
-            builder.RegisterInstance(_platformCheatData);
+            builder.RegisterInstance(_gameCheatConfigData);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);
