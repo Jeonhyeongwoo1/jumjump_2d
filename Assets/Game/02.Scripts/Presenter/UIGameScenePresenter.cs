@@ -27,17 +27,19 @@ namespace JumJump.Presenter
             }
 
             _view = view;
+            _view.AddEvents(OnGameReadyClicked);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
             _view.SetGold(_scoreService.Gold);
-            _view.HideStartCountdown();
+            _view.ShowReady();
         }
 
         public void Unbind()
         {
             _eventBus.Unsubscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
+            _view?.RemoveEvents();
             _view = null;
         }
 
@@ -65,6 +67,26 @@ namespace JumJump.Presenter
         private void OnGoldChanged(in GoldChangedEvent ev)
         {
             _view?.SetGold(ev.Gold);
+        }
+
+        private void OnGameReadyClicked()
+        {
+            _eventBus.Publish(new TapRequestedEvent());
+        }
+
+        public void ShowReady()
+        {
+            _view?.ShowReady();
+        }
+
+        public void ShowScorePanel()
+        {
+            _view?.ShowScorePanel();
+        }
+
+        public void HideGameReadyPanel()
+        {
+            _view?.HideGameReadyPanel();
         }
 
         public void ShowStartCountdown(int seconds)

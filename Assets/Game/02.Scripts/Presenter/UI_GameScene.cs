@@ -1,31 +1,64 @@
+using System;
 using System.Collections;
+using JumJump.Util;
 using TMPro;
 using UnityEngine;
-using JumJump.Util;
+using UnityEngine.UI;
 
 namespace JumJump.Presenter
 {
     public sealed class UI_GameScene : BaseSceneUI
     {
+        [SerializeField] private GameObject _scorePanel;
         [SerializeField] private TMP_Text _scoreText;
         [SerializeField] private TMP_Text _goldText;
         [SerializeField] private GameObject _startCountdownPanel;
         [SerializeField] private TMP_Text _startCountdownText;
+        [SerializeField] private Button _gameReadyButton;
+        [SerializeField] private TMP_Text _gameReadyPromptText;
+        [SerializeField] private float _gameReadyPromptPulseDuration = 0.9f;
+        [SerializeField] private float _gameReadyPromptPulseScale = 1.1f;
+        [SerializeField] private float _gameReadyPromptLift = 18f;
+        [SerializeField] private float _gameReadyPromptMinAlpha = 0.68f;
         [SerializeField] private float _scorePopDuration = 0.18f;
         [SerializeField] private float _scoreSettleDuration = 0.12f;
         [SerializeField] private float _scorePopScale = 1.18f;
         [SerializeField] private Color _scoreFlashColor = new Color(1f, 0.82f, 0.25f, 1f);
 
         private Coroutine _scoreAnimationRoutine;
+        private Coroutine _gameReadyPromptAnimationRoutine;
         private Vector3 _scoreTextDefaultScale;
         private Color _scoreTextDefaultColor;
+        private Vector3 _gameReadyPromptDefaultScale;
+        private Vector2 _gameReadyPromptDefaultAnchoredPosition;
+        private Color _gameReadyPromptDefaultColor;
 
         protected override void Awake()
         {
             base.Awake();
             _scoreTextDefaultScale = _scoreText.rectTransform.localScale;
             _scoreTextDefaultColor = _scoreText.color;
+            _gameReadyPromptDefaultScale = _gameReadyPromptText.rectTransform.localScale;
+            _gameReadyPromptDefaultAnchoredPosition = _gameReadyPromptText.rectTransform.anchoredPosition;
+            _gameReadyPromptDefaultColor = _gameReadyPromptText.color;
+            ShowReady();
+        }
+
+        public void AddEvents(Action onGameReadyClicked)
+        {
+            ButtonUtils.SetListener(_gameReadyButton, onGameReadyClicked);
+        }
+
+        public void RemoveEvents()
+        {
+            _gameReadyButton.onClick.RemoveAllListeners();
+        }
+
+        public void ShowReady()
+        {
+            HideScorePanel();
             HideStartCountdown();
+            ShowGameReadyPanel();
         }
 
         public void SetScore(int score) => _scoreText.text = score.ToString();
@@ -36,6 +69,28 @@ namespace JumJump.Presenter
         }
 
         public void SetGold(int gold) => _goldText.text = gold.ToString();
+
+        public void ShowScorePanel()
+        {
+            _scorePanel.SetActive(true);
+        }
+
+        public void HideScorePanel()
+        {
+            _scorePanel.SetActive(false);
+        }
+
+        public void ShowGameReadyPanel()
+        {
+            _gameReadyButton.gameObject.SetActive(true);
+            StartGameReadyPromptAnimation();
+        }
+
+        public void HideGameReadyPanel()
+        {
+            StopGameReadyPromptAnimation();
+            _gameReadyButton.gameObject.SetActive(false);
+        }
 
         public void ShowStartCountdown(int seconds)
         {
@@ -112,6 +167,61 @@ namespace JumJump.Presenter
             _scoreText.color = _scoreTextDefaultColor;
         }
 
+        private void StartGameReadyPromptAnimation()
+        {
+            if (_gameReadyPromptAnimationRoutine != null)
+            {
+                return;
+            }
+
+            ResetGameReadyPromptAnimation();
+            _gameReadyPromptAnimationRoutine = StartCoroutine(GameReadyPromptAnimationRoutine());
+        }
+
+        private void StopGameReadyPromptAnimation()
+        {
+            if (_gameReadyPromptAnimationRoutine != null)
+            {
+                StopCoroutine(_gameReadyPromptAnimationRoutine);
+                _gameReadyPromptAnimationRoutine = null;
+            }
+
+            ResetGameReadyPromptAnimation();
+        }
+
+        private IEnumerator GameReadyPromptAnimationRoutine()
+        {
+            var duration = Mathf.Max(0.01f, _gameReadyPromptPulseDuration);
+            var pulseScale = Mathf.Max(1f, _gameReadyPromptPulseScale);
+            var minAlpha = Mathf.Clamp01(_gameReadyPromptMinAlpha);
+            var elapsed = 0f;
+
+            while (true)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var pingPong = Mathf.PingPong(elapsed / duration, 1f);
+                var eased = Mathf.SmoothStep(0f, 1f, pingPong);
+                _gameReadyPromptText.rectTransform.localScale = Vector3.Lerp(
+                    _gameReadyPromptDefaultScale,
+                    _gameReadyPromptDefaultScale * pulseScale,
+                    eased);
+                _gameReadyPromptText.rectTransform.anchoredPosition = _gameReadyPromptDefaultAnchoredPosition +
+                        Vector2.up * (_gameReadyPromptLift * eased);
+
+                var color = _gameReadyPromptDefaultColor;
+                color.a = Mathf.Lerp(minAlpha, _gameReadyPromptDefaultColor.a, eased);
+                _gameReadyPromptText.color = color;
+                yield return null;
+            }
+        }
+
+        private void ResetGameReadyPromptAnimation()
+        {
+            _gameReadyPromptText.rectTransform.localScale = _gameReadyPromptDefaultScale;
+            _gameReadyPromptText.rectTransform.anchoredPosition = _gameReadyPromptDefaultAnchoredPosition;
+            _gameReadyPromptText.color = _gameReadyPromptDefaultColor;
+        }
+
         private float ResolveStartCountdownScale(float progress)
         {
             if (progress < GameConst.UI.StartCountdownPopInDuration)
@@ -173,6 +283,12 @@ namespace JumJump.Presenter
             }
 
             ResetScoreTextAnimation();
+            StopGameReadyPromptAnimation();
+        }
+
+        private void OnDestroy()
+        {
+            _gameReadyButton.onClick.RemoveAllListeners();
         }
     }
 }

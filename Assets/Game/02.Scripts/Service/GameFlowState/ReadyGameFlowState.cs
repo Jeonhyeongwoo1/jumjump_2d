@@ -38,7 +38,7 @@ namespace JumJump.Service.GameFlowState
         {
             if (_isSceneUiReady)
             {
-                BeginStartCountdown();
+                ShowReady();
             }
         }
 
@@ -74,6 +74,12 @@ namespace JumJump.Service.GameFlowState
 
         public void OnTapRequested(IGameFlowStateContext context)
         {
+            if (!_isSceneUiReady || _isCountingDown)
+            {
+                return;
+            }
+
+            BeginStartCountdown();
         }
 
         public void OnPlayerMissedLanding(IGameFlowStateContext context)
@@ -85,7 +91,7 @@ namespace JumJump.Service.GameFlowState
         {
             context.ChangeState(GameStateType.Ready);
             _eventBus.Publish(new GameResetEvent());
-            BeginStartCountdown();
+            ShowReady();
         }
 
         public void OnReviveRequested(IGameFlowStateContext context)
@@ -98,7 +104,13 @@ namespace JumJump.Service.GameFlowState
             var view = _uiService.Create<UI_GameScene>(_resourceConfigData.GameSceneUiAddressableKey);
             _scenePresenter.Bind(view);
             _isSceneUiReady = true;
-            BeginStartCountdown();
+            ShowReady();
+        }
+
+        private void ShowReady()
+        {
+            EndStartCountdown();
+            _scenePresenter.ShowReady();
         }
 
         private void BeginStartCountdown()
@@ -106,6 +118,8 @@ namespace JumJump.Service.GameFlowState
             _countdownRemaining = GameConst.UI.StartCountdownSeconds;
             _lastCountdownSeconds = GameConst.UI.StartCountdownSeconds;
             _isCountingDown = true;
+            _scenePresenter.HideGameReadyPanel();
+            _scenePresenter.ShowScorePanel();
             _scenePresenter.ShowStartCountdown(_lastCountdownSeconds);
         }
 
