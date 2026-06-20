@@ -25,6 +25,7 @@ namespace JumJump
         [SerializeField] private EffectConfigData _effectConfigData;
         [FormerlySerializedAs("_platformCheatData")]
         [SerializeField] private GameCheatConfigData _gameCheatConfigData;
+        [SerializeField] private AppInTossConfigSO _appInTossConfig;
         [SerializeField] private InputActionAsset _inputActions;
         [SerializeField] private VerticalFollowCamera _followCamera;
         [SerializeField] private UnityEngine.Camera _gameCamera;
@@ -41,12 +42,17 @@ namespace JumJump
             builder.RegisterInstance(_backgroundConfigData);
             builder.RegisterInstance(_effectConfigData);
             builder.RegisterInstance(_gameCheatConfigData);
+            builder.RegisterInstance(_appInTossConfig);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);
             builder.Register<PlatformRegistry>(Lifetime.Scoped);
             builder.Register<PlayerRegistry>(Lifetime.Scoped);
             builder.Register<PlayerDataRegistry>(Lifetime.Scoped);
+            builder.Register<AuthRegistry>(Lifetime.Scoped);
+            builder.Register<HttpService>(Lifetime.Scoped);
+            builder.Register<IAdService, AdService>(Lifetime.Scoped);
+            builder.Register<IIAPService, IAPService>(Lifetime.Scoped);
             builder.RegisterInstance(_inputActions);
             builder.RegisterInstance(_platformPoolRoot);
             builder.RegisterInstance(_gameCamera);
@@ -69,6 +75,8 @@ namespace JumJump
             builder.Register<PlayingGameFlowState>(Lifetime.Scoped);
             builder.Register<GameOverGameFlowState>(Lifetime.Scoped);
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<AuthService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<AppInTossAnalyticsService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<CoinCollectFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();

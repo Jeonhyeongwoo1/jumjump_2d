@@ -156,6 +156,20 @@ namespace JumJump.Event
         }
     }
 
+    public struct PlayerProgressSavedEvent
+    {
+        public int HighScore { get; private set; }
+        public int Gold { get; private set; }
+        public int SelectedPlayerSkinId { get; private set; }
+
+        public PlayerProgressSavedEvent(int highScore, int gold, int selectedPlayerSkinId)
+        {
+            HighScore = highScore;
+            Gold = gold;
+            SelectedPlayerSkinId = selectedPlayerSkinId;
+        }
+    }
+
     public struct GameOverEvent
     {
         public int Score { get; private set; }
@@ -168,4 +182,104 @@ namespace JumJump.Event
         }
     }
 
+    public struct AuthLoginCompletedEvent
+    {
+        public string UserId { get; private set; }
+        public string Nickname { get; private set; }
+        public bool HasRemovedAds { get; private set; }
+
+        public AuthLoginCompletedEvent(string userId, string nickname, bool hasRemovedAds)
+        {
+            UserId = userId;
+            Nickname = nickname;
+            HasRemovedAds = hasRemovedAds;
+        }
+    }
+
+    public struct AuthLoginFailedEvent
+    {
+        public string Error { get; private set; }
+
+        public AuthLoginFailedEvent(string error)
+        {
+            Error = error;
+        }
+    }
+
+    public struct AuthUserRefreshedEvent
+    {
+        public string UserId { get; private set; }
+        public string Nickname { get; private set; }
+        public bool HasRemovedAds { get; private set; }
+
+        public AuthUserRefreshedEvent(string userId, string nickname, bool hasRemovedAds)
+        {
+            UserId = userId;
+            Nickname = nickname;
+            HasRemovedAds = hasRemovedAds;
+        }
+    }
+
+    public struct AdRewardedEvent
+    {
+        public string AdGroupId { get; private set; }
+        public string RewardType { get; private set; }
+        public int RewardAmount { get; private set; }
+
+        public AdRewardedEvent(string adGroupId, string rewardType, int rewardAmount)
+        {
+            AdGroupId = adGroupId;
+            RewardType = rewardType;
+            RewardAmount = rewardAmount;
+        }
+    }
+
+    public struct AdEventLoggedEvent
+    {
+        public string AdGroupId { get; private set; }
+        public string EventType { get; private set; }
+        public int Score { get; private set; }
+        public string Error { get; private set; }
+        public bool HasReward { get; private set; }
+        public string RewardType { get; private set; }
+        public int RewardAmount { get; private set; }
+
+        public AdEventLoggedEvent(
+            string adGroupId,
+            string eventType,
+            int score,
+            string error = "",
+            bool hasReward = false,
+            string rewardType = "",
+            int rewardAmount = 0)
+        {
+            AdGroupId = adGroupId;
+            EventType = eventType;
+            Score = score;
+            Error = error;
+            HasReward = hasReward;
+            RewardType = rewardType;
+            RewardAmount = rewardAmount;
+        }
+    }
+
+    public struct IAPEventLoggedEvent
+    {
+        public string ProductId { get; private set; }
+        public string EventType { get; private set; }
+        public string OrderId { get; private set; }
+        public string Error { get; private set; }
+
+        public IAPEventLoggedEvent(
+            string productId,
+            string eventType,
+            string orderId = "",
+            string error = "")
+        {
+            ProductId = productId;
+            EventType = eventType;
+            OrderId = orderId;
+            Error = error;
+        }
+    }
 }

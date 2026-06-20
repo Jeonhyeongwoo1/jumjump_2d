@@ -76,3 +76,19 @@ export function parseOptionalSafeInteger(
 
   return value;
 }
+
+export function parseRequiredSafeInteger(
+  value: unknown,
+  fieldName: string,
+  minValue: number,
+): number {
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value < minValue
+  ) {
+    throw new RequestError(`invalid_${fieldName}`, 400);
+  }
+
+  return value;
+}

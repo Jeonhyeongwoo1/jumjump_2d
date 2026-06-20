@@ -8,6 +8,7 @@ namespace JumJump.Data
         public const string LoginPath = "/login";
         public const string PlayerMePath = "/playerMe";
         public const string RecordAdRemovalPurchasePath = "/recordAdRemovalPurchase";
+        public const string SavePlayerProgressPath = "/savePlayerProgress";
 
         [Header("Cloud Functions")]
         [SerializeField] private string _productionBaseUrl = "https://asia-northeast3-jumpjump-21a86.cloudfunctions.net";

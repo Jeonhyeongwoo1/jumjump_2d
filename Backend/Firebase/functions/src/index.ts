@@ -7,3 +7,4 @@ setGlobalOptions({maxInstances: 10});
 export {login} from "./auth/login";
 export {playerMe} from "./auth/playerMe";
 export {recordAdRemovalPurchase} from "./auth/recordAdRemovalPurchase";
+export {savePlayerProgress} from "./auth/savePlayerProgress";

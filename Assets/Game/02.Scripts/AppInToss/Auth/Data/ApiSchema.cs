@@ -31,10 +31,16 @@ namespace JumJump.Data
             public string userId;
             public bool hasRemovedAds;
             public string nickname;
+            public int highScore;
+            public int gold;
+            public int selectedPlayerSkinId;
 
             public string UserId => userId;
             public bool HasRemovedAds => hasRemovedAds;
             public string Nickname => nickname;
+            public int HighScore => highScore;
+            public int Gold => gold;
+            public int SelectedPlayerSkinId => selectedPlayerSkinId;
         }
 
         [Serializable]
@@ -57,6 +63,21 @@ namespace JumJump.Data
                 this.orderId = orderId;
                 this.productId = productId;
                 this.purchasedAtMillis = purchasedAtMillis;
+            }
+        }
+
+        [Serializable]
+        public sealed class PlayerProgressRequest
+        {
+            public int highScore;
+            public int gold;
+            public int selectedPlayerSkinId;
+
+            public PlayerProgressRequest(int highScore, int gold, int selectedPlayerSkinId)
+            {
+                this.highScore = highScore;
+                this.gold = gold;
+                this.selectedPlayerSkinId = selectedPlayerSkinId;
             }
         }
     }

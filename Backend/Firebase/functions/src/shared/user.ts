@@ -1,9 +1,13 @@
 import {FieldValue} from "firebase-admin/firestore";
 import {db} from "./db";
-import {COLLECTIONS} from "./constants";
+import {COLLECTIONS, DEFAULT_SELECTED_PLAYER_SKIN_ID} from "./constants";
 import {AuthError} from "./errors";
 import {digest, parseBearerToken} from "./utils";
-import {AuthenticatedUser, UserResponse} from "./types";
+import {
+  AuthenticatedUser,
+  PlayerProgressRequest,
+  UserResponse,
+} from "./types";
 
 export async function getUserResponse(userId: string): Promise<UserResponse> {
   const userSnapshot = await db.collection(COLLECTIONS.users).doc(userId).get();
@@ -17,6 +21,15 @@ export async function getUserResponse(userId: string): Promise<UserResponse> {
     .doc(userId)
     .get();
   const nickname = userSnapshot.get("nickname");
+  const highScore = parseStoredProgressNumber(
+    userSnapshot.get("highScore"),
+    0,
+  );
+  const gold = parseStoredProgressNumber(userSnapshot.get("gold"), 0);
+  const selectedPlayerSkinId = parseStoredProgressNumber(
+    userSnapshot.get("selectedPlayerSkinId"),
+    DEFAULT_SELECTED_PLAYER_SKIN_ID,
+  );
 
   return {
     userId,
@@ -24,6 +37,9 @@ export async function getUserResponse(userId: string): Promise<UserResponse> {
       nickname :
       userId,
     hasRemovedAds: entitlementSnapshot.get("hasRemovedAds") === true,
+    highScore,
+    gold,
+    selectedPlayerSkinId,
   };
 }
 
@@ -59,6 +75,9 @@ export async function findOrCreateUser(
       userId: userRef.id,
       nickname: userRef.id,
       tossHashDigest,
+      highScore: 0,
+      gold: 0,
+      selectedPlayerSkinId: DEFAULT_SELECTED_PLAYER_SKIN_ID,
       createdAt: FieldValue.serverTimestamp(),
       lastLoginAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
@@ -70,6 +89,35 @@ export async function findOrCreateUser(
     });
 
     return userRef.id;
+  });
+
+  return getUserResponse(userId);
+}
+
+export async function savePlayerProgress(
+  userId: string,
+  progress: PlayerProgressRequest,
+): Promise<UserResponse> {
+  const userRef = db.collection(COLLECTIONS.users).doc(userId);
+
+  await db.runTransaction(async (transaction) => {
+    const userSnapshot = await transaction.get(userRef);
+
+    if (!userSnapshot.exists) {
+      throw new AuthError("user_not_found", 404);
+    }
+
+    const storedHighScore = parseStoredProgressNumber(
+      userSnapshot.get("highScore"),
+      0,
+    );
+
+    transaction.update(userRef, {
+      highScore: Math.max(storedHighScore, progress.highScore),
+      gold: progress.gold,
+      selectedPlayerSkinId: progress.selectedPlayerSkinId,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
   });
 
   return getUserResponse(userId);
@@ -105,4 +153,12 @@ export async function authenticate(
   }
 
   return {userId, sessionToken};
+}
+
+function parseStoredProgressNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value >= 0 ?
+    value :
+    fallback;
 }

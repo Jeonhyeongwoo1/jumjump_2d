@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Controller;
@@ -12,7 +13,7 @@ using VContainer.Unity;
 
 namespace JumJump.Service
 {
-    public sealed class GameBootstrapService : IAsyncStartable
+    public sealed class GameBootstrapService : IInitializable, IAsyncStartable, IDisposable
     {
         private readonly IEventBus _eventBus;
         private readonly ResourceService _resourceService;
@@ -24,6 +25,8 @@ namespace JumJump.Service
         private readonly CoinCollectFXService _coinCollectFXService;
         private readonly PlayerDataRegistry _playerDataRegistry;
         private readonly GameCheatConfigData _gameCheatConfigData;
+        private readonly AuthRegistry _authRegistry;
+        private bool _hasAuthFailed;
 
         public GameBootstrapService(
             IEventBus eventBus,
@@ -35,7 +38,8 @@ namespace JumJump.Service
             JumpBoxBoostFXService jumpBoxBoostFXService,
             CoinCollectFXService coinCollectFXService,
             PlayerDataRegistry playerDataRegistry,
-            GameCheatConfigData gameCheatConfigData)
+            GameCheatConfigData gameCheatConfigData,
+            AuthRegistry authRegistry)
         {
             _eventBus = eventBus;
             _resourceService = resourceService;
@@ -47,10 +51,24 @@ namespace JumJump.Service
             _coinCollectFXService = coinCollectFXService;
             _playerDataRegistry = playerDataRegistry;
             _gameCheatConfigData = gameCheatConfigData;
+            _authRegistry = authRegistry;
+        }
+
+        public void Initialize()
+        {
+            _eventBus.Subscribe<AuthLoginCompletedEvent>(OnAuthLoginCompleted);
+            _eventBus.Subscribe<AuthLoginFailedEvent>(OnAuthLoginFailed);
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
+            var authReady = await WaitForAuthAsync(cancellation);
+            if (!authReady)
+            {
+                Debug.LogError($"[{nameof(GameBootstrapService)}] Auth failed; bootstrap aborted.");
+                return;
+            }
+
             await _resourceService.PreLoadAsync(cancellation);
             _platformFactory.Warmup();
             _playerFactory.Warmup();
@@ -70,6 +88,36 @@ namespace JumJump.Service
 
             _eventBus.Publish(new PlayerSpawnedEvent(player));
             _eventBus.Publish(new GameResourcesReadyEvent());
+        }
+
+        public void Dispose()
+        {
+            _eventBus.Unsubscribe<AuthLoginCompletedEvent>(OnAuthLoginCompleted);
+            _eventBus.Unsubscribe<AuthLoginFailedEvent>(OnAuthLoginFailed);
+        }
+
+        private async UniTask<bool> WaitForAuthAsync(CancellationToken cancellation)
+        {
+            if (_authRegistry.IsLoggedIn)
+            {
+                return true;
+            }
+
+            await UniTask.WaitUntil(
+                () => _authRegistry.IsLoggedIn || _hasAuthFailed,
+                cancellationToken: cancellation);
+
+            return _authRegistry.IsLoggedIn;
+        }
+
+        private void OnAuthLoginCompleted(in AuthLoginCompletedEvent ev)
+        {
+            _hasAuthFailed = false;
+        }
+
+        private void OnAuthLoginFailed(in AuthLoginFailedEvent ev)
+        {
+            _hasAuthFailed = true;
         }
 
         private void ApplyPlayerSkin(Player player)
