@@ -38,7 +38,7 @@ namespace JumJump.Data
         [SerializeField] private bool _platformAlternatesSpawnSide = true;
         [SerializeField] private int _platformRandomSpawnSideStartCount = 10;
         [SerializeField] private float _platformWidth = 1.25f;
-        [SerializeField] private float _platformHeight = 1f;
+        [SerializeField] private float _platformHeight = 0.58f;
         [SerializeField] private PlatformGimmickSetting[] _platformGimmickSettings =
         {
             new PlatformGimmickSetting(PlatformGimmickType.Normal, 0, 1f, 1f, 1f),

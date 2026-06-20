@@ -20,7 +20,7 @@ MonoBehaviour:
   _platformAlternatesSpawnSide: 1
   _platformRandomSpawnSideStartCount: 10
   _platformWidth: 0.85
-  _platformHeight: 1
+  _platformHeight: 0.58
   _platformGimmickSettings:
   - _type: 0
     _startScore: 0

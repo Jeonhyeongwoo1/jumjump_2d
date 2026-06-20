@@ -24,7 +24,6 @@ namespace JumJump.Service
 
         private ScoreBoard _scoreBoardPrefab;
         private ScoreBoard _activeScoreBoard;
-        private float _activeBaseY;
         private float _activeStepY;
         private bool _isReady;
 
@@ -109,6 +108,12 @@ namespace JumJump.Service
                 return;
             }
 
+            if (ev.Score > _scoreService.RoundHighScoreTarget)
+            {
+                ReleaseActive();
+                return;
+            }
+
             UpdateActivePosition();
         }
 
@@ -148,9 +153,9 @@ namespace JumJump.Service
             }
 
             _activeStepY = ResolvePlatformStepY();
-            _activeBaseY = ResolveTargetBaseY(player.Position.y, targetScore, _activeStepY);
+            var boardY = ResolveBoardY(player.Position.y, targetScore);
 
-            var spriteIndex = ResolveSpriteIndex(_activeBaseY);
+            var spriteIndex = ResolveSpriteIndex(boardY);
             var sprite = ResolveSprite(spriteIndex);
             if (sprite == null)
             {
@@ -165,7 +170,7 @@ namespace JumJump.Service
 
             _activeScoreBoard = view;
             view.Show(
-                ResolveBoardPosition(player.Position.x, ResolveBoardY()),
+                ResolveBoardPosition(player.Position.x, boardY),
                 sprite,
                 GameConst.Score.ScoreBoardSortingOrder,
                 spriteIndex,
@@ -187,7 +192,6 @@ namespace JumJump.Service
 
         private void ResetActiveState()
         {
-            _activeBaseY = 0f;
             _activeStepY = 0f;
         }
 
@@ -199,25 +203,22 @@ namespace JumJump.Service
                 return;
             }
 
-            _activeScoreBoard.transform.position = ResolveBoardPosition(player.Position.x, ResolveBoardY());
+            _activeScoreBoard.transform.position = ResolveBoardPosition(
+                player.Position.x,
+                ResolveBoardY(player.Position.y, _scoreService.RoundHighScoreTarget));
         }
 
         private Vector3 ResolveBoardPosition(float x, float y) => new Vector3(x, y, 0f);
 
-        private float ResolveBoardY()
+        private float ResolveBoardY(float playerY, int targetScore)
         {
             var scorePerLanding = Mathf.Max(1, _gameConfigData.ScorePerLanding);
             var scoreAheadOfPhysicalHeight = Mathf.Max(0, _scoreService.Score - _scoreService.BaseScore);
-            var extraSteps = scoreAheadOfPhysicalHeight / (float)scorePerLanding;
-            return _activeBaseY - extraSteps * _activeStepY;
-        }
-
-        private float ResolveTargetBaseY(float originY, int targetScore, float stepY)
-        {
-            var scorePerLanding = Mathf.Max(1, _gameConfigData.ScorePerLanding);
-            var targetLandingCount = Mathf.CeilToInt(targetScore / (float)scorePerLanding);
-            var targetStepCount = Mathf.Max(0, targetLandingCount - 1);
-            return originY + targetStepCount * stepY + GameConst.Score.ScoreBoardTargetOffsetY;
+            var effectiveTargetScore = Mathf.Max(0, targetScore - scoreAheadOfPhysicalHeight);
+            var targetLandingCount = Mathf.CeilToInt(effectiveTargetScore / (float)scorePerLanding);
+            var currentLandingCount = Mathf.Max(1, Mathf.CeilToInt(_scoreService.BaseScore / (float)scorePerLanding));
+            var remainingStepCount = Mathf.Max(0, targetLandingCount - currentLandingCount);
+            return playerY + remainingStepCount * _activeStepY + GameConst.Score.ScoreBoardTargetOffsetY;
         }
 
         private float ResolvePlatformStepY()
