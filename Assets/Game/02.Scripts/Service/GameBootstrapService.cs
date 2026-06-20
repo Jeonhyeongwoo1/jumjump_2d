@@ -6,6 +6,7 @@ using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
 using JumJump.Presenter;
+using JumJump.Registry;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -21,6 +22,7 @@ namespace JumJump.Service
         private readonly ScoreBoardService _scoreBoardService;
         private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
         private readonly CoinCollectFXService _coinCollectFXService;
+        private readonly PlayerDataRegistry _playerDataRegistry;
         private readonly GameCheatConfigData _gameCheatConfigData;
 
         public GameBootstrapService(
@@ -32,6 +34,7 @@ namespace JumJump.Service
             ScoreBoardService scoreBoardService,
             JumpBoxBoostFXService jumpBoxBoostFXService,
             CoinCollectFXService coinCollectFXService,
+            PlayerDataRegistry playerDataRegistry,
             GameCheatConfigData gameCheatConfigData)
         {
             _eventBus = eventBus;
@@ -42,6 +45,7 @@ namespace JumJump.Service
             _scoreBoardService = scoreBoardService;
             _jumpBoxBoostFXService = jumpBoxBoostFXService;
             _coinCollectFXService = coinCollectFXService;
+            _playerDataRegistry = playerDataRegistry;
             _gameCheatConfigData = gameCheatConfigData;
         }
 
@@ -62,24 +66,37 @@ namespace JumJump.Service
                 return;
             }
 
-            ApplyPlayerSkinCheat(player);
+            ApplyPlayerSkin(player);
 
             _eventBus.Publish(new PlayerSpawnedEvent(player));
             _eventBus.Publish(new GameResourcesReadyEvent());
         }
 
-        private void ApplyPlayerSkinCheat(Player player)
+        private void ApplyPlayerSkin(Player player)
         {
-            if (!_gameCheatConfigData.ForcePlayerSkin)
+            if (_gameCheatConfigData.ForcePlayerSkin)
             {
+                ApplyForcedPlayerSkin(player);
                 return;
             }
 
+            var skinId = _playerDataRegistry.SelectedPlayerSkinId;
+            if (!player.TryApplySkin(skinId))
+            {
+                Debug.LogError($"[{nameof(GameBootstrapService)}] Failed to apply selected player skin: {skinId}");
+            }
+        }
+
+        private void ApplyForcedPlayerSkin(Player player)
+        {
             var skinId = (int)_gameCheatConfigData.ForcedPlayerSkinType;
             if (!player.TryApplySkin(skinId))
             {
                 Debug.LogError($"[{nameof(GameBootstrapService)}] Failed to apply forced player skin: {_gameCheatConfigData.ForcedPlayerSkinType}");
+                return;
             }
+
+            _playerDataRegistry.SetSelectedPlayerSkinId(skinId);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Registry;
 using JumJump.Service;
 using UnityEngine;
 
@@ -10,12 +11,20 @@ namespace JumJump.Presenter
     {
         private readonly IEventBus _eventBus;
         private readonly ScoreService _scoreService;
+        private readonly PlayerDataRegistry _playerDataRegistry;
+        private readonly PlayerRegistry _playerRegistry;
         private UI_GameScene _view;
 
-        public UIGameScenePresenter(IEventBus eventBus, ScoreService scoreService)
+        public UIGameScenePresenter(
+            IEventBus eventBus,
+            ScoreService scoreService,
+            PlayerDataRegistry playerDataRegistry,
+            PlayerRegistry playerRegistry)
         {
             _eventBus = eventBus;
             _scoreService = scoreService;
+            _playerDataRegistry = playerDataRegistry;
+            _playerRegistry = playerRegistry;
         }
 
         public void Bind(UI_GameScene view)
@@ -27,11 +36,12 @@ namespace JumJump.Presenter
             }
 
             _view = view;
-            _view.AddEvents(OnGameReadyClicked);
+            _view.AddEvents(OnGameReadyClicked, OnCharacterSelected);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
             _view.SetGold(_scoreService.Gold);
+            _view.SetSelectedCharacter(_playerDataRegistry.SelectedPlayerSkinId);
             _view.ShowReady();
         }
 
@@ -72,6 +82,28 @@ namespace JumJump.Presenter
         private void OnGameReadyClicked()
         {
             _eventBus.Publish(new TapRequestedEvent());
+        }
+
+        private void OnCharacterSelected(int skinId)
+        {
+            _playerDataRegistry.SetSelectedPlayerSkinId(skinId);
+            _playerDataRegistry.Save();
+            _view?.SetSelectedCharacter(skinId);
+            ApplySelectedPlayerSkin(skinId);
+        }
+
+        private void ApplySelectedPlayerSkin(int skinId)
+        {
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                return;
+            }
+
+            if (!player.TryApplySkin(skinId))
+            {
+                Debug.LogError($"[{nameof(UIGameScenePresenter)}] Failed to apply selected player skin: {skinId}");
+            }
         }
 
         public void ShowReady()

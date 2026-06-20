@@ -15,7 +15,14 @@ namespace JumJump.Presenter
         [SerializeField] private GameObject _startCountdownPanel;
         [SerializeField] private TMP_Text _startCountdownText;
         [SerializeField] private Button _gameReadyButton;
+        [SerializeField] private Button _selectCharacterButton;
+        [SerializeField] private Button _selectCharacterHitAreaButton;
         [SerializeField] private TMP_Text _gameReadyPromptText;
+        [SerializeField] private GameObject _characterSelectPanel;
+        [SerializeField] private Button[] _characterButtons = { };
+        [SerializeField] private int[] _characterSkinIds = { };
+        [SerializeField] private Color _characterDefaultColor = Color.white;
+        [SerializeField] private Color _characterSelectedColor = new Color(1f, 0.86f, 0.32f, 1f);
         [SerializeField] private float _gameReadyPromptPulseDuration = 0.9f;
         [SerializeField] private float _gameReadyPromptPulseScale = 1.1f;
         [SerializeField] private float _gameReadyPromptLift = 18f;
@@ -32,6 +39,7 @@ namespace JumJump.Presenter
         private Vector3 _gameReadyPromptDefaultScale;
         private Vector2 _gameReadyPromptDefaultAnchoredPosition;
         private Color _gameReadyPromptDefaultColor;
+        private Action _onGameReadyClicked;
 
         protected override void Awake()
         {
@@ -44,14 +52,29 @@ namespace JumJump.Presenter
             ShowReady();
         }
 
-        public void AddEvents(Action onGameReadyClicked)
+        public void AddEvents(Action onGameReadyClicked, Action<int> onCharacterSelected)
         {
-            ButtonUtils.SetListener(_gameReadyButton, onGameReadyClicked);
+            _onGameReadyClicked = onGameReadyClicked;
+            ButtonUtils.SetListener(_gameReadyButton, OnGameReadyClicked);
+            ButtonUtils.SetListener(_selectCharacterButton, ShowCharacterSelectPanel);
+            ButtonUtils.SetListener(_selectCharacterHitAreaButton, ShowCharacterSelectPanel);
+            for (var i = 0; i < _characterButtons.Length; i++)
+            {
+                var skinId = _characterSkinIds[i];
+                ButtonUtils.SetListener(_characterButtons[i], () => onCharacterSelected.Invoke(skinId));
+            }
         }
 
         public void RemoveEvents()
         {
+            _onGameReadyClicked = null;
             _gameReadyButton.onClick.RemoveAllListeners();
+            _selectCharacterButton.onClick.RemoveAllListeners();
+            _selectCharacterHitAreaButton.onClick.RemoveAllListeners();
+            for (var i = 0; i < _characterButtons.Length; i++)
+            {
+                _characterButtons[i].onClick.RemoveAllListeners();
+            }
         }
 
         public void ShowReady()
@@ -59,6 +82,7 @@ namespace JumJump.Presenter
             HideScorePanel();
             HideStartCountdown();
             ShowGameReadyPanel();
+            HideCharacterSelectPanel();
         }
 
         public void SetScore(int score) => _scoreText.text = score.ToString();
@@ -90,6 +114,38 @@ namespace JumJump.Presenter
         {
             StopGameReadyPromptAnimation();
             _gameReadyButton.gameObject.SetActive(false);
+            HideCharacterSelectPanel();
+        }
+
+        public void SetSelectedCharacter(int skinId)
+        {
+            for (var i = 0; i < _characterButtons.Length; i++)
+            {
+                var targetGraphic = _characterButtons[i].targetGraphic;
+                targetGraphic.color = _characterSkinIds[i] == skinId
+                    ? _characterSelectedColor
+                    : _characterDefaultColor;
+            }
+        }
+
+        private void HideCharacterSelectPanel()
+        {
+            _characterSelectPanel.SetActive(false);
+        }
+
+        private void ShowCharacterSelectPanel()
+        {
+            _characterSelectPanel.SetActive(true);
+        }
+
+        private void OnGameReadyClicked()
+        {
+            if (_characterSelectPanel.activeSelf)
+            {
+                return;
+            }
+
+            _onGameReadyClicked.Invoke();
         }
 
         public void ShowStartCountdown(int seconds)
@@ -288,7 +344,7 @@ namespace JumJump.Presenter
 
         private void OnDestroy()
         {
-            _gameReadyButton.onClick.RemoveAllListeners();
+            RemoveEvents();
         }
     }
 }

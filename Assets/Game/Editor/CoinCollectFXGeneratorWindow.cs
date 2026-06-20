@@ -302,7 +302,7 @@ namespace JumJump.Editor
             velocity.space = ParticleSystemSimulationSpace.Local;
             velocity.x = x;
             velocity.y = y;
-            velocity.z = 0f;
+            velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
         }
 
         private void ConfigureSizeOverLifetime(ParticleSystem particleSystem, Keyframe start, Keyframe middle, Keyframe end)
