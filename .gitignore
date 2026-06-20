@@ -162,3 +162,7 @@ x86/
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Unity package dependency files should be versioned.
+!/[Pp]ackages/manifest.json
+!/[Pp]ackages/packages-lock.json

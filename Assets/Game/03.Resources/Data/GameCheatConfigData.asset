@@ -14,7 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _forcePlatformGimmick: 0
   _forcedPlatformGimmickType: 0
-  _forceFeverTime: 1
-  _forcedFeverTimeActive: 1
   _forcePlayerSkin: 1
   _forcedPlayerSkinType: 1004

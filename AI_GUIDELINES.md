@@ -147,7 +147,7 @@ ResourceService.PreLoadAsync → 각 Factory/Presenter.Warmup (풀 등록) → P
 | Presenter | `Presenter/` | UI MVP 패턴. View(`BaseSceneUI`/`BasePopup` 파생) + Presenter(순수 C# 클래스) 쌍 |
 | Event | `Event/` | `EventBus` + 이벤트 struct 정의 (`GameEvents.cs`) |
 | Interface | `Interface/` | 모든 인터페이스 (파일 1개 = 인터페이스 1개) |
-| Data | `Data/` | 순수 데이터 (`GameConfigData`, `PlatformCheatData`, `PlatformGimmickSetting`, `BackgroundDepthLayer`) |
+| Data | `Data/` | 순수 데이터 (`GameConfigData`, `GameCheatConfigData`, `PlatformGimmickSetting`, `BackgroundDepthLayer`) |
 | Util | `Util/` | `static` 헬퍼·상수 (`GameConst`, `ButtonUtils`) |
 | Camera | `Camera/` | `VerticalFollowCamera` |
 
@@ -178,7 +178,7 @@ ResourceService.PreLoadAsync → 각 Factory/Presenter.Warmup (풀 등록) → P
 - `PlatformGimmickBehaviourFactory` 가 타입 → 행동 인스턴스를 배열로 매핑. 미등록 타입은 `Normal` 로 폴백.
   (`Double` 은 행동 객체가 아니라 `PlatformSpawnService` 의 예약 스폰 로직으로 처리된다.)
 - `PlatformGimmickSetting` (`Data/`) 이 타입별 시작 점수·스폰 확률·스케일 범위 등을 보유. `GameConfigData` 가 배열로 소유.
-- `PlatformCheatData` 로 특정 기믹을 강제 스폰해 테스트할 수 있다.
+- `GameCheatConfigData` 로 특정 기믹을 강제 스폰해 테스트할 수 있다.
 
 **행동별 예외 규칙은 행동 객체가 책임진다.** 공용 상태 전이 메서드에는 모든 발판 공통 규칙만 두고, 특정 기믹에서만 달라지는 동작(미리보기 알파, 유령 페이드, 더블 예약 등)은 해당 Behaviour / SpawnService가 활성화·해제한다.
 
@@ -285,7 +285,7 @@ private void OnPlayerLanded(in PlayerLandedEvent ev) { }
 
 - `GameConfigData` (ScriptableObject) — 모든 런타임 튜닝값과 Addressable/Pool 키의 단일 소스. `RegisterInstance` 로 주입.
 - `PlatformGimmickSetting` — 기믹별 스폰/스케일 설정. `GameConfigData` 가 배열로 소유.
-- `PlatformCheatData` (ScriptableObject) — 디버그용 강제 기믹 스폰.
+- `GameCheatConfigData` (ScriptableObject) — 디버그용 강제 기믹 스폰.
 - `BackgroundDepthLayer` — 배경 패럴랙스 깊이 레이어 설정.
 
 ---

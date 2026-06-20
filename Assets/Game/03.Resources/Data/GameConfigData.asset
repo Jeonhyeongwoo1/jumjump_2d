@@ -16,6 +16,7 @@ MonoBehaviour:
   _comboLandingCenterTolerance: 0.08
   _highScoreKey: JumJump.HighScore
   _goldKey: JumJump.Gold
+  _selectedPlayerSkinKey: JumJump.SelectedPlayerSkin
   _tapActionPath: Player/Attack
   _cameraMinimumY: 0
   _cameraSmoothSpeed: 8

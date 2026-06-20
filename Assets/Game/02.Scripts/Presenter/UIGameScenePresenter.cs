@@ -1,6 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Registry;
 using JumJump.Service;
 using UnityEngine;
 
@@ -10,12 +15,26 @@ namespace JumJump.Presenter
     {
         private readonly IEventBus _eventBus;
         private readonly ScoreService _scoreService;
+        private readonly PlayerDataRegistry _playerDataRegistry;
+        private readonly PlayerRegistry _playerRegistry;
+        private readonly ResourceService _resourceService;
+        private readonly ResourceConfigData _resourceConfigData;
         private UI_GameScene _view;
 
-        public UIGameScenePresenter(IEventBus eventBus, ScoreService scoreService)
+        public UIGameScenePresenter(
+            IEventBus eventBus,
+            ScoreService scoreService,
+            PlayerDataRegistry playerDataRegistry,
+            PlayerRegistry playerRegistry,
+            ResourceService resourceService,
+            ResourceConfigData resourceConfigData)
         {
             _eventBus = eventBus;
             _scoreService = scoreService;
+            _playerDataRegistry = playerDataRegistry;
+            _playerRegistry = playerRegistry;
+            _resourceService = resourceService;
+            _resourceConfigData = resourceConfigData;
         }
 
         public void Bind(UI_GameScene view)
@@ -27,11 +46,13 @@ namespace JumJump.Presenter
             }
 
             _view = view;
-            _view.AddEvents(OnGameReadyClicked);
+            _view.AddEvents(OnGameReadyClicked, OnCharacterSelected);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
             _view.SetGold(_scoreService.Gold);
+            _view.SetSelectedCharacter(_playerDataRegistry.SelectedPlayerSkinId);
+            LoadCharacterPagesAsync(_view, _view.GetCancellationTokenOnDestroy()).Forget();
             _view.ShowReady();
         }
 
@@ -72,6 +93,91 @@ namespace JumJump.Presenter
         private void OnGameReadyClicked()
         {
             _eventBus.Publish(new TapRequestedEvent());
+        }
+
+        private void OnCharacterSelected(int skinId)
+        {
+            _playerDataRegistry.SetSelectedPlayerSkinId(skinId);
+            _playerDataRegistry.Save();
+            _view?.SetSelectedCharacter(skinId);
+            ApplySelectedPlayerSkin(skinId);
+        }
+
+        private void ApplySelectedPlayerSkin(int skinId)
+        {
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                return;
+            }
+
+            if (!player.TryApplySkin(skinId))
+            {
+                Debug.LogError($"[{nameof(UIGameScenePresenter)}] Failed to apply selected player skin: {skinId}");
+            }
+        }
+
+        private async UniTask LoadCharacterPagesAsync(UI_GameScene view, CancellationToken cancellationToken)
+        {
+            var keys = _resourceConfigData.PlayerSpriteAddressableKeys;
+            var skinIds = new List<int>(keys.Length);
+            var sprites = new List<Sprite>(keys.Length);
+
+            for (var i = 0; i < keys.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var key = keys[i];
+                if (!TryResolveSkinId(key, out var skinId))
+                {
+                    continue;
+                }
+
+                var loaded = await _resourceService.LoadKeyAsync(key, cancellationToken);
+                if (!loaded)
+                {
+                    Debug.LogError($"[{nameof(UIGameScenePresenter)}] Failed to load character sprite: {key}");
+                    continue;
+                }
+
+                var sprite = _resourceService.GetAsset<Sprite>(key);
+                if (sprite == null)
+                {
+                    Debug.LogError($"[{nameof(UIGameScenePresenter)}] Missing loaded character sprite: {key}");
+                    continue;
+                }
+
+                skinIds.Add(skinId);
+                sprites.Add(sprite);
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            }
+
+            if (_view != view)
+            {
+                return;
+            }
+
+            view.SetCharacterPages(skinIds, sprites);
+            view.SetSelectedCharacter(_playerDataRegistry.SelectedPlayerSkinId);
+        }
+
+        private bool TryResolveSkinId(string spriteAddressableKey, out int skinId)
+        {
+            skinId = 0;
+            var delimiterIndex = spriteAddressableKey.LastIndexOf('_');
+            if (delimiterIndex < 0 || delimiterIndex >= spriteAddressableKey.Length - 1)
+            {
+                Debug.LogError($"[{nameof(UIGameScenePresenter)}] Invalid character sprite key: {spriteAddressableKey}");
+                return false;
+            }
+
+            if (int.TryParse(spriteAddressableKey.Substring(delimiterIndex + 1), out skinId))
+            {
+                return true;
+            }
+
+            Debug.LogError($"[{nameof(UIGameScenePresenter)}] Invalid character skin id: {spriteAddressableKey}");
+            return false;
         }
 
         public void ShowReady()

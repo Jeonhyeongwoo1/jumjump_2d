@@ -78,6 +78,7 @@ namespace JumJump.Service
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Subscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Subscribe<GameRevivedEvent>(OnGameRevived);
             _isReady = true;
         }
 
@@ -87,6 +88,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Unsubscribe<PlayerMissedLandingEvent>(OnPlayerMissedLanding);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
+            _eventBus.Unsubscribe<GameRevivedEvent>(OnGameRevived);
             ReleaseActive();
         }
 
@@ -118,6 +120,11 @@ namespace JumJump.Service
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
             ReleaseActive();
+            TryActivateForRound();
+        }
+
+        private void OnGameRevived(in GameRevivedEvent ev)
+        {
             TryActivateForRound();
         }
 

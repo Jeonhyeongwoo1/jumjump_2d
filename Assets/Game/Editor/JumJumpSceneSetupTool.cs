@@ -33,7 +33,7 @@ namespace JumJump.Editor
         private const string PlatformConfigPath = DataFolderPath + "/PlatformConfigData.asset";
         private const string BackgroundConfigPath = DataFolderPath + "/BackgroundConfigData.asset";
         private const string EffectConfigPath = DataFolderPath + "/EffectConfigData.asset";
-        private const string PlatformCheatDataPath = DataFolderPath + "/PlatformCheatData.asset";
+        private const string GameCheatConfigPath = DataFolderPath + "/GameCheatConfigData.asset";
 
         [MenuItem("JumJump/Setup/Rebuild Game Scene")]
         public static void RebuildGameScene()
@@ -46,7 +46,7 @@ namespace JumJump.Editor
             var platformConfigData = EnsurePlatformConfigData();
             var backgroundConfigData = EnsureBackgroundConfigData();
             var effectConfigData = EnsureEffectConfigData();
-            var platformCheatData = EnsurePlatformCheatData();
+            var gameCheatConfigData = EnsureGameCheatConfigData();
             CreatePlatformPrefab();
             CreatePlayerPrefab();
             RegisterAddressable(PlatformPrefabPath, resourceConfigData.PlatformAddressableKey, resourceConfigData.PreLoadLabel);
@@ -68,7 +68,7 @@ namespace JumJump.Editor
             SetObjectField(lifeScope, "_platformConfigData", platformConfigData);
             SetObjectField(lifeScope, "_backgroundConfigData", backgroundConfigData);
             SetObjectField(lifeScope, "_effectConfigData", effectConfigData);
-            SetObjectField(lifeScope, "_platformCheatData", platformCheatData);
+            SetObjectField(lifeScope, "_gameCheatConfigData", gameCheatConfigData);
             SetObjectField(lifeScope, "_inputActions", AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath));
             SetObjectField(lifeScope, "_followCamera", followCamera);
             SetObjectField(lifeScope, "_gameCamera", camera.GetComponent<UnityEngine.Camera>());
@@ -162,18 +162,18 @@ namespace JumJump.Editor
             return configData;
         }
 
-        private static PlatformCheatData EnsurePlatformCheatData()
+        private static GameCheatConfigData EnsureGameCheatConfigData()
         {
-            var platformCheatData = AssetDatabase.LoadAssetAtPath<PlatformCheatData>(PlatformCheatDataPath);
-            if (platformCheatData != null)
+            var gameCheatConfigData = AssetDatabase.LoadAssetAtPath<GameCheatConfigData>(GameCheatConfigPath);
+            if (gameCheatConfigData != null)
             {
-                return platformCheatData;
+                return gameCheatConfigData;
             }
 
-            platformCheatData = ScriptableObject.CreateInstance<PlatformCheatData>();
-            AssetDatabase.CreateAsset(platformCheatData, PlatformCheatDataPath);
+            gameCheatConfigData = ScriptableObject.CreateInstance<GameCheatConfigData>();
+            AssetDatabase.CreateAsset(gameCheatConfigData, GameCheatConfigPath);
             AssetDatabase.SaveAssets();
-            return platformCheatData;
+            return gameCheatConfigData;
         }
 
         private static PlatformController CreatePlatformPrefab()

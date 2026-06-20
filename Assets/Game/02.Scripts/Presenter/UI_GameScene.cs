@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using JumJump.Util;
 using TMPro;
 using UnityEngine;
@@ -15,7 +16,14 @@ namespace JumJump.Presenter
         [SerializeField] private GameObject _startCountdownPanel;
         [SerializeField] private TMP_Text _startCountdownText;
         [SerializeField] private Button _gameReadyButton;
+        [SerializeField] private Button _selectCharacterButton;
+        [SerializeField] private Button _selectCharacterHitAreaButton;
         [SerializeField] private TMP_Text _gameReadyPromptText;
+        [SerializeField] private GameObject _characterSelectPanel;
+        [SerializeField] private Button _characterConfirmButton;
+        [SerializeField] private ScrollRect _characterScrollRect;
+        [SerializeField] private RectTransform _characterPageRoot;
+        [SerializeField] private UI_CharacterPage _characterPageTemplate;
         [SerializeField] private float _gameReadyPromptPulseDuration = 0.9f;
         [SerializeField] private float _gameReadyPromptPulseScale = 1.1f;
         [SerializeField] private float _gameReadyPromptLift = 18f;
@@ -32,10 +40,15 @@ namespace JumJump.Presenter
         private Vector3 _gameReadyPromptDefaultScale;
         private Vector2 _gameReadyPromptDefaultAnchoredPosition;
         private Color _gameReadyPromptDefaultColor;
+        private Action _onGameReadyClicked;
+        private Action<int> _onCharacterSelected;
+        private readonly List<UI_CharacterPage> _characterPages = new List<UI_CharacterPage>(4);
+        private int _selectedCharacterSkinId;
 
         protected override void Awake()
         {
             base.Awake();
+            PrepareCharacterPageTemplate();
             _scoreTextDefaultScale = _scoreText.rectTransform.localScale;
             _scoreTextDefaultColor = _scoreText.color;
             _gameReadyPromptDefaultScale = _gameReadyPromptText.rectTransform.localScale;
@@ -44,14 +57,28 @@ namespace JumJump.Presenter
             ShowReady();
         }
 
-        public void AddEvents(Action onGameReadyClicked)
+        public void AddEvents(Action onGameReadyClicked, Action<int> onCharacterSelected)
         {
-            ButtonUtils.SetListener(_gameReadyButton, onGameReadyClicked);
+            _onGameReadyClicked = onGameReadyClicked;
+            _onCharacterSelected = onCharacterSelected;
+            ButtonUtils.SetListener(_gameReadyButton, OnGameReadyClicked);
+            ButtonUtils.SetListener(_selectCharacterButton, ShowCharacterSelectPanel);
+            ButtonUtils.SetListener(_selectCharacterHitAreaButton, ShowCharacterSelectPanel);
+            ButtonUtils.SetListener(_characterConfirmButton, ConfirmSelectedCharacter);
         }
 
         public void RemoveEvents()
         {
+            _onGameReadyClicked = null;
+            _onCharacterSelected = null;
             _gameReadyButton.onClick.RemoveAllListeners();
+            _selectCharacterButton.onClick.RemoveAllListeners();
+            _selectCharacterHitAreaButton.onClick.RemoveAllListeners();
+            _characterConfirmButton.onClick.RemoveAllListeners();
+            for (var i = 0; i < _characterPages.Count; i++)
+            {
+                _characterPages[i].RemoveEvents();
+            }
         }
 
         public void ShowReady()
@@ -59,6 +86,7 @@ namespace JumJump.Presenter
             HideScorePanel();
             HideStartCountdown();
             ShowGameReadyPanel();
+            HideCharacterSelectPanel();
         }
 
         public void SetScore(int score) => _scoreText.text = score.ToString();
@@ -90,6 +118,142 @@ namespace JumJump.Presenter
         {
             StopGameReadyPromptAnimation();
             _gameReadyButton.gameObject.SetActive(false);
+            HideCharacterSelectPanel();
+        }
+
+        public void SetSelectedCharacter(int skinId)
+        {
+            _selectedCharacterSkinId = skinId;
+        }
+
+        public void SetCharacterPages(IReadOnlyList<int> skinIds, IReadOnlyList<Sprite> sprites)
+        {
+            ClearGeneratedCharacterPages();
+
+            var pageCount = Mathf.Min(skinIds.Count, sprites.Count);
+            for (var i = 0; i < pageCount; i++)
+            {
+                var page = Instantiate(_characterPageTemplate, _characterPageRoot);
+                page.gameObject.name = $"CharacterPage_{skinIds[i]}";
+                page.Initialize(skinIds[i], sprites[i], OnCharacterPageClicked);
+                page.gameObject.SetActive(true);
+                _characterPages.Add(page);
+            }
+
+            RefreshCharacterScrollLayout();
+            MoveScrollToSelectedCharacter();
+        }
+
+        private void HideCharacterSelectPanel()
+        {
+            _characterSelectPanel.SetActive(false);
+        }
+
+        private void ShowCharacterSelectPanel()
+        {
+            _characterSelectPanel.SetActive(true);
+            MoveScrollToSelectedCharacter();
+        }
+
+        private void ConfirmSelectedCharacter()
+        {
+            if (_characterPages.Count <= 0)
+            {
+                return;
+            }
+
+            var skinId = _characterPages[ResolveCurrentCharacterIndex()].SkinId;
+            _onCharacterSelected.Invoke(skinId);
+            HideCharacterSelectPanel();
+        }
+
+        private void MoveScrollToSelectedCharacter()
+        {
+            var maxIndex = _characterPages.Count - 1;
+            if (maxIndex <= 0)
+            {
+                _characterScrollRect.horizontalNormalizedPosition = 0f;
+                return;
+            }
+
+            var selectedIndex = ResolveSelectedCharacterIndex();
+            _characterScrollRect.horizontalNormalizedPosition = (float)selectedIndex / maxIndex;
+            _characterScrollRect.SendMessage("ChangePage", selectedIndex, SendMessageOptions.DontRequireReceiver);
+        }
+
+        private int ResolveCurrentCharacterIndex()
+        {
+            var maxIndex = _characterPages.Count - 1;
+            if (maxIndex <= 0)
+            {
+                return 0;
+            }
+
+            return Mathf.Clamp(
+                Mathf.RoundToInt(_characterScrollRect.horizontalNormalizedPosition * maxIndex),
+                0,
+                maxIndex);
+        }
+
+        private int ResolveSelectedCharacterIndex()
+        {
+            for (var i = 0; i < _characterPages.Count; i++)
+            {
+                if (_characterPages[i].SkinId == _selectedCharacterSkinId)
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+
+        private void OnCharacterPageClicked(int skinId)
+        {
+            _selectedCharacterSkinId = skinId;
+            MoveScrollToSelectedCharacter();
+        }
+
+        private void PrepareCharacterPageTemplate()
+        {
+            var templateTransform = _characterPageTemplate.transform;
+            templateTransform.SetParent(_characterSelectPanel.transform, false);
+            _characterPageTemplate.gameObject.SetActive(false);
+
+            for (var i = _characterPageRoot.childCount - 1; i >= 0; i--)
+            {
+                var child = _characterPageRoot.GetChild(i);
+                child.SetParent(null, false);
+                Destroy(child.gameObject);
+            }
+        }
+
+        private void ClearGeneratedCharacterPages()
+        {
+            for (var i = 0; i < _characterPages.Count; i++)
+            {
+                var page = _characterPages[i];
+                page.RemoveEvents();
+                page.transform.SetParent(null, false);
+                Destroy(page.gameObject);
+            }
+
+            _characterPages.Clear();
+        }
+
+        private void RefreshCharacterScrollLayout()
+        {
+            _characterScrollRect.SendMessage("UpdateLayout", false, SendMessageOptions.DontRequireReceiver);
+        }
+
+        private void OnGameReadyClicked()
+        {
+            if (_characterSelectPanel.activeSelf)
+            {
+                return;
+            }
+
+            _onGameReadyClicked.Invoke();
         }
 
         public void ShowStartCountdown(int seconds)
@@ -288,7 +452,7 @@ namespace JumJump.Presenter
 
         private void OnDestroy()
         {
-            _gameReadyButton.onClick.RemoveAllListeners();
+            RemoveEvents();
         }
     }
 }

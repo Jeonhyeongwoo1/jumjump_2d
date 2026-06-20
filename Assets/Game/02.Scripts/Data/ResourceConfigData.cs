@@ -13,6 +13,7 @@ namespace JumJump.Data
         public string PlatformAddressableKey => _platformAddressableKey;
         public string ScoreBoardAddressableKey => _scoreBoardAddressableKey;
         public string[] ScoreBoardSpriteAddressableKeys => _scoreBoardSpriteAddressableKeys;
+        public string[] PlayerSpriteAddressableKeys => _playerSpriteAddressableKeys;
 
         public string PlayerPoolKey => _playerPoolKey;
         public int PlayerPrewarmCount => _playerPrewarmCount;
@@ -31,6 +32,13 @@ namespace JumJump.Data
         [SerializeField] private string _gameOverPopupAddressableKey = "UI_GameOverPopup";
         [SerializeField] private string _dynamicFontAddressableKey = "UI_DynamicFont";
         [SerializeField] private string _scoreBoardAddressableKey = "ScoreBoard";
+        [SerializeField] private string[] _playerSpriteAddressableKeys =
+        {
+            "Player_1001",
+            "Player_1002",
+            "Player_1003",
+            "Player_1004"
+        };
         [SerializeField] private string[] _scoreBoardSpriteAddressableKeys =
         {
             "Scoreboard_1.sprite",
