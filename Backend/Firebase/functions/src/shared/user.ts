@@ -30,6 +30,9 @@ export async function getUserResponse(userId: string): Promise<UserResponse> {
     userSnapshot.get("selectedPlayerSkinId"),
     DEFAULT_SELECTED_PLAYER_SKIN_ID,
   );
+  const createdAtMillis = parseStoredTimestampMillis(
+    userSnapshot.get("createdAt"),
+  );
 
   return {
     userId,
@@ -40,6 +43,7 @@ export async function getUserResponse(userId: string): Promise<UserResponse> {
     highScore,
     gold,
     selectedPlayerSkinId,
+    createdAtMillis,
   };
 }
 
@@ -161,4 +165,18 @@ function parseStoredProgressNumber(value: unknown, fallback: number): number {
     value >= 0 ?
     value :
     fallback;
+}
+
+function parseStoredTimestampMillis(value: unknown): number {
+  if (typeof value !== "object" || value === null) {
+    return 0;
+  }
+
+  const timestamp = value as {toMillis?: () => number};
+  if (typeof timestamp.toMillis !== "function") {
+    return 0;
+  }
+
+  const millis = timestamp.toMillis();
+  return Number.isSafeInteger(millis) && millis > 0 ? millis : 0;
 }

@@ -266,7 +266,11 @@ namespace JumJump.Service
                 return false;
             }
 
-            _authRegistry.SetUserData(userData.UserId, userData.HasRemovedAds, userData.Nickname);
+            _authRegistry.SetUserData(
+                userData.UserId,
+                userData.HasRemovedAds,
+                userData.Nickname,
+                userData.CreatedAtMillis);
             _playerDataRegistry.ApplyServerProgress(
                 userData.HighScore,
                 userData.Gold,

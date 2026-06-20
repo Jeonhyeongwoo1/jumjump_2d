@@ -52,6 +52,7 @@ namespace JumJump.Presenter
             _isReviveAdRunning = false;
             _view.SetButtonsInteractable(true);
             _view.AddEvents(OnAdClicked, OnCloseClicked);
+            _eventBus.Publish(new ReviveOfferShownEvent());
 
             DisposeCountdown();
             _countdownCts = new CancellationTokenSource();
@@ -98,6 +99,7 @@ namespace JumJump.Presenter
                 return;
             }
 
+            _eventBus.Publish(new ReviveAdClickedEvent());
             RunReviveAdAsync().Forget();
         }
 

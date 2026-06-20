@@ -15,6 +15,14 @@ namespace JumJump.Event
     {
     }
 
+    public struct ReviveOfferShownEvent
+    {
+    }
+
+    public struct ReviveAdClickedEvent
+    {
+    }
+
     public struct GameStartedEvent
     {
     }
@@ -102,6 +110,10 @@ namespace JumJump.Event
     }
 
     public struct GameOverResultViewRequestedEvent
+    {
+    }
+
+    public struct RestartClickedEvent
     {
     }
 

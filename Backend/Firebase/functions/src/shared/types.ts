@@ -10,6 +10,7 @@ export type UserResponse = {
   highScore: number;
   gold: number;
   selectedPlayerSkinId: number;
+  createdAtMillis: number;
 };
 
 export type AdRemovalPurchaseRequest = {

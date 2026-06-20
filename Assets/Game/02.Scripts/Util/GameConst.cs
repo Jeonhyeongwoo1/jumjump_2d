@@ -36,6 +36,11 @@ namespace JumJump.Util
 
         public static class Score
         {
+            public const int ScoreMilestoneSmall = 5;
+            public const int ScoreMilestoneMedium = 10;
+            public const int ScoreMilestoneLarge = 20;
+            public const int ScoreMilestoneHuge = 50;
+            public const int ScoreMilestoneLegend = 100;
             public const float RocketBoostIncrementInterval = 0.06f;
             public const int ScoreBoardMinimumHighScore = 50;
             public const float ScoreBoardTargetOffsetY = 0.85f;

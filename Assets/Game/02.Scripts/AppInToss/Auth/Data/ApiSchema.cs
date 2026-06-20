@@ -34,6 +34,7 @@ namespace JumJump.Data
             public int highScore;
             public int gold;
             public int selectedPlayerSkinId;
+            public long createdAtMillis;
 
             public string UserId => userId;
             public bool HasRemovedAds => hasRemovedAds;
@@ -41,6 +42,7 @@ namespace JumJump.Data
             public int HighScore => highScore;
             public int Gold => gold;
             public int SelectedPlayerSkinId => selectedPlayerSkinId;
+            public long CreatedAtMillis => createdAtMillis;
         }
 
         [Serializable]
