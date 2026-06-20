@@ -37,6 +37,12 @@ namespace JumJump.Presenter
             _countdownText.text = seconds.ToString();
         }
 
+        public void SetButtonsInteractable(bool isInteractable)
+        {
+            _adButton.interactable = isInteractable;
+            _closeButton.interactable = isInteractable;
+        }
+
         private void OnDestroy()
         {
             _adButton.onClick.RemoveAllListeners();
