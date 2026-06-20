@@ -7,6 +7,7 @@ using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Service;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Presenter
@@ -20,6 +21,7 @@ namespace JumJump.Presenter
         private readonly ResourceService _resourceService;
         private readonly ResourceConfigData _resourceConfigData;
         private UI_GameScene _view;
+        private bool _hasPlayedBestScoreAnimation;
 
         public UIGameScenePresenter(
             IEventBus eventBus,
@@ -46,6 +48,7 @@ namespace JumJump.Presenter
             }
 
             _view = view;
+            _hasPlayedBestScoreAnimation = false;
             _view.AddEvents(OnGameReadyClicked, OnCharacterSelected);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
@@ -76,13 +79,32 @@ namespace JumJump.Presenter
                 return;
             }
 
+            if (ev.Score <= 0)
+            {
+                _hasPlayedBestScoreAnimation = false;
+            }
+
             if (ev.ScoreDelta > 0)
             {
+                if (ShouldPlayBestScoreAnimation(ev))
+                {
+                    _hasPlayedBestScoreAnimation = true;
+                    _view.SetScoreBestScoreAnimated(ev.Score);
+                    return;
+                }
+
                 _view.SetScoreAnimated(ev.Score);
                 return;
             }
 
             _view.SetScore(ev.Score);
+        }
+
+        private bool ShouldPlayBestScoreAnimation(in ScoreChangedEvent ev)
+        {
+            return !_hasPlayedBestScoreAnimation &&
+                   _scoreService.RoundHighScoreTarget > GameConst.Score.ScoreBoardMinimumHighScore &&
+                   ev.Score > _scoreService.RoundHighScoreTarget;
         }
 
         private void OnGoldChanged(in GoldChangedEvent ev)

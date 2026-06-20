@@ -31,7 +31,9 @@ namespace JumJump.Presenter
         [SerializeField] private float _scorePopDuration = 0.18f;
         [SerializeField] private float _scoreSettleDuration = 0.12f;
         [SerializeField] private float _scorePopScale = 1.18f;
+        [SerializeField] private float _bestScorePopScale = 1.35f;
         [SerializeField] private Color _scoreFlashColor = new Color(1f, 0.82f, 0.25f, 1f);
+        [SerializeField] private Color _bestScoreFlashColor = new Color(1f, 0.94f, 0.18f, 1f);
 
         private Coroutine _scoreAnimationRoutine;
         private Coroutine _gameReadyPromptAnimationRoutine;
@@ -93,7 +95,13 @@ namespace JumJump.Presenter
         public void SetScoreAnimated(int score)
         {
             SetScore(score);
-            RestartScoreAnimation();
+            RestartScoreAnimation(_scorePopScale, _scoreFlashColor);
+        }
+
+        public void SetScoreBestScoreAnimated(int score)
+        {
+            SetScore(score);
+            RestartScoreAnimation(_bestScorePopScale, _bestScoreFlashColor);
         }
 
         public void SetGold(int gold) => _goldText.text = gold.ToString();
@@ -283,22 +291,22 @@ namespace JumJump.Presenter
             _startCountdownPanel.SetActive(false);
         }
 
-        private void RestartScoreAnimation()
+        private void RestartScoreAnimation(float popScaleMultiplier, Color flashColor)
         {
             if (_scoreAnimationRoutine != null)
             {
                 StopCoroutine(_scoreAnimationRoutine);
             }
 
-            _scoreAnimationRoutine = StartCoroutine(ScoreAnimationRoutine());
+            _scoreAnimationRoutine = StartCoroutine(ScoreAnimationRoutine(popScaleMultiplier, flashColor));
         }
 
-        private IEnumerator ScoreAnimationRoutine()
+        private IEnumerator ScoreAnimationRoutine(float popScaleMultiplier, Color flashColor)
         {
             var popDuration = Mathf.Max(0.01f, _scorePopDuration);
             var settleDuration = Mathf.Max(0.01f, _scoreSettleDuration);
             var elapsed = 0f;
-            var popScale = _scoreTextDefaultScale * Mathf.Max(1f, _scorePopScale);
+            var popScale = _scoreTextDefaultScale * Mathf.Max(1f, popScaleMultiplier);
 
             while (elapsed < popDuration)
             {
@@ -306,7 +314,7 @@ namespace JumJump.Presenter
                 var normalized = Mathf.Clamp01(elapsed / popDuration);
                 var eased = Mathf.SmoothStep(0f, 1f, normalized);
                 _scoreText.rectTransform.localScale = Vector3.Lerp(_scoreTextDefaultScale, popScale, eased);
-                _scoreText.color = Color.Lerp(_scoreTextDefaultColor, _scoreFlashColor, eased);
+                _scoreText.color = Color.Lerp(_scoreTextDefaultColor, flashColor, eased);
                 yield return null;
             }
 
@@ -317,7 +325,7 @@ namespace JumJump.Presenter
                 var normalized = Mathf.Clamp01(elapsed / settleDuration);
                 var eased = Mathf.SmoothStep(0f, 1f, normalized);
                 _scoreText.rectTransform.localScale = Vector3.Lerp(popScale, _scoreTextDefaultScale, eased);
-                _scoreText.color = Color.Lerp(_scoreFlashColor, _scoreTextDefaultColor, eased);
+                _scoreText.color = Color.Lerp(flashColor, _scoreTextDefaultColor, eased);
                 yield return null;
             }
 

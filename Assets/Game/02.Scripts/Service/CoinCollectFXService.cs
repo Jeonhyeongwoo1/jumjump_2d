@@ -40,11 +40,13 @@ namespace JumJump.Service
         public void Initialize()
         {
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
+            _eventBus.Subscribe<BestScoreReachedEvent>(OnBestScoreReached);
         }
 
         public void Dispose()
         {
             _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
+            _eventBus.Unsubscribe<BestScoreReachedEvent>(OnBestScoreReached);
 
             if (_poolRoot != null)
             {
@@ -93,6 +95,16 @@ namespace JumJump.Service
             }
 
             Play(player.Position + _configData.CoinCollectFXOffset);
+        }
+
+        private void OnBestScoreReached(in BestScoreReachedEvent ev)
+        {
+            if (!_isReady)
+            {
+                return;
+            }
+
+            Play(ev.WorldPosition);
         }
 
         private void Play(Vector3 position)

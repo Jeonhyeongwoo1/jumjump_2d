@@ -144,6 +144,20 @@ namespace JumJump.Event
         }
     }
 
+    public struct BestScoreReachedEvent
+    {
+        public int Score { get; private set; }
+        public int PreviousHighScore { get; private set; }
+        public Vector3 WorldPosition { get; private set; }
+
+        public BestScoreReachedEvent(int score, int previousHighScore, Vector3 worldPosition)
+        {
+            Score = score;
+            PreviousHighScore = previousHighScore;
+            WorldPosition = worldPosition;
+        }
+    }
+
     public struct GoldChangedEvent
     {
         public int Gold { get; private set; }

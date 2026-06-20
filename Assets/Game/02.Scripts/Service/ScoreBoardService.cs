@@ -20,11 +20,13 @@ namespace JumJump.Service
         private readonly GameConfigData _gameConfigData;
         private readonly ScoreService _scoreService;
         private readonly PlayerRegistry _playerRegistry;
+        private readonly UnityEngine.Camera _gameCamera;
         private readonly Transform _poolRoot;
 
         private ScoreBoard _scoreBoardPrefab;
         private ScoreBoard _activeScoreBoard;
         private float _activeStepY;
+        private bool _isBestScoreReached;
         private bool _isReady;
 
         public ScoreBoardService(
@@ -37,6 +39,7 @@ namespace JumJump.Service
             GameConfigData gameConfigData,
             ScoreService scoreService,
             PlayerRegistry playerRegistry,
+            UnityEngine.Camera gameCamera,
             Transform poolRoot)
         {
             _eventBus = eventBus;
@@ -48,6 +51,7 @@ namespace JumJump.Service
             _gameConfigData = gameConfigData;
             _scoreService = scoreService;
             _playerRegistry = playerRegistry;
+            _gameCamera = gameCamera;
             _poolRoot = poolRoot;
         }
 
@@ -108,9 +112,14 @@ namespace JumJump.Service
                 return;
             }
 
-            if (ev.Score > _scoreService.RoundHighScoreTarget)
+            if (!_isBestScoreReached && ev.Score > _scoreService.RoundHighScoreTarget)
             {
-                ReleaseActive();
+                PlayBestScoreReached(ev.Score);
+                return;
+            }
+
+            if (_isBestScoreReached)
+            {
                 return;
             }
 
@@ -170,7 +179,7 @@ namespace JumJump.Service
 
             _activeScoreBoard = view;
             view.Show(
-                ResolveBoardPosition(player.Position.x, boardY),
+                ResolveBoardPosition(boardY),
                 sprite,
                 GameConst.Score.ScoreBoardSortingOrder,
                 spriteIndex,
@@ -193,6 +202,18 @@ namespace JumJump.Service
         private void ResetActiveState()
         {
             _activeStepY = 0f;
+            _isBestScoreReached = false;
+        }
+
+        private void PlayBestScoreReached(int score)
+        {
+            _isBestScoreReached = true;
+            var boardPosition = _activeScoreBoard.transform.position;
+            _eventBus.Publish(new BestScoreReachedEvent(
+                score,
+                _scoreService.RoundHighScoreTarget,
+                boardPosition));
+            _activeScoreBoard.PlayBestScoreReached(ReleaseActive);
         }
 
         private void UpdateActivePosition()
@@ -204,11 +225,19 @@ namespace JumJump.Service
             }
 
             _activeScoreBoard.transform.position = ResolveBoardPosition(
-                player.Position.x,
                 ResolveBoardY(player.Position.y, _scoreService.RoundHighScoreTarget));
         }
 
-        private Vector3 ResolveBoardPosition(float x, float y) => new Vector3(x, y, 0f);
+        private Vector3 ResolveBoardPosition(float y) => new Vector3(ResolveBoardX(), y, 0f);
+
+        private float ResolveBoardX()
+        {
+            var cameraPosition = _gameCamera.transform.position;
+            var cameraDepth = Mathf.Abs(cameraPosition.z);
+            var boardPosition = _gameCamera.ViewportToWorldPoint(
+                new Vector3(GameConst.Score.ScoreBoardViewportX, 0.5f, cameraDepth));
+            return boardPosition.x;
+        }
 
         private float ResolveBoardY(float playerY, int targetScore)
         {
