@@ -18,6 +18,7 @@ namespace JumJump.Service.GameFlowState
         private readonly ResourceConfigData _resourceConfigData;
         private bool _isSceneUiReady;
         private bool _isCountingDown;
+        private bool _startCountdownOnEnter;
         private float _countdownRemaining;
         private int _lastCountdownSeconds;
 
@@ -32,14 +33,24 @@ namespace JumJump.Service.GameFlowState
             _scenePresenter = scenePresenter;
             _resourceConfigData = resourceConfigData;
             _eventBus.Subscribe<GameResourcesReadyEvent>(OnResourcesReady);
+            _eventBus.Subscribe<GameRevivedEvent>(OnGameRevived);
         }
 
         public void OnEnter()
         {
-            if (_isSceneUiReady)
+            if (!_isSceneUiReady)
             {
-                ShowReady();
+                return;
             }
+
+            if (_startCountdownOnEnter)
+            {
+                _startCountdownOnEnter = false;
+                BeginStartCountdown();
+                return;
+            }
+
+            ShowReady();
         }
 
         public void OnUpdate(IGameFlowStateContext context)
@@ -107,6 +118,11 @@ namespace JumJump.Service.GameFlowState
             ShowReady();
         }
 
+        private void OnGameRevived(in GameRevivedEvent ev)
+        {
+            _startCountdownOnEnter = true;
+        }
+
         private void ShowReady()
         {
             EndStartCountdown();
@@ -144,6 +160,7 @@ namespace JumJump.Service.GameFlowState
         public void Dispose()
         {
             _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnResourcesReady);
+            _eventBus.Unsubscribe<GameRevivedEvent>(OnGameRevived);
             EndStartCountdown();
         }
     }
