@@ -19,6 +19,11 @@ MonoBehaviour:
   _gameOverPopupAddressableKey: UI_GameOverPopup
   _dynamicFontAddressableKey: UI_DynamicFont
   _scoreBoardAddressableKey: ScoreBoard
+  _playerSpriteAddressableKeys:
+  - Player_1001
+  - Player_1002
+  - Player_1003
+  - Player_1004
   _scoreBoardSpriteAddressableKeys:
   - Scoreboard_1.sprite
   - Scoreboard_2.sprite
