@@ -63,6 +63,7 @@ namespace JumJump
             builder.Register<UIGameOverPopupPresenter>(Lifetime.Scoped);
             builder.Register<UIDynamicFontPresenter>(Lifetime.Scoped);
             builder.Register<ScoreBoardService>(Lifetime.Scoped);
+            builder.Register<ComboPlatformFXFactory>(Lifetime.Scoped);
             builder.Register<SoundFactory>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
@@ -75,6 +76,7 @@ namespace JumJump
             builder.RegisterEntryPoint<SoundService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<BestScoreBreakFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<CoinCollectFXService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<ComboPlatformFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<HayLandingFXService>(Lifetime.Scoped).AsSelf();

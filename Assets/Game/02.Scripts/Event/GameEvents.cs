@@ -109,6 +109,30 @@ namespace JumJump.Event
     {
     }
 
+    public struct ComboPlatformActivatedEvent
+    {
+        public PlatformController Platform { get; private set; }
+        public Vector3 LandingPosition { get; private set; }
+        public int ComboCount { get; private set; }
+        public bool IsComboStarted { get; private set; }
+
+        public ComboPlatformActivatedEvent(
+            PlatformController platform,
+            Vector3 landingPosition,
+            int comboCount,
+            bool isComboStarted)
+        {
+            Platform = platform;
+            LandingPosition = landingPosition;
+            ComboCount = comboCount;
+            IsComboStarted = isComboStarted;
+        }
+    }
+
+    public struct ComboEndedEvent
+    {
+    }
+
     public struct SoundRequestedEvent
     {
         public GameSoundType Type { get; private set; }

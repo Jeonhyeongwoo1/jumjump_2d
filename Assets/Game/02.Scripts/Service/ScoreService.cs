@@ -82,11 +82,21 @@ namespace JumJump.Service
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)
         {
+            var wasComboActive = _comboScore > 0;
             var comboBonus = UpdateComboScore(ev);
             var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
             AddBaseScore(baseScore);
             AddScore(baseScore + comboBonus, baseScore, comboBonus, comboBonus > 0);
             AddGold(1);
+
+            if (comboBonus > 0)
+            {
+                _eventBus.Publish(new ComboPlatformActivatedEvent(
+                    ev.Platform,
+                    ev.LandingPosition,
+                    comboBonus,
+                    !wasComboActive));
+            }
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -149,6 +159,11 @@ namespace JumJump.Service
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
+            if (_comboScore > 0 || _comboScoreProgress > 0)
+            {
+                _eventBus.Publish(new ComboEndedEvent());
+            }
+
             _pendingAnimatedScore = 0;
             _pendingAnimatedScoreElapsed = 0f;
             _score = 0;
@@ -191,6 +206,7 @@ namespace JumJump.Service
 
             _comboScore = 0;
             _comboScoreProgress = 0;
+            _eventBus.Publish(new ComboEndedEvent());
             PublishScoreChanged(0, 0, 0, false);
         }
 

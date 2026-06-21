@@ -215,6 +215,7 @@ namespace JumJump.Controller
         private void Update()
         {
             _visual.TickJumpAnimation();
+            _visual.TickComboPulse(Time.deltaTime);
 
             if (_state != PlatformStateType.Moving || !_shouldTickGimmick || _gimmickBehaviour == null)
             {
@@ -293,6 +294,7 @@ namespace JumJump.Controller
 
         internal void ApplySprite(Sprite sprite) => _visual.ApplySprite(sprite);
         internal void SetPlatformAlpha(float alpha) => _visual.SetAlpha(alpha);
+        internal void PlayComboPulse(int comboCount) => _visual.PlayComboPulse(comboCount);
         internal bool IsFullyInGameCameraView() => _visual.IsFullyInGameCameraView();
         internal bool IsMostlyInGameCameraView(float visibleRatio) => _visual.IsMostlyInGameCameraView(visibleRatio);
 
@@ -303,6 +305,7 @@ namespace JumJump.Controller
             _entryDelay.Reset();
             _shieldBlockedDissolve.Reset();
             ResetGimmickRuntime();
+            _visual.StopComboPulse();
             _visual.HideJumpAnimation();
             SetPlatformAlpha(1f);
             _visual.ApplyScale(1f, 1f);
@@ -324,6 +327,7 @@ namespace JumJump.Controller
             _shieldBlockedDissolve.Reset();
             _gimmickBehaviour?.Reset(this);
             ResetGimmickRuntime();
+            _visual.StopComboPulse();
             _visual.HideJumpAnimation();
             SetInteractionEnabled(false);
             SetPlatformAlpha(1f);

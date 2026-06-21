@@ -23,6 +23,15 @@ namespace JumJump.Data
         public string BestScoreBreakFXPoolKey => _bestScoreBreakFXPoolKey;
         public int BestScoreBreakFXPoolCount => _bestScoreBreakFXPoolCount;
         public Vector3 BestScoreBreakFXOffset => _bestScoreBreakFXOffset;
+        public Sprite ComboPlatformAuraSprite => _comboPlatformAuraSprite;
+        public Sprite ComboPlatformPulseSprite => _comboPlatformPulseSprite;
+        public Sprite ComboPlatformSparkleSprite => _comboPlatformSparkleSprite;
+        public string ComboPlatformAuraFXPoolKey => _comboPlatformAuraFXPoolKey;
+        public string ComboPlatformBurstFXPoolKey => _comboPlatformBurstFXPoolKey;
+        public int ComboPlatformAuraFXPoolCount => _comboPlatformAuraFXPoolCount;
+        public int ComboPlatformBurstFXPoolCount => _comboPlatformBurstFXPoolCount;
+        public int ComboPlatformAuraMaxActiveCount => _comboPlatformAuraMaxActiveCount;
+        public Vector3 ComboPlatformFXOffset => _comboPlatformFXOffset;
 
         [Header("Hay Landing FX")]
         [SerializeField] private HayLandingFX _hayLandingFXPrefab;
@@ -47,5 +56,16 @@ namespace JumJump.Data
         [SerializeField] private string _bestScoreBreakFXPoolKey = "FX_BestScoreBreak";
         [SerializeField] private int _bestScoreBreakFXPoolCount = 2;
         [SerializeField] private Vector3 _bestScoreBreakFXOffset = new Vector3(0f, 1.05f, 0f);
+
+        [Header("Combo Platform FX")]
+        [SerializeField] private Sprite _comboPlatformAuraSprite;
+        [SerializeField] private Sprite _comboPlatformPulseSprite;
+        [SerializeField] private Sprite _comboPlatformSparkleSprite;
+        [SerializeField] private string _comboPlatformAuraFXPoolKey = "FX_ComboPlatformAura";
+        [SerializeField] private string _comboPlatformBurstFXPoolKey = "FX_ComboPlatformBurst";
+        [SerializeField] private int _comboPlatformAuraFXPoolCount = 12;
+        [SerializeField] private int _comboPlatformBurstFXPoolCount = 6;
+        [SerializeField] private int _comboPlatformAuraMaxActiveCount = 16;
+        [SerializeField] private Vector3 _comboPlatformFXOffset = new Vector3(0f, 0.08f, 0f);
     }
 }
