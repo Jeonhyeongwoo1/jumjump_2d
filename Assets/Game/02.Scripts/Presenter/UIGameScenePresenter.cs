@@ -114,11 +114,13 @@ namespace JumJump.Presenter
 
         private void OnGameReadyClicked()
         {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _eventBus.Publish(new TapRequestedEvent());
         }
 
         private void OnCharacterSelected(int skinId)
         {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _playerDataRegistry.SetSelectedPlayerSkinId(skinId);
             _playerDataRegistry.Save();
             _view?.SetSelectedCharacter(skinId);

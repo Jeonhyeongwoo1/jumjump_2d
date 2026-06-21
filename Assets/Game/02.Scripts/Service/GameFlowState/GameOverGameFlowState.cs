@@ -38,6 +38,7 @@ namespace JumJump.Service.GameFlowState
         public void OnTapRequested(IGameFlowStateContext context)
         {
             if (_popupPresenter.IsShowing) return;
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _eventBus.Publish(new RestartRequestedEvent());
         }
 

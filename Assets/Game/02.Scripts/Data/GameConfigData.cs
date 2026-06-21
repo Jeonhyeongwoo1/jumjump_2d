@@ -16,6 +16,20 @@ namespace JumJump.Data
         public float CameraVerticalOffset => _cameraVerticalOffset;
         public int RocketBoostPlatformCount => _rocketBoostPlatformCount;
         public GameLogLevel MinimumLogLevel => _minimumLogLevel;
+        public bool SoundEnabled => _soundEnabled;
+        public bool BgmEnabled => _bgmEnabled;
+        public bool SfxEnabled => _sfxEnabled;
+        public float MasterVolume => _masterVolume;
+        public float BgmVolume => _bgmVolume;
+        public float SfxVolume => _sfxVolume;
+        public AudioClip BgmGameLoopClip => _bgmGameLoopClip;
+        public AudioClip UiButtonTapClip => _uiButtonTapClip;
+        public AudioClip UiCountdownTickClip => _uiCountdownTickClip;
+        public AudioClip PlayerJumpClip => _playerJumpClip;
+        public AudioClip LandingNormalClip => _landingNormalClip;
+        public AudioClip GoldCollectClip => _goldCollectClip;
+        public AudioClip PlayerMissClip => _playerMissClip;
+        public AudioClip PlayerDeadClip => _playerDeadClip;
 
         [Header("Score")]
         [SerializeField] private int _scorePerLanding = 1;
@@ -39,5 +53,21 @@ namespace JumJump.Data
 
         [Header("Logging")]
         [SerializeField] private GameLogLevel _minimumLogLevel = GameLogLevel.Info;
+
+        [Header("Sound")]
+        [SerializeField] private bool _soundEnabled = true;
+        [SerializeField] private bool _bgmEnabled = true;
+        [SerializeField] private bool _sfxEnabled = true;
+        [SerializeField, Range(0f, 1f)] private float _masterVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float _bgmVolume = 0.55f;
+        [SerializeField, Range(0f, 1f)] private float _sfxVolume = 0.9f;
+        [SerializeField] private AudioClip _bgmGameLoopClip;
+        [SerializeField] private AudioClip _uiButtonTapClip;
+        [SerializeField] private AudioClip _uiCountdownTickClip;
+        [SerializeField] private AudioClip _playerJumpClip;
+        [SerializeField] private AudioClip _landingNormalClip;
+        [SerializeField] private AudioClip _goldCollectClip;
+        [SerializeField] private AudioClip _playerMissClip;
+        [SerializeField] private AudioClip _playerDeadClip;
     }
 }

@@ -81,6 +81,10 @@ namespace JumJump.Event
         }
     }
 
+    public struct PlayerDeadAnimationStartedEvent
+    {
+    }
+
     public struct PlatformShieldBlockedEvent
     {
         public PlatformController Platform { get; private set; }
@@ -103,6 +107,16 @@ namespace JumJump.Event
 
     public struct GameOverResultViewRequestedEvent
     {
+    }
+
+    public struct SoundRequestedEvent
+    {
+        public GameSoundType Type { get; private set; }
+
+        public SoundRequestedEvent(GameSoundType type)
+        {
+            Type = type;
+        }
     }
 
     public struct PlatformsResetEvent

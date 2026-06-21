@@ -54,4 +54,16 @@ namespace JumJump
         Error,
         Off
     }
+
+    public enum GameSoundType
+    {
+        BgmGameLoop,
+        UiButtonTap,
+        UiCountdownTick,
+        PlayerJump,
+        LandingNormal,
+        GoldCollect,
+        PlayerMiss,
+        PlayerDead
+    }
 }

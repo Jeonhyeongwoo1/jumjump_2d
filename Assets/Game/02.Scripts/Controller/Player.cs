@@ -282,6 +282,7 @@ namespace JumJump.Controller
             _previousPosition = transform.position;
             ResetLandingSink();
             ChangeState(PlayerStateType.Knockback);
+            _eventBus.Publish(new PlayerDeadAnimationStartedEvent());
 
             var directionX = ResolveKnockbackDirectionX(knockbackDirection);
             ApplyFacingScale(directionX);

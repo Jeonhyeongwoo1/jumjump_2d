@@ -79,12 +79,14 @@ namespace JumJump.Presenter
 
         private void OnAdClicked()
         {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             ClosePopup(false);
             _eventBus.Publish(new ReviveRequestedEvent());
         }
 
         private void OnCloseClicked()
         {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             ClosePopup(true);
         }
 
