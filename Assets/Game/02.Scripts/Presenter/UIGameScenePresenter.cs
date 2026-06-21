@@ -19,6 +19,7 @@ namespace JumJump.Presenter
         private readonly PlayerDataRegistry _playerDataRegistry;
         private readonly PlayerRegistry _playerRegistry;
         private readonly ResourceService _resourceService;
+        private readonly LocalizationService _localizationService;
         private readonly ResourceConfigData _resourceConfigData;
         private UI_GameScene _view;
         private bool _hasPlayedBestScoreAnimation;
@@ -29,6 +30,7 @@ namespace JumJump.Presenter
             PlayerDataRegistry playerDataRegistry,
             PlayerRegistry playerRegistry,
             ResourceService resourceService,
+            LocalizationService localizationService,
             ResourceConfigData resourceConfigData)
         {
             _eventBus = eventBus;
@@ -36,6 +38,7 @@ namespace JumJump.Presenter
             _playerDataRegistry = playerDataRegistry;
             _playerRegistry = playerRegistry;
             _resourceService = resourceService;
+            _localizationService = localizationService;
             _resourceConfigData = resourceConfigData;
         }
 
@@ -49,11 +52,12 @@ namespace JumJump.Presenter
 
             _view = view;
             _hasPlayedBestScoreAnimation = false;
-            _view.AddEvents(OnGameReadyClicked, OnCharacterConfirmed, OnCharacterPurchased);
+            _view.AddEvents(OnGameReadyClicked, OnAdRewardClicked, OnCharacterConfirmed, OnCharacterPurchased);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
             _view.SetGold(_scoreService.Gold);
+            _view.SetAdRewardGoldAmount(_scoreService.AdRewardGoldAmount);
             _view.SetSelectedCharacter(_playerDataRegistry.SelectedPlayerSkinId);
             LoadCharacterPagesAsync(_view, _view.GetCancellationTokenOnDestroy()).Forget();
             _view.ShowReady();
@@ -116,6 +120,12 @@ namespace JumJump.Presenter
         {
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _eventBus.Publish(new TapRequestedEvent());
+        }
+
+        private void OnAdRewardClicked()
+        {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
+            _scoreService.GrantAdRewardGold();
         }
 
         private bool OnCharacterConfirmed(int skinId)
@@ -190,7 +200,8 @@ namespace JumJump.Presenter
             var sprites = new List<Sprite>(keys.Length);
             var prices = new List<int>(keys.Length);
             var owned = new List<bool>(keys.Length);
-            var displayNames = new List<string>(keys.Length);
+            var localizedNames = new List<string>(keys.Length);
+            var localizedDescriptions = new List<string>(keys.Length);
 
             for (var i = 0; i < keys.Length; i++)
             {
@@ -226,7 +237,8 @@ namespace JumJump.Presenter
                 sprites.Add(sprite);
                 prices.Add(skinData.Price);
                 owned.Add(_playerDataRegistry.OwnsPlayerSkin(skinId));
-                displayNames.Add(ResolveCharacterDisplayName(skinData));
+                localizedNames.Add(_localizationService.GetPlayerSkinName(skinId));
+                localizedDescriptions.Add(_localizationService.GetPlayerSkinDescription(skinId));
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
 
@@ -235,13 +247,8 @@ namespace JumJump.Presenter
                 return;
             }
 
-            view.SetCharacterPages(skinIds, sprites, prices, owned, displayNames);
+            view.SetCharacterPages(skinIds, sprites, prices, owned, localizedNames, localizedDescriptions);
             view.SetSelectedCharacter(_playerDataRegistry.SelectedPlayerSkinId);
-        }
-
-        private string ResolveCharacterDisplayName(PlayerSkinData skinData)
-        {
-            return $"{skinData.EnglishName} / {skinData.KoreanName}";
         }
 
         private bool TryResolveSkinId(string spriteAddressableKey, out int skinId)

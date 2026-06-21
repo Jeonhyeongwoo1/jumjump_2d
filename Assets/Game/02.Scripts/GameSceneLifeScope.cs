@@ -45,6 +45,7 @@ namespace JumJump
             builder.RegisterInstance(_gameCheatConfigData);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);
+            builder.Register<LocalizationService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);
             builder.Register<PlatformRegistry>(Lifetime.Scoped);
             builder.Register<PlayerRegistry>(Lifetime.Scoped);

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _scorePerLanding: 1
   _comboLandingCenterTolerance: 0.08
+  _adRewardGoldAmount: 1000
   _highScoreKey: JumJump.HighScore
   _goldKey: JumJump.Gold
   _selectedPlayerSkinKey: JumJump.SelectedPlayerSkin

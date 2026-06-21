@@ -17,6 +17,7 @@ namespace JumJump.Service
         public int RoundHighScoreTarget => _roundHighScoreTarget;
         public int ComboScore => _comboScore;
         public int Gold => _playerDataRegistry.Gold;
+        public int AdRewardGoldAmount => _configData.AdRewardGoldAmount;
 
         private int _score;
         private int _baseScore;
@@ -78,6 +79,17 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<RocketBoostPlatformsPassedEvent>(OnRocketBoostPlatformsPassed);
             _eventBus.Unsubscribe<RestartRequestedEvent>(OnRestartRequested);
             _eventBus.Unsubscribe<GameOverResultViewRequestedEvent>(OnGameOverResultViewRequested);
+        }
+
+        public bool GrantAdRewardGold()
+        {
+            if (!AddGold(_configData.AdRewardGoldAmount))
+            {
+                return false;
+            }
+
+            _playerDataRegistry.Save();
+            return true;
         }
 
         private void OnPlayerLanded(in PlayerLandedEvent ev)
@@ -144,17 +156,20 @@ namespace JumJump.Service
             _baseScore += amount;
         }
 
-        private void AddGold(int amount)
+        private bool AddGold(int amount)
         {
             if (amount <= 0)
             {
-                return;
+                return false;
             }
 
             if (_playerDataRegistry.AddGold(amount))
             {
                 PublishGoldChanged(amount);
+                return true;
             }
+
+            return false;
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)

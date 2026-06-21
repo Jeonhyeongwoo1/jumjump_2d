@@ -19,6 +19,8 @@ MonoBehaviour:
   _gameOverPopupAddressableKey: UI_GameOverPopup
   _dynamicFontAddressableKey: UI_DynamicFont
   _scoreBoardAddressableKey: ScoreBoard
+  _localizationLanguage: 0
+  _localizationCsv: {fileID: 4900000, guid: 42f756f5452846c9bf335dc4f4f6a9a1, type: 3}
   _playerSpriteAddressableKeys:
   - Player_1001
   - Player_1002

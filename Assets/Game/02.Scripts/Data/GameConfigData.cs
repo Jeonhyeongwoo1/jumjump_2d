@@ -6,6 +6,7 @@ namespace JumJump.Data
     public sealed class GameConfigData : ScriptableObject
     {
         public int ScorePerLanding => _scorePerLanding;
+        public int AdRewardGoldAmount => _adRewardGoldAmount;
         public float ComboLandingCenterTolerance => _comboLandingCenterTolerance;
         public string HighScoreKey => _highScoreKey;
         public string GoldKey => _goldKey;
@@ -35,6 +36,9 @@ namespace JumJump.Data
         [Header("Score")]
         [SerializeField] private int _scorePerLanding = 1;
         [SerializeField] private float _comboLandingCenterTolerance = 0.08f;
+
+        [Header("Ad Reward")]
+        [SerializeField, Min(0)] private int _adRewardGoldAmount = 1000;
 
         [Header("Persistence")]
         [SerializeField] private string _highScoreKey = "JumJump.HighScore";

@@ -59,6 +59,12 @@ namespace JumJump
         Off
     }
 
+    public enum LocalizationLanguageType
+    {
+        English,
+        Korean
+    }
+
     public enum GameSoundType
     {
         BgmGameLoop,

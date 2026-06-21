@@ -18,14 +18,19 @@ namespace JumJump.Presenter
         [SerializeField] private Button _gameReadyButton;
         [SerializeField] private Button _selectCharacterButton;
         [SerializeField] private Button _selectCharacterHitAreaButton;
+        [SerializeField] private Button _adRewardButton;
+        [SerializeField] private TMP_Text _adRewardGoldText;
         [SerializeField] private TMP_Text _gameReadyPromptText;
         [SerializeField] private GameObject _characterSelectPanel;
         [SerializeField] private Button _characterConfirmButton;
         [SerializeField] private Button _characterBuyButton;
         [SerializeField] private TMP_Text _characterNameText;
+        [SerializeField] private TMP_Text _characterDescriptionText;
         [SerializeField] private TMP_Text _characterPriceText;
         [SerializeField] private TMP_Text _characterConfirmButtonText;
         [SerializeField] private ScrollRect _characterScrollRect;
+        [SerializeField] private Button _characterPrevButton;
+        [SerializeField] private Button _characterNextButton;
         [SerializeField] private RectTransform _characterPageRoot;
         [SerializeField] private UI_CharacterPage _characterPageTemplate;
         [SerializeField] private UI_ToastMessage _toastMessagePrefab;
@@ -49,12 +54,14 @@ namespace JumJump.Presenter
         private Vector2 _gameReadyPromptDefaultAnchoredPosition;
         private Color _gameReadyPromptDefaultColor;
         private Action _onGameReadyClicked;
+        private Action _onAdRewardClicked;
         private Func<int, bool> _onCharacterConfirmed;
         private Func<int, bool> _onCharacterPurchased;
         private readonly List<UI_CharacterPage> _characterPages = new List<UI_CharacterPage>(8);
         private readonly List<int> _characterPrices = new List<int>(8);
         private readonly List<bool> _characterOwned = new List<bool>(8);
-        private readonly List<string> _characterDisplayNames = new List<string>(8);
+        private readonly List<string> _characterLocalizedNames = new List<string>(8);
+        private readonly List<string> _characterLocalizedDescriptions = new List<string>(8);
         private UI_ToastMessage _toastMessage;
         private int _selectedCharacterSkinId;
         private int _currentGold;
@@ -75,30 +82,39 @@ namespace JumJump.Presenter
 
         public void AddEvents(
             Action onGameReadyClicked,
+            Action onAdRewardClicked,
             Func<int, bool> onCharacterConfirmed,
             Func<int, bool> onCharacterPurchased)
         {
             _onGameReadyClicked = onGameReadyClicked;
+            _onAdRewardClicked = onAdRewardClicked;
             _onCharacterConfirmed = onCharacterConfirmed;
             _onCharacterPurchased = onCharacterPurchased;
             ButtonUtils.SetListener(_gameReadyButton, OnGameReadyClicked);
             ButtonUtils.SetListener(_selectCharacterButton, ShowCharacterSelectPanel);
             ButtonUtils.SetListener(_selectCharacterHitAreaButton, ShowCharacterSelectPanel);
+            ButtonUtils.SetListener(_adRewardButton, OnAdRewardClicked);
             ButtonUtils.SetListener(_characterConfirmButton, ConfirmSelectedCharacter);
             ButtonUtils.SetListener(_characterBuyButton, BuySelectedCharacter);
+            ButtonUtils.SetListener(_characterPrevButton, MoveToPreviousCharacter);
+            ButtonUtils.SetListener(_characterNextButton, MoveToNextCharacter);
             _characterScrollRect.onValueChanged.AddListener(OnCharacterScrollValueChanged);
         }
 
         public void RemoveEvents()
         {
             _onGameReadyClicked = null;
+            _onAdRewardClicked = null;
             _onCharacterConfirmed = null;
             _onCharacterPurchased = null;
             _gameReadyButton.onClick.RemoveAllListeners();
             _selectCharacterButton.onClick.RemoveAllListeners();
             _selectCharacterHitAreaButton.onClick.RemoveAllListeners();
+            _adRewardButton.onClick.RemoveAllListeners();
             _characterConfirmButton.onClick.RemoveAllListeners();
             _characterBuyButton.onClick.RemoveAllListeners();
+            _characterPrevButton.onClick.RemoveAllListeners();
+            _characterNextButton.onClick.RemoveAllListeners();
             _characterScrollRect.onValueChanged.RemoveListener(OnCharacterScrollValueChanged);
             for (var i = 0; i < _characterPages.Count; i++)
             {
@@ -132,6 +148,11 @@ namespace JumJump.Presenter
             _currentGold = gold;
             _goldText.text = gold.ToString();
             RefreshCharacterPurchaseState();
+        }
+
+        public void SetAdRewardGoldAmount(int goldAmount)
+        {
+            _adRewardGoldText.text = $"{Mathf.Max(0, goldAmount)} gold";
         }
 
         public void ShowScorePanel()
@@ -168,18 +189,21 @@ namespace JumJump.Presenter
             IReadOnlyList<Sprite> sprites,
             IReadOnlyList<int> prices,
             IReadOnlyList<bool> owned,
-            IReadOnlyList<string> displayNames)
+            IReadOnlyList<string> localizedNames,
+            IReadOnlyList<string> localizedDescriptions)
         {
             ClearGeneratedCharacterPages();
             _characterPrices.Clear();
             _characterOwned.Clear();
-            _characterDisplayNames.Clear();
+            _characterLocalizedNames.Clear();
+            _characterLocalizedDescriptions.Clear();
 
             var pageCount = skinIds.Count;
             pageCount = Mathf.Min(pageCount, sprites.Count);
             pageCount = Mathf.Min(pageCount, prices.Count);
             pageCount = Mathf.Min(pageCount, owned.Count);
-            pageCount = Mathf.Min(pageCount, displayNames.Count);
+            pageCount = Mathf.Min(pageCount, localizedNames.Count);
+            pageCount = Mathf.Min(pageCount, localizedDescriptions.Count);
             for (var i = 0; i < pageCount; i++)
             {
                 var page = Instantiate(_characterPageTemplate, _characterPageRoot);
@@ -189,7 +213,8 @@ namespace JumJump.Presenter
                 _characterPages.Add(page);
                 _characterPrices.Add(prices[i]);
                 _characterOwned.Add(owned[i]);
-                _characterDisplayNames.Add(displayNames[i]);
+                _characterLocalizedNames.Add(localizedNames[i]);
+                _characterLocalizedDescriptions.Add(localizedDescriptions[i]);
             }
 
             RefreshCharacterScrollLayout();
@@ -275,6 +300,16 @@ namespace JumJump.Presenter
 
             ShowNotEnoughGoldToast();
             RefreshCharacterPurchaseState();
+        }
+
+        private void MoveToPreviousCharacter()
+        {
+            MoveScrollToCharacterIndex(ResolveCurrentCharacterIndex() - 1);
+        }
+
+        private void MoveToNextCharacter()
+        {
+            MoveScrollToCharacterIndex(ResolveCurrentCharacterIndex() + 1);
         }
 
         private void MoveScrollToSelectedCharacter()
@@ -368,7 +403,8 @@ namespace JumJump.Presenter
             _characterPages.Clear();
             _characterPrices.Clear();
             _characterOwned.Clear();
-            _characterDisplayNames.Clear();
+            _characterLocalizedNames.Clear();
+            _characterLocalizedDescriptions.Clear();
             RefreshCharacterPurchaseState();
         }
 
@@ -387,6 +423,11 @@ namespace JumJump.Presenter
             _onGameReadyClicked.Invoke();
         }
 
+        private void OnAdRewardClicked()
+        {
+            _onAdRewardClicked.Invoke();
+        }
+
         private void OnCharacterScrollValueChanged(Vector2 normalizedPosition)
         {
             RefreshCharacterPurchaseState();
@@ -397,12 +438,15 @@ namespace JumJump.Presenter
             if (_characterPages.Count <= 0)
             {
                 _characterNameText.text = string.Empty;
+                _characterDescriptionText.text = string.Empty;
                 _characterPriceText.text = string.Empty;
                 _characterConfirmButtonText.text = string.Empty;
                 _characterConfirmButton.interactable = false;
                 _characterConfirmButton.gameObject.SetActive(false);
                 _characterBuyButton.interactable = false;
                 _characterBuyButton.gameObject.SetActive(false);
+                _characterPrevButton.gameObject.SetActive(false);
+                _characterNextButton.gameObject.SetActive(false);
                 return;
             }
 
@@ -412,13 +456,22 @@ namespace JumJump.Presenter
             var isSelected = _characterPages[currentIndex].SkinId == _selectedCharacterSkinId;
             var canSelect = isOwned && !isSelected;
 
-            _characterNameText.text = _characterDisplayNames[currentIndex];
+            _characterNameText.text = _characterLocalizedNames[currentIndex];
+            _characterDescriptionText.text = _characterLocalizedDescriptions[currentIndex];
             _characterPriceText.text = ResolveCharacterPriceText(price, isOwned);
             _characterConfirmButtonText.text = canSelect ? "Select" : string.Empty;
             _characterConfirmButton.gameObject.SetActive(canSelect);
             _characterConfirmButton.interactable = canSelect;
             _characterBuyButton.gameObject.SetActive(!isOwned);
             _characterBuyButton.interactable = true;
+            RefreshCharacterNavigationButtons(currentIndex);
+        }
+
+        private void RefreshCharacterNavigationButtons(int currentIndex)
+        {
+            var maxIndex = _characterPages.Count - 1;
+            _characterPrevButton.gameObject.SetActive(currentIndex > 0);
+            _characterNextButton.gameObject.SetActive(currentIndex < maxIndex);
         }
 
         private bool IsCharacterPurchaseBlockedByGold(int characterIndex)

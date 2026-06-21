@@ -14,6 +14,8 @@ namespace JumJump.Data
         public string ScoreBoardAddressableKey => _scoreBoardAddressableKey;
         public string[] ScoreBoardSpriteAddressableKeys => _scoreBoardSpriteAddressableKeys;
         public string[] PlayerSpriteAddressableKeys => _playerSpriteAddressableKeys;
+        public LocalizationLanguageType LocalizationLanguage => _localizationLanguage;
+        public TextAsset LocalizationCsv => _localizationCsv;
 
         public string PlayerPoolKey => _playerPoolKey;
         public int PlayerPrewarmCount => _playerPrewarmCount;
@@ -32,6 +34,11 @@ namespace JumJump.Data
         [SerializeField] private string _gameOverPopupAddressableKey = "UI_GameOverPopup";
         [SerializeField] private string _dynamicFontAddressableKey = "UI_DynamicFont";
         [SerializeField] private string _scoreBoardAddressableKey = "ScoreBoard";
+        [Header("Localization")]
+        [SerializeField] private LocalizationLanguageType _localizationLanguage = LocalizationLanguageType.English;
+        [SerializeField] private TextAsset _localizationCsv;
+
+        [Header("Player Skins")]
         [SerializeField] private string[] _playerSpriteAddressableKeys =
         {
             "Player_1001",
