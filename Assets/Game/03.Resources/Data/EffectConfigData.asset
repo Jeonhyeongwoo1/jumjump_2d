@@ -24,3 +24,7 @@ MonoBehaviour:
   _coinCollectFXPoolKey: FX_CoinCollect
   _coinCollectFXPoolCount: 4
   _coinCollectFXOffset: {x: 0, y: 0.66, z: 0}
+  _bestScoreBreakFXPrefab: {fileID: 3291040880707138841, guid: b3bd0210f91b5644280a7c1282a722b2, type: 3}
+  _bestScoreBreakFXPoolKey: FX_BestScoreBreak
+  _bestScoreBreakFXPoolCount: 2
+  _bestScoreBreakFXOffset: {x: 0, y: 1.05, z: 0}

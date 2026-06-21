@@ -3,6 +3,7 @@ using JumJump.Data;
 using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Service;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Factory
@@ -54,7 +55,7 @@ namespace JumJump.Factory
             var prefab = _resourceService.GetPrefab(_resourceConfigData.PlatformAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(PlatformFactory)}] Failed to load platform prefab: {_resourceConfigData.PlatformAddressableKey}");
+                GameLogger.Error(nameof(PlatformFactory), $"Failed to load platform prefab: {_resourceConfigData.PlatformAddressableKey}");
                 return;
             }
 
@@ -67,7 +68,7 @@ namespace JumJump.Factory
         {
             if (!_isReady)
             {
-                Debug.LogError($"[{nameof(PlatformFactory)}] Get called before warmup.");
+                GameLogger.Error(nameof(PlatformFactory), "Get called before warmup.");
                 return null;
             }
 
@@ -78,7 +79,7 @@ namespace JumJump.Factory
                 var sprite = _resourceService.GetAsset<Sprite>(spriteKey);
                 if (sprite == null)
                 {
-                    Debug.LogError($"[{nameof(PlatformFactory)}] Failed to resolve platform sprite. Type: {type}, Key: {spriteKey}");
+                    GameLogger.Error(nameof(PlatformFactory), $"Failed to resolve platform sprite. Type: {type}, Key: {spriteKey}");
                 }
 
                 platform.ApplySprite(sprite);

@@ -15,6 +15,7 @@ namespace JumJump.Data
         public float CameraSmoothSpeed => _cameraSmoothSpeed;
         public float CameraVerticalOffset => _cameraVerticalOffset;
         public int RocketBoostPlatformCount => _rocketBoostPlatformCount;
+        public GameLogLevel MinimumLogLevel => _minimumLogLevel;
 
         [Header("Score")]
         [SerializeField] private int _scorePerLanding = 1;
@@ -35,5 +36,8 @@ namespace JumJump.Data
 
         [Header("Rocket")]
         [SerializeField] private int _rocketBoostPlatformCount = 10;
+
+        [Header("Logging")]
+        [SerializeField] private GameLogLevel _minimumLogLevel = GameLogLevel.Info;
     }
 }

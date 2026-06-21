@@ -41,7 +41,7 @@ namespace JumJump.Presenter
             var prefab = _resourceService.GetPrefab(_resourceConfigData.DynamicFontAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(UIDynamicFontPresenter)}] Failed to load prefab: {_resourceConfigData.DynamicFontAddressableKey}");
+                GameLogger.Error(nameof(UIDynamicFontPresenter), $"Failed to load prefab: {_resourceConfigData.DynamicFontAddressableKey}");
                 return;
             }
 

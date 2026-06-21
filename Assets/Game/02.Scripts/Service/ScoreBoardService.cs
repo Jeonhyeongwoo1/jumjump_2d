@@ -65,7 +65,7 @@ namespace JumJump.Service
             var prefab = _resourceService.GetPrefab(_resourceConfigData.ScoreBoardAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(ScoreBoardService)}] Failed to load prefab: {_resourceConfigData.ScoreBoardAddressableKey}");
+                GameLogger.Error(nameof(ScoreBoardService), $"Failed to load prefab: {_resourceConfigData.ScoreBoardAddressableKey}");
                 return;
             }
 

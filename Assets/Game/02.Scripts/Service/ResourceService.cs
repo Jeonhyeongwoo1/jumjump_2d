@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Data;
+using JumJump.Util;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -39,19 +40,19 @@ namespace JumJump.Service
             var resolvedKey = ResolveKey<T>(key);
             if (string.IsNullOrWhiteSpace(resolvedKey))
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Empty resource key.");
+                GameLogger.Error(nameof(ResourceService), "Empty resource key.");
                 return null;
             }
 
             if (!_isPreLoaded)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Asset requested before preload: {resolvedKey}");
+                GameLogger.Error(nameof(ResourceService), $"Asset requested before preload: {resolvedKey}");
                 return null;
             }
 
             if (!_resources.TryGetValue(resolvedKey, out var resource))
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Preloaded asset not found: {resolvedKey}");
+                GameLogger.Error(nameof(ResourceService), $"Preloaded asset not found: {resolvedKey}");
                 return null;
             }
 
@@ -60,8 +61,9 @@ namespace JumJump.Service
                 return typedResource;
             }
 
-            Debug.LogError(
-                $"[{nameof(ResourceService)}] Preloaded asset type mismatch. Key: {resolvedKey}, Cached: {resource.GetType().Name}, Requested: {typeof(T).Name}");
+            GameLogger.Error(
+                nameof(ResourceService),
+                $"Preloaded asset type mismatch. Key: {resolvedKey}, Cached: {resource.GetType().Name}, Requested: {typeof(T).Name}");
             return null;
         }
 
@@ -81,7 +83,7 @@ namespace JumJump.Service
         {
             if (string.IsNullOrWhiteSpace(labelKey))
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Addressables label is empty.");
+                GameLogger.Error(nameof(ResourceService), "Addressables label is empty.");
                 return false;
             }
 
@@ -104,7 +106,7 @@ namespace JumJump.Service
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Addressables key is empty.");
+                GameLogger.Error(nameof(ResourceService), "Addressables key is empty.");
                 return false;
             }
 
@@ -181,9 +183,11 @@ namespace JumJump.Service
                 var locations = await locationsHandle.ToUniTask(cancellationToken: cancellationToken);
                 if (locations == null || locations.Count == 0)
                 {
-                    Debug.LogError($"[{nameof(ResourceService)}] Addressables key returned no locations: {key}");
+                    GameLogger.Error(nameof(ResourceService), $"Addressables key returned no locations: {key}");
                     return false;
                 }
+
+                GameLogger.Debug(nameof(ResourceService), $"Resolved {locations.Count} addressable assets from: {key}");
 
                 var failedCount = 0;
                 for (var i = 0; i < locations.Count; i++)
@@ -208,6 +212,10 @@ namespace JumJump.Service
                     {
                         failedCount++;
                     }
+                    else
+                    {
+                        GameLogger.Debug(nameof(ResourceService), $"Loaded asset: {location.PrimaryKey}");
+                    }
 
                     TrackLabelResource(labelKey, location.PrimaryKey);
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
@@ -215,7 +223,7 @@ namespace JumJump.Service
 
                 if (failedCount > 0)
                 {
-                    Debug.LogError($"[{nameof(ResourceService)}] Failed to load {failedCount} addressable assets from: {key}");
+                    GameLogger.Error(nameof(ResourceService), $"Failed to load {failedCount} addressable assets from: {key}");
                     return false;
                 }
 
@@ -227,7 +235,7 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressables: {key}\n{ex}");
+                GameLogger.Error(nameof(ResourceService), $"Failed to load addressables: {key}\n{ex}");
                 return false;
             }
             finally
@@ -264,7 +272,7 @@ namespace JumJump.Service
                 var resource = await handle.ToUniTask(cancellationToken: cancellationToken);
                 if (resource == null)
                 {
-                    Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}");
+                    GameLogger.Error(nameof(ResourceService), $"Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}");
                     ReleaseHandle(handle);
                     return false;
                 }
@@ -278,7 +286,7 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}\n{ex}");
+                GameLogger.Error(nameof(ResourceService), $"Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}\n{ex}");
                 return false;
             }
         }
@@ -295,7 +303,7 @@ namespace JumJump.Service
                 var resource = await handle.ToUniTask(cancellationToken: cancellationToken);
                 if (resource == null)
                 {
-                    Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}");
+                    GameLogger.Error(nameof(ResourceService), $"Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}");
                     ReleaseHandle(handle);
                     return false;
                 }
@@ -309,7 +317,7 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(ResourceService)}] Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}\n{ex}");
+                GameLogger.Error(nameof(ResourceService), $"Failed to load addressable asset. Key: {key}, Type: {typeof(T).Name}\n{ex}");
                 return false;
             }
         }

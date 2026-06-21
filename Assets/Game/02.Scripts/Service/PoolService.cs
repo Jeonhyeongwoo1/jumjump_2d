@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JumJump.Util;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -19,7 +20,7 @@ namespace JumJump.Service
         {
             if (_pools.ContainsKey(key))
             {
-                Debug.LogWarning($"[{nameof(PoolService)}] Pool already registered: {key}");
+                GameLogger.Warning(nameof(PoolService), $"Pool already registered: {key}");
                 return;
             }
 
@@ -32,13 +33,13 @@ namespace JumJump.Service
         {
             if (!_pools.TryGetValue(key, out var pool))
             {
-                Debug.LogError($"[{nameof(PoolService)}] Pool not registered: {key}");
+                GameLogger.Error(nameof(PoolService), $"Pool not registered: {key}");
                 return null;
             }
 
             if (pool is not ComponentPool<T> typedPool)
             {
-                Debug.LogError($"[{nameof(PoolService)}] Pool type mismatch: {key}");
+                GameLogger.Error(nameof(PoolService), $"Pool type mismatch: {key}");
                 return null;
             }
 
@@ -54,13 +55,13 @@ namespace JumJump.Service
 
             if (!_pools.TryGetValue(key, out var pool))
             {
-                Debug.LogError($"[{nameof(PoolService)}] Pool not registered: {key}");
+                GameLogger.Error(nameof(PoolService), $"Pool not registered: {key}");
                 return;
             }
 
             if (pool is not ComponentPool<T> typedPool)
             {
-                Debug.LogError($"[{nameof(PoolService)}] Pool type mismatch: {key}");
+                GameLogger.Error(nameof(PoolService), $"Pool type mismatch: {key}");
                 return;
             }
 

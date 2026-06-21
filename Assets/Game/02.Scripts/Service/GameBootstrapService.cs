@@ -7,6 +7,7 @@ using JumJump.Factory;
 using JumJump.Interface;
 using JumJump.Presenter;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -51,25 +52,53 @@ namespace JumJump.Service
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
+            var bootstrapStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Bootstrap");
+            var workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Preload resources");
             await _resourceService.PreLoadAsync(cancellation);
-            _platformFactory.Warmup();
-            _playerFactory.Warmup();
-            _dynamicFontPresenter.Warmup();
-            _scoreBoardService.Warmup();
-            await _jumpBoxBoostFXService.WarmupAsync(cancellation);
-            await _coinCollectFXService.WarmupAsync(cancellation);
+            GameLogger.EndWork(nameof(GameBootstrapService), "Preload resources", workStartedAt);
 
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup platform factory");
+            _platformFactory.Warmup();
+            GameLogger.EndWork(nameof(GameBootstrapService), "Warmup platform factory", workStartedAt);
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup player factory");
+            _playerFactory.Warmup();
+            GameLogger.EndWork(nameof(GameBootstrapService), "Warmup player factory", workStartedAt);
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup dynamic font");
+            _dynamicFontPresenter.Warmup();
+            GameLogger.EndWork(nameof(GameBootstrapService), "Warmup dynamic font", workStartedAt);
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup score board");
+            _scoreBoardService.Warmup();
+            GameLogger.EndWork(nameof(GameBootstrapService), "Warmup score board", workStartedAt);
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup jump box boost FX");
+            await _jumpBoxBoostFXService.WarmupAsync(cancellation);
+            GameLogger.EndWork(nameof(GameBootstrapService), "Warmup jump box boost FX", workStartedAt);
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup coin collect FX");
+            await _coinCollectFXService.WarmupAsync(cancellation);
+            GameLogger.EndWork(nameof(GameBootstrapService), "Warmup coin collect FX", workStartedAt);
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Spawn player");
             var player = _playerFactory.Spawn();
             if (player == null)
             {
-                Debug.LogError($"[{nameof(GameBootstrapService)}] Player spawn failed; aborting bootstrap.");
+                GameLogger.EndWork(nameof(GameBootstrapService), "Spawn player", workStartedAt);
+                GameLogger.Error(nameof(GameBootstrapService), "Player spawn failed; aborting bootstrap.");
+                GameLogger.EndWork(nameof(GameBootstrapService), "Bootstrap", bootstrapStartedAt);
                 return;
             }
+            GameLogger.EndWork(nameof(GameBootstrapService), "Spawn player", workStartedAt);
 
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Apply player skin");
             ApplyPlayerSkin(player);
+            GameLogger.EndWork(nameof(GameBootstrapService), "Apply player skin", workStartedAt);
 
             _eventBus.Publish(new PlayerSpawnedEvent(player));
             _eventBus.Publish(new GameResourcesReadyEvent());
+            GameLogger.EndWork(nameof(GameBootstrapService), "Bootstrap", bootstrapStartedAt);
         }
 
         private void ApplyPlayerSkin(Player player)
@@ -83,7 +112,7 @@ namespace JumJump.Service
             var skinId = _playerDataRegistry.SelectedPlayerSkinId;
             if (!player.TryApplySkin(skinId))
             {
-                Debug.LogError($"[{nameof(GameBootstrapService)}] Failed to apply selected player skin: {skinId}");
+                GameLogger.Error(nameof(GameBootstrapService), $"Failed to apply selected player skin: {skinId}");
             }
         }
 
@@ -92,7 +121,7 @@ namespace JumJump.Service
             var skinId = (int)_gameCheatConfigData.ForcedPlayerSkinType;
             if (!player.TryApplySkin(skinId))
             {
-                Debug.LogError($"[{nameof(GameBootstrapService)}] Failed to apply forced player skin: {_gameCheatConfigData.ForcedPlayerSkinType}");
+                GameLogger.Error(nameof(GameBootstrapService), $"Failed to apply forced player skin: {_gameCheatConfigData.ForcedPlayerSkinType}");
                 return;
             }
 

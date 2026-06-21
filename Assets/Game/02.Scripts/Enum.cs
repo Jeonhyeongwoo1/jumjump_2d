@@ -45,4 +45,13 @@ namespace JumJump
         Shield,
         Rocket
     }
+
+    public enum GameLogLevel
+    {
+        Debug,
+        Info,
+        Warning,
+        Error,
+        Off
+    }
 }

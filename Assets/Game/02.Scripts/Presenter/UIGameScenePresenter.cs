@@ -43,7 +43,7 @@ namespace JumJump.Presenter
         {
             if (view == null)
             {
-                Debug.LogError($"[{nameof(UIGameScenePresenter)}] Missing view.");
+                GameLogger.Error(nameof(UIGameScenePresenter), "Missing view.");
                 return;
             }
 
@@ -135,7 +135,7 @@ namespace JumJump.Presenter
 
             if (!player.TryApplySkin(skinId))
             {
-                Debug.LogError($"[{nameof(UIGameScenePresenter)}] Failed to apply selected player skin: {skinId}");
+                GameLogger.Error(nameof(UIGameScenePresenter), $"Failed to apply selected player skin: {skinId}");
             }
         }
 
@@ -158,14 +158,14 @@ namespace JumJump.Presenter
                 var loaded = await _resourceService.LoadKeyAsync(key, cancellationToken);
                 if (!loaded)
                 {
-                    Debug.LogError($"[{nameof(UIGameScenePresenter)}] Failed to load character sprite: {key}");
+                    GameLogger.Error(nameof(UIGameScenePresenter), $"Failed to load character sprite: {key}");
                     continue;
                 }
 
                 var sprite = _resourceService.GetAsset<Sprite>(key);
                 if (sprite == null)
                 {
-                    Debug.LogError($"[{nameof(UIGameScenePresenter)}] Missing loaded character sprite: {key}");
+                    GameLogger.Error(nameof(UIGameScenePresenter), $"Missing loaded character sprite: {key}");
                     continue;
                 }
 
@@ -189,7 +189,7 @@ namespace JumJump.Presenter
             var delimiterIndex = spriteAddressableKey.LastIndexOf('_');
             if (delimiterIndex < 0 || delimiterIndex >= spriteAddressableKey.Length - 1)
             {
-                Debug.LogError($"[{nameof(UIGameScenePresenter)}] Invalid character sprite key: {spriteAddressableKey}");
+                GameLogger.Error(nameof(UIGameScenePresenter), $"Invalid character sprite key: {spriteAddressableKey}");
                 return false;
             }
 
@@ -198,7 +198,7 @@ namespace JumJump.Presenter
                 return true;
             }
 
-            Debug.LogError($"[{nameof(UIGameScenePresenter)}] Invalid character skin id: {spriteAddressableKey}");
+            GameLogger.Error(nameof(UIGameScenePresenter), $"Invalid character skin id: {spriteAddressableKey}");
             return false;
         }
 

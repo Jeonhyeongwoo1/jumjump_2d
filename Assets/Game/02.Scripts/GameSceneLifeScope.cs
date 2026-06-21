@@ -7,6 +7,7 @@ using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Service.GameFlowState;
+using JumJump.Util;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -33,6 +34,7 @@ namespace JumJump
 
         protected override void Configure(IContainerBuilder builder)
         {
+            GameLogger.SetMinimumLevel(_gameConfigData.MinimumLogLevel);
             builder.RegisterComponent(_dynamicFontRoot);
             builder.RegisterInstance(_resourceConfigData);
             builder.RegisterInstance(_gameConfigData);
@@ -69,6 +71,7 @@ namespace JumJump
             builder.Register<PlayingGameFlowState>(Lifetime.Scoped);
             builder.Register<GameOverGameFlowState>(Lifetime.Scoped);
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<BestScoreBreakFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<CoinCollectFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();

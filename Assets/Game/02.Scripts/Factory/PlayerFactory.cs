@@ -2,6 +2,7 @@ using JumJump.Controller;
 using JumJump.Data;
 using JumJump.Registry;
 using JumJump.Service;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -43,7 +44,7 @@ namespace JumJump.Factory
             var prefab = _resourceService.GetPrefab(_configData.PlayerAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(PlayerFactory)}] Failed to load player prefab: {_configData.PlayerAddressableKey}");
+                GameLogger.Error(nameof(PlayerFactory), $"Failed to load player prefab: {_configData.PlayerAddressableKey}");
                 return;
             }
 
@@ -56,7 +57,7 @@ namespace JumJump.Factory
         {
             if (!_isReady)
             {
-                Debug.LogError($"[{nameof(PlayerFactory)}] Spawn called before warmup.");
+                GameLogger.Error(nameof(PlayerFactory), "Spawn called before warmup.");
                 return null;
             }
 

@@ -1,3 +1,4 @@
+using JumJump.Controller;
 using JumJump.Service;
 using UnityEngine;
 
@@ -18,6 +19,10 @@ namespace JumJump.Data
         public string CoinCollectFXPoolKey => _coinCollectFXPoolKey;
         public int CoinCollectFXPoolCount => _coinCollectFXPoolCount;
         public Vector3 CoinCollectFXOffset => _coinCollectFXOffset;
+        public BestScoreBreakFX BestScoreBreakFXPrefab => _bestScoreBreakFXPrefab;
+        public string BestScoreBreakFXPoolKey => _bestScoreBreakFXPoolKey;
+        public int BestScoreBreakFXPoolCount => _bestScoreBreakFXPoolCount;
+        public Vector3 BestScoreBreakFXOffset => _bestScoreBreakFXOffset;
 
         [Header("Hay Landing FX")]
         [SerializeField] private HayLandingFX _hayLandingFXPrefab;
@@ -36,5 +41,11 @@ namespace JumJump.Data
         [SerializeField] private string _coinCollectFXPoolKey = "FX_CoinCollect";
         [SerializeField] private int _coinCollectFXPoolCount = 4;
         [SerializeField] private Vector3 _coinCollectFXOffset = new Vector3(0f, 0.66f, 0f);
+
+        [Header("Best Score Break FX")]
+        [SerializeField] private BestScoreBreakFX _bestScoreBreakFXPrefab;
+        [SerializeField] private string _bestScoreBreakFXPoolKey = "FX_BestScoreBreak";
+        [SerializeField] private int _bestScoreBreakFXPoolCount = 2;
+        [SerializeField] private Vector3 _bestScoreBreakFXOffset = new Vector3(0f, 1.05f, 0f);
     }
 }

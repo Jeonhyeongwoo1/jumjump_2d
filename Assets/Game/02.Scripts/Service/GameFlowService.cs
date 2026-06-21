@@ -2,6 +2,7 @@ using System;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Service.GameFlowState;
+using JumJump.Util;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -61,7 +62,7 @@ namespace JumJump.Service
             var nextState = GetState(stateType);
             if (nextState == null)
             {
-                Debug.LogError($"[{nameof(GameFlowService)}] Missing state: {stateType}.");
+                GameLogger.Error(nameof(GameFlowService), $"Missing state: {stateType}.");
                 return;
             }
 
@@ -124,7 +125,7 @@ namespace JumJump.Service
 
         private void PublishStateChanged()
         {
-            Debug.Log($"[{nameof(GameFlowService)}] State changed: {State}");
+            GameLogger.Info(nameof(GameFlowService), $"State changed: {State}");
             _eventBus.Publish(new GameStateChangedEvent(State));
         }
     }
