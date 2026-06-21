@@ -37,7 +37,11 @@ namespace JumJump.Data
             "Player_1001",
             "Player_1002",
             "Player_1003",
-            "Player_1004"
+            "Player_1004",
+            "Player_1005",
+            "Player_1006",
+            "Player_1007",
+            "Player_1008"
         };
         [SerializeField] private string[] _scoreBoardSpriteAddressableKeys =
         {

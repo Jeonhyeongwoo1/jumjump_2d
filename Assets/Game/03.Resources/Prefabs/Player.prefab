@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d2e34364f533b04ab86bfd52dadaa64, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Controller.PlayerJumpController
   _bodyCollider: {fileID: 5848641528617622365}
   _rigidbody: {fileID: 254102305136680538}
@@ -59,6 +59,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cad52300e0d04e24b12067dcc69f9a4b, type: 2}
   - {fileID: 11400000, guid: 56d8e25b6ef54e31b62796e8e3b4c63f, type: 2}
   - {fileID: 11400000, guid: 3e14569723d142e59a770676af80a1e1, type: 2}
+  - {fileID: 11400000, guid: fc36a14b64434be9aaa9de09c63adf40, type: 2}
+  - {fileID: 11400000, guid: f006709abaec41619986dce5fa731b0a, type: 2}
+  - {fileID: 11400000, guid: 9a412e29dfd54581850a978901df61b5, type: 2}
+  - {fileID: 11400000, guid: c9da53356d5c4ba88f7d0d635ed8fb15, type: 2}
   _shieldVisualRoot: {fileID: 1436670134180710008}
   _shieldSpriteRenderer: {fileID: 6789844307173957653}
   _shieldAnimator: {fileID: 6695486725703270792}
@@ -79,7 +83,7 @@ Animator:
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
-  m_WarningMessage: 
+  m_WarningMessage:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -279,7 +283,7 @@ Animator:
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
-  m_WarningMessage: 
+  m_WarningMessage:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0

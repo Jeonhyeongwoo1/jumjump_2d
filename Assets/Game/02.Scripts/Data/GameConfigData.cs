@@ -10,6 +10,7 @@ namespace JumJump.Data
         public string HighScoreKey => _highScoreKey;
         public string GoldKey => _goldKey;
         public string SelectedPlayerSkinKey => _selectedPlayerSkinKey;
+        public string PurchasedPlayerSkinsKey => _purchasedPlayerSkinsKey;
         public string TapActionPath => _tapActionPath;
         public float CameraMinimumY => _cameraMinimumY;
         public float CameraSmoothSpeed => _cameraSmoothSpeed;
@@ -39,6 +40,7 @@ namespace JumJump.Data
         [SerializeField] private string _highScoreKey = "JumJump.HighScore";
         [SerializeField] private string _goldKey = "JumJump.Gold";
         [SerializeField] private string _selectedPlayerSkinKey = "JumJump.SelectedPlayerSkin";
+        [SerializeField] private string _purchasedPlayerSkinsKey = "JumJump.PurchasedPlayerSkins";
 
         [Header("Input")]
         [SerializeField] private string _tapActionPath = "Player/Attack";

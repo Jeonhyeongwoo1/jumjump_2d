@@ -49,7 +49,7 @@ namespace JumJump.Presenter
 
             _view = view;
             _hasPlayedBestScoreAnimation = false;
-            _view.AddEvents(OnGameReadyClicked, OnCharacterSelected);
+            _view.AddEvents(OnGameReadyClicked, OnCharacterConfirmed, OnCharacterPurchased);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
@@ -118,13 +118,55 @@ namespace JumJump.Presenter
             _eventBus.Publish(new TapRequestedEvent());
         }
 
-        private void OnCharacterSelected(int skinId)
+        private bool OnCharacterConfirmed(int skinId)
         {
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
+            if (!_playerDataRegistry.OwnsPlayerSkin(skinId))
+            {
+                return false;
+            }
+
             _playerDataRegistry.SetSelectedPlayerSkinId(skinId);
             _playerDataRegistry.Save();
             _view?.SetSelectedCharacter(skinId);
             ApplySelectedPlayerSkin(skinId);
+            return true;
+        }
+
+        private bool OnCharacterPurchased(int skinId)
+        {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
+            if (_playerDataRegistry.OwnsPlayerSkin(skinId))
+            {
+                return true;
+            }
+
+            if (!TryPurchaseCharacter(skinId))
+            {
+                return false;
+            }
+
+            _playerDataRegistry.Save();
+            return true;
+        }
+
+        private bool TryPurchaseCharacter(int skinId)
+        {
+            if (!TryResolvePlayerSkinData(skinId, out var skinData))
+            {
+                GameLogger.Error(nameof(UIGameScenePresenter), $"Missing player skin data: {skinId}");
+                return false;
+            }
+
+            if (!_playerDataRegistry.TryPurchasePlayerSkin(skinId, skinData.Price))
+            {
+                GameLogger.Info(nameof(UIGameScenePresenter), $"Not enough gold to purchase player skin: {skinId}");
+                return false;
+            }
+
+            _view?.SetCharacterOwned(skinId, true);
+            _eventBus.Publish(new GoldChangedEvent(_playerDataRegistry.Gold, -skinData.Price));
+            return true;
         }
 
         private void ApplySelectedPlayerSkin(int skinId)
@@ -146,6 +188,9 @@ namespace JumJump.Presenter
             var keys = _resourceConfigData.PlayerSpriteAddressableKeys;
             var skinIds = new List<int>(keys.Length);
             var sprites = new List<Sprite>(keys.Length);
+            var prices = new List<int>(keys.Length);
+            var owned = new List<bool>(keys.Length);
+            var displayNames = new List<string>(keys.Length);
 
             for (var i = 0; i < keys.Length; i++)
             {
@@ -154,6 +199,12 @@ namespace JumJump.Presenter
                 var key = keys[i];
                 if (!TryResolveSkinId(key, out var skinId))
                 {
+                    continue;
+                }
+
+                if (!TryResolvePlayerSkinData(skinId, out var skinData))
+                {
+                    GameLogger.Error(nameof(UIGameScenePresenter), $"Missing player skin data: {skinId}");
                     continue;
                 }
 
@@ -173,6 +224,9 @@ namespace JumJump.Presenter
 
                 skinIds.Add(skinId);
                 sprites.Add(sprite);
+                prices.Add(skinData.Price);
+                owned.Add(_playerDataRegistry.OwnsPlayerSkin(skinId));
+                displayNames.Add(ResolveCharacterDisplayName(skinData));
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
 
@@ -181,8 +235,13 @@ namespace JumJump.Presenter
                 return;
             }
 
-            view.SetCharacterPages(skinIds, sprites);
+            view.SetCharacterPages(skinIds, sprites, prices, owned, displayNames);
             view.SetSelectedCharacter(_playerDataRegistry.SelectedPlayerSkinId);
+        }
+
+        private string ResolveCharacterDisplayName(PlayerSkinData skinData)
+        {
+            return $"{skinData.EnglishName} / {skinData.KoreanName}";
         }
 
         private bool TryResolveSkinId(string spriteAddressableKey, out int skinId)
@@ -202,6 +261,18 @@ namespace JumJump.Presenter
 
             GameLogger.Error(nameof(UIGameScenePresenter), $"Invalid character skin id: {spriteAddressableKey}");
             return false;
+        }
+
+        private bool TryResolvePlayerSkinData(int skinId, out PlayerSkinData skinData)
+        {
+            skinData = null;
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                return false;
+            }
+
+            return player.TryGetSkinData(skinId, out skinData);
         }
 
         public void ShowReady()

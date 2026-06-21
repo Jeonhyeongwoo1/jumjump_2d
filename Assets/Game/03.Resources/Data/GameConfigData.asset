@@ -11,12 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ea7d891eabc42daabc1b6454ea3e34f, type: 3}
   m_Name: GameConfigData
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _scorePerLanding: 1
   _comboLandingCenterTolerance: 0.08
   _highScoreKey: JumJump.HighScore
   _goldKey: JumJump.Gold
   _selectedPlayerSkinKey: JumJump.SelectedPlayerSkin
+  _purchasedPlayerSkinsKey: JumJump.PurchasedPlayerSkins
   _tapActionPath: Player/Attack
   _cameraMinimumY: 0
   _cameraSmoothSpeed: 8

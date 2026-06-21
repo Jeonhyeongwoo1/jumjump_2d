@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38b2f7389e4b40ed8f384f1e2b7b52d1, type: 3}
   m_Name: ResourceConfigData
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _preLoadLabel: PreLoad
   _playerAddressableKey: Player
   _platformAddressableKey: Platform
@@ -24,6 +24,10 @@ MonoBehaviour:
   - Player_1002
   - Player_1003
   - Player_1004
+  - Player_1005
+  - Player_1006
+  - Player_1007
+  - Player_1008
   _scoreBoardSpriteAddressableKeys:
   - Scoreboard_1.sprite
   - Scoreboard_2.sprite

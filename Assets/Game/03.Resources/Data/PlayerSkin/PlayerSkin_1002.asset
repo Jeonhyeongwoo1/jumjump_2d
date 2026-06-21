@@ -13,4 +13,7 @@ MonoBehaviour:
   m_Name: PlayerSkin_1002
   m_EditorClassIdentifier:
   _skinId: 1002
+  _price: 300
+  _englishName: Overall Piyo
+  _koreanName: 멜빵이
   _animatorController: {fileID: 9100000, guid: ae9889829f31478b9bb02d215e4d6ace, type: 2}

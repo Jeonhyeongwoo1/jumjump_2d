@@ -21,9 +21,15 @@ namespace JumJump.Presenter
         [SerializeField] private TMP_Text _gameReadyPromptText;
         [SerializeField] private GameObject _characterSelectPanel;
         [SerializeField] private Button _characterConfirmButton;
+        [SerializeField] private Button _characterBuyButton;
+        [SerializeField] private TMP_Text _characterNameText;
+        [SerializeField] private TMP_Text _characterPriceText;
+        [SerializeField] private TMP_Text _characterConfirmButtonText;
         [SerializeField] private ScrollRect _characterScrollRect;
         [SerializeField] private RectTransform _characterPageRoot;
         [SerializeField] private UI_CharacterPage _characterPageTemplate;
+        [SerializeField] private UI_ToastMessage _toastMessagePrefab;
+        [SerializeField] private string _notEnoughGoldMessage = "Not enough gold";
         [SerializeField] private float _gameReadyPromptPulseDuration = 0.9f;
         [SerializeField] private float _gameReadyPromptPulseScale = 1.1f;
         [SerializeField] private float _gameReadyPromptLift = 18f;
@@ -43,14 +49,22 @@ namespace JumJump.Presenter
         private Vector2 _gameReadyPromptDefaultAnchoredPosition;
         private Color _gameReadyPromptDefaultColor;
         private Action _onGameReadyClicked;
-        private Action<int> _onCharacterSelected;
-        private readonly List<UI_CharacterPage> _characterPages = new List<UI_CharacterPage>(4);
+        private Func<int, bool> _onCharacterConfirmed;
+        private Func<int, bool> _onCharacterPurchased;
+        private readonly List<UI_CharacterPage> _characterPages = new List<UI_CharacterPage>(8);
+        private readonly List<int> _characterPrices = new List<int>(8);
+        private readonly List<bool> _characterOwned = new List<bool>(8);
+        private readonly List<string> _characterDisplayNames = new List<string>(8);
+        private UI_ToastMessage _toastMessage;
         private int _selectedCharacterSkinId;
+        private int _currentGold;
 
         protected override void Awake()
         {
             base.Awake();
             PrepareCharacterPageTemplate();
+            _toastMessage = Instantiate(_toastMessagePrefab, transform, false);
+            _toastMessage.HideImmediate();
             _scoreTextDefaultScale = _scoreText.rectTransform.localScale;
             _scoreTextDefaultColor = _scoreText.color;
             _gameReadyPromptDefaultScale = _gameReadyPromptText.rectTransform.localScale;
@@ -59,24 +73,33 @@ namespace JumJump.Presenter
             ShowReady();
         }
 
-        public void AddEvents(Action onGameReadyClicked, Action<int> onCharacterSelected)
+        public void AddEvents(
+            Action onGameReadyClicked,
+            Func<int, bool> onCharacterConfirmed,
+            Func<int, bool> onCharacterPurchased)
         {
             _onGameReadyClicked = onGameReadyClicked;
-            _onCharacterSelected = onCharacterSelected;
+            _onCharacterConfirmed = onCharacterConfirmed;
+            _onCharacterPurchased = onCharacterPurchased;
             ButtonUtils.SetListener(_gameReadyButton, OnGameReadyClicked);
             ButtonUtils.SetListener(_selectCharacterButton, ShowCharacterSelectPanel);
             ButtonUtils.SetListener(_selectCharacterHitAreaButton, ShowCharacterSelectPanel);
             ButtonUtils.SetListener(_characterConfirmButton, ConfirmSelectedCharacter);
+            ButtonUtils.SetListener(_characterBuyButton, BuySelectedCharacter);
+            _characterScrollRect.onValueChanged.AddListener(OnCharacterScrollValueChanged);
         }
 
         public void RemoveEvents()
         {
             _onGameReadyClicked = null;
-            _onCharacterSelected = null;
+            _onCharacterConfirmed = null;
+            _onCharacterPurchased = null;
             _gameReadyButton.onClick.RemoveAllListeners();
             _selectCharacterButton.onClick.RemoveAllListeners();
             _selectCharacterHitAreaButton.onClick.RemoveAllListeners();
             _characterConfirmButton.onClick.RemoveAllListeners();
+            _characterBuyButton.onClick.RemoveAllListeners();
+            _characterScrollRect.onValueChanged.RemoveListener(OnCharacterScrollValueChanged);
             for (var i = 0; i < _characterPages.Count; i++)
             {
                 _characterPages[i].RemoveEvents();
@@ -104,7 +127,12 @@ namespace JumJump.Presenter
             RestartScoreAnimation(_bestScorePopScale, _bestScoreFlashColor);
         }
 
-        public void SetGold(int gold) => _goldText.text = gold.ToString();
+        public void SetGold(int gold)
+        {
+            _currentGold = gold;
+            _goldText.text = gold.ToString();
+            RefreshCharacterPurchaseState();
+        }
 
         public void ShowScorePanel()
         {
@@ -132,13 +160,26 @@ namespace JumJump.Presenter
         public void SetSelectedCharacter(int skinId)
         {
             _selectedCharacterSkinId = skinId;
+            RefreshCharacterPurchaseState();
         }
 
-        public void SetCharacterPages(IReadOnlyList<int> skinIds, IReadOnlyList<Sprite> sprites)
+        public void SetCharacterPages(
+            IReadOnlyList<int> skinIds,
+            IReadOnlyList<Sprite> sprites,
+            IReadOnlyList<int> prices,
+            IReadOnlyList<bool> owned,
+            IReadOnlyList<string> displayNames)
         {
             ClearGeneratedCharacterPages();
+            _characterPrices.Clear();
+            _characterOwned.Clear();
+            _characterDisplayNames.Clear();
 
-            var pageCount = Mathf.Min(skinIds.Count, sprites.Count);
+            var pageCount = skinIds.Count;
+            pageCount = Mathf.Min(pageCount, sprites.Count);
+            pageCount = Mathf.Min(pageCount, prices.Count);
+            pageCount = Mathf.Min(pageCount, owned.Count);
+            pageCount = Mathf.Min(pageCount, displayNames.Count);
             for (var i = 0; i < pageCount; i++)
             {
                 var page = Instantiate(_characterPageTemplate, _characterPageRoot);
@@ -146,10 +187,26 @@ namespace JumJump.Presenter
                 page.Initialize(skinIds[i], sprites[i], OnCharacterPageClicked);
                 page.gameObject.SetActive(true);
                 _characterPages.Add(page);
+                _characterPrices.Add(prices[i]);
+                _characterOwned.Add(owned[i]);
+                _characterDisplayNames.Add(displayNames[i]);
             }
 
             RefreshCharacterScrollLayout();
             MoveScrollToSelectedCharacter();
+            RefreshCharacterPurchaseState();
+        }
+
+        public void SetCharacterOwned(int skinId, bool owned)
+        {
+            var index = ResolveCharacterIndex(skinId);
+            if (index < 0)
+            {
+                return;
+            }
+
+            _characterOwned[index] = owned;
+            RefreshCharacterPurchaseState();
         }
 
         private void HideCharacterSelectPanel()
@@ -161,6 +218,7 @@ namespace JumJump.Presenter
         {
             _characterSelectPanel.SetActive(true);
             MoveScrollToSelectedCharacter();
+            RefreshCharacterPurchaseState();
         }
 
         private void ConfirmSelectedCharacter()
@@ -170,23 +228,74 @@ namespace JumJump.Presenter
                 return;
             }
 
-            var skinId = _characterPages[ResolveCurrentCharacterIndex()].SkinId;
-            _onCharacterSelected.Invoke(skinId);
-            HideCharacterSelectPanel();
+            var currentIndex = ResolveCurrentCharacterIndex();
+            if (!_characterOwned[currentIndex])
+            {
+                RefreshCharacterPurchaseState();
+                return;
+            }
+
+            var skinId = _characterPages[currentIndex].SkinId;
+            if (_onCharacterConfirmed != null && _onCharacterConfirmed.Invoke(skinId))
+            {
+                HideCharacterSelectPanel();
+                return;
+            }
+
+            RefreshCharacterPurchaseState();
+        }
+
+        private void BuySelectedCharacter()
+        {
+            if (_characterPages.Count <= 0)
+            {
+                return;
+            }
+
+            var currentIndex = ResolveCurrentCharacterIndex();
+            if (_characterOwned[currentIndex])
+            {
+                RefreshCharacterPurchaseState();
+                return;
+            }
+
+            if (IsCharacterPurchaseBlockedByGold(currentIndex))
+            {
+                ShowNotEnoughGoldToast();
+                RefreshCharacterPurchaseState();
+                return;
+            }
+
+            var skinId = _characterPages[currentIndex].SkinId;
+            if (_onCharacterPurchased != null && _onCharacterPurchased.Invoke(skinId))
+            {
+                RefreshCharacterPurchaseState();
+                return;
+            }
+
+            ShowNotEnoughGoldToast();
+            RefreshCharacterPurchaseState();
         }
 
         private void MoveScrollToSelectedCharacter()
+        {
+            MoveScrollToCharacterIndex(ResolveSelectedCharacterIndex());
+        }
+
+        private void MoveScrollToCharacterIndex(int index)
         {
             var maxIndex = _characterPages.Count - 1;
             if (maxIndex <= 0)
             {
                 _characterScrollRect.horizontalNormalizedPosition = 0f;
+                RefreshCharacterPurchaseState();
                 return;
             }
 
-            var selectedIndex = ResolveSelectedCharacterIndex();
-            _characterScrollRect.horizontalNormalizedPosition = (float)selectedIndex / maxIndex;
-            _characterScrollRect.SendMessage("ChangePage", selectedIndex, SendMessageOptions.DontRequireReceiver);
+            var clampedIndex = Mathf.Clamp(index, 0, maxIndex);
+            _characterScrollRect.horizontalNormalizedPosition = (float)clampedIndex / maxIndex;
+            _characterScrollRect.SendMessage("ChangePage", clampedIndex, SendMessageOptions.DontRequireReceiver);
+            RefreshCharacterPurchaseState();
         }
 
         private int ResolveCurrentCharacterIndex()
@@ -205,21 +314,31 @@ namespace JumJump.Presenter
 
         private int ResolveSelectedCharacterIndex()
         {
+            return ResolveCharacterIndex(_selectedCharacterSkinId);
+        }
+
+        private int ResolveCharacterIndex(int skinId)
+        {
             for (var i = 0; i < _characterPages.Count; i++)
             {
-                if (_characterPages[i].SkinId == _selectedCharacterSkinId)
+                if (_characterPages[i].SkinId == skinId)
                 {
                     return i;
                 }
             }
 
-            return 0;
+            return -1;
         }
 
         private void OnCharacterPageClicked(int skinId)
         {
-            _selectedCharacterSkinId = skinId;
-            MoveScrollToSelectedCharacter();
+            var index = ResolveCharacterIndex(skinId);
+            if (index < 0)
+            {
+                return;
+            }
+
+            MoveScrollToCharacterIndex(index);
         }
 
         private void PrepareCharacterPageTemplate()
@@ -247,6 +366,10 @@ namespace JumJump.Presenter
             }
 
             _characterPages.Clear();
+            _characterPrices.Clear();
+            _characterOwned.Clear();
+            _characterDisplayNames.Clear();
+            RefreshCharacterPurchaseState();
         }
 
         private void RefreshCharacterScrollLayout()
@@ -262,6 +385,65 @@ namespace JumJump.Presenter
             }
 
             _onGameReadyClicked.Invoke();
+        }
+
+        private void OnCharacterScrollValueChanged(Vector2 normalizedPosition)
+        {
+            RefreshCharacterPurchaseState();
+        }
+
+        private void RefreshCharacterPurchaseState()
+        {
+            if (_characterPages.Count <= 0)
+            {
+                _characterNameText.text = string.Empty;
+                _characterPriceText.text = string.Empty;
+                _characterConfirmButtonText.text = string.Empty;
+                _characterConfirmButton.interactable = false;
+                _characterConfirmButton.gameObject.SetActive(false);
+                _characterBuyButton.interactable = false;
+                _characterBuyButton.gameObject.SetActive(false);
+                return;
+            }
+
+            var currentIndex = ResolveCurrentCharacterIndex();
+            var isOwned = _characterOwned[currentIndex];
+            var price = _characterPrices[currentIndex];
+            var isSelected = _characterPages[currentIndex].SkinId == _selectedCharacterSkinId;
+            var canSelect = isOwned && !isSelected;
+
+            _characterNameText.text = _characterDisplayNames[currentIndex];
+            _characterPriceText.text = ResolveCharacterPriceText(price, isOwned);
+            _characterConfirmButtonText.text = canSelect ? "Select" : string.Empty;
+            _characterConfirmButton.gameObject.SetActive(canSelect);
+            _characterConfirmButton.interactable = canSelect;
+            _characterBuyButton.gameObject.SetActive(!isOwned);
+            _characterBuyButton.interactable = true;
+        }
+
+        private bool IsCharacterPurchaseBlockedByGold(int characterIndex)
+        {
+            return !_characterOwned[characterIndex] && _characterPrices[characterIndex] > _currentGold;
+        }
+
+        private void ShowNotEnoughGoldToast()
+        {
+            _toastMessage.Show(_notEnoughGoldMessage);
+        }
+
+        private string ResolveCharacterPriceText(int price, bool isOwned)
+        {
+            if (isOwned)
+            {
+                return "Owned";
+            }
+
+            if (price <= 0)
+            {
+                return "Free";
+            }
+
+            return price.ToString();
         }
 
         public void ShowStartCountdown(int seconds)
