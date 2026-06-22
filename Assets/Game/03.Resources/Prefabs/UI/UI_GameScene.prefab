@@ -414,9 +414,9 @@ RectTransform:
   - {fileID: 301664992243208737}
   m_Father: {fileID: 1586799161206255942}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 592.1325, y: -115.86255}
   m_SizeDelta: {x: 326.5, y: 129}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9200000000000001302
@@ -1336,7 +1336,7 @@ RectTransform:
   m_GameObject: {fileID: 2551055151736550303}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 21599.998}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.7, y: 0.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2701976581193339819}
@@ -1344,9 +1344,9 @@ RectTransform:
   - {fileID: 6292622791316300500}
   m_Father: {fileID: 2729143509627038615}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 838, y: -1761}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -212, y: 235}
   m_SizeDelta: {x: 326.5, y: 129}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9200000000000001020
@@ -1871,13 +1871,13 @@ MonoBehaviour:
   _bestScoreFlashColor: {r: 1, g: 0.94, b: 0.18, a: 1}
   _adRewardGoldFlyIconPrefab: {fileID: 5034959202490876322, guid: 8b94c4d6420217a4f90836795bf6d717, type: 3}
   _adRewardGoldFlyIconCount: 7
-  _adRewardGoldFlyDuration: 0.62
-  _adRewardGoldSpawnInterval: 0.07
+  _adRewardGoldFlyDuration: 0.92
+  _adRewardGoldSpawnInterval: 0.09
   _adRewardGoldSpawnPopDuration: 0.16
-  _adRewardGoldPreMoveDelay: 0.08
+  _adRewardGoldPreMoveDelay: 0.12
   _adRewardGoldSpawnSpread: 34
-  _adRewardGoldDropDistance: 26
-  _adRewardGoldFlyArcHeight: 118
+  _adRewardGoldDropDistance: 64
+  _adRewardGoldFlyArcHeight: 142
   _adRewardGoldFlySideRandom: 46
   _goldReceivePunchScale: 1.22
   _goldReceivePunchDuration: 0.24
@@ -1916,9 +1916,9 @@ RectTransform:
   - {fileID: 4409359719175185341}
   m_Father: {fileID: 1586799161206255942}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 197.3775, y: -115.86255}
   m_SizeDelta: {x: 326.5, y: 129}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9200000000000001201
@@ -2293,7 +2293,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5836507352561148874
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2628,7 +2628,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 8, y: -27.51001}
-  m_SizeDelta: {x: 0, y: 56.307198}
+  m_SizeDelta: {x: 81.12, y: 56.307198}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6984826847681077577
 CanvasRenderer:

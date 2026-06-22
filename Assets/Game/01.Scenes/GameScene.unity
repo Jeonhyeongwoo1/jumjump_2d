@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -330,7 +330,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5c82a88c77761a64fa6d13c81531fb3d, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Camera.VerticalFollowCamera
   _target: {fileID: 0}
 --- !u!20 &134098830
@@ -6455,7 +6455,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0e475f30bdfd20043a94a7236fd1ee22, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: JumJump.Runtime::JumJump.Controller.BestScoreBreakFX
   _markerFlashRenderer: {fileID: 186163882}
   _softGlowRenderer: {fileID: 1309305741}

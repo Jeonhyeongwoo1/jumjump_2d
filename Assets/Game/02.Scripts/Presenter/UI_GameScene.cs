@@ -48,13 +48,13 @@ namespace JumJump.Presenter
         [SerializeField] private Color _bestScoreFlashColor = new Color(1f, 0.94f, 0.18f, 1f);
         [SerializeField] private UI_GoldRewardFlyIcon _adRewardGoldFlyIconPrefab;
         [SerializeField, Min(1)] private int _adRewardGoldFlyIconCount = 7;
-        [SerializeField] private float _adRewardGoldFlyDuration = 0.62f;
-        [SerializeField] private float _adRewardGoldSpawnInterval = 0.07f;
+        [SerializeField] private float _adRewardGoldFlyDuration = 0.92f;
+        [SerializeField] private float _adRewardGoldSpawnInterval = 0.09f;
         [SerializeField] private float _adRewardGoldSpawnPopDuration = 0.16f;
-        [SerializeField] private float _adRewardGoldPreMoveDelay = 0.08f;
+        [SerializeField] private float _adRewardGoldPreMoveDelay = 0.12f;
         [SerializeField] private float _adRewardGoldSpawnSpread = 34f;
-        [SerializeField] private float _adRewardGoldDropDistance = 26f;
-        [SerializeField] private float _adRewardGoldFlyArcHeight = 118f;
+        [SerializeField] private float _adRewardGoldDropDistance = 64f;
+        [SerializeField] private float _adRewardGoldFlyArcHeight = 142f;
         [SerializeField] private float _adRewardGoldFlySideRandom = 46f;
         [SerializeField] private float _goldReceivePunchScale = 1.22f;
         [SerializeField] private float _goldReceivePunchDuration = 0.24f;
@@ -239,6 +239,7 @@ namespace JumJump.Presenter
                 var page = Instantiate(_characterPageTemplate, _characterPageRoot);
                 page.gameObject.name = $"CharacterPage_{skinIds[i]}";
                 page.Initialize(skinIds[i], sprites[i], OnCharacterPageClicked);
+                page.SetOwned(owned[i]);
                 page.gameObject.SetActive(true);
                 _characterPages.Add(page);
                 _characterPrices.Add(prices[i]);
@@ -261,6 +262,7 @@ namespace JumJump.Presenter
             }
 
             _characterOwned[index] = owned;
+            _characterPages[index].SetOwned(owned);
             RefreshCharacterPurchaseState();
         }
 
@@ -758,7 +760,7 @@ namespace JumJump.Presenter
             Vector2 end,
             float normalized)
         {
-            const float DropRatio = 0.22f;
+            const float DropRatio = 0.32f;
             if (normalized < DropRatio)
             {
                 var dropProgress = Mathf.Clamp01(normalized / DropRatio);
@@ -770,13 +772,13 @@ namespace JumJump.Presenter
                 drop,
                 control,
                 end,
-                EaseOutCubic(flyProgress));
+                EaseInCubic(flyProgress));
         }
 
-        private float EaseOutCubic(float normalized)
+        private float EaseInCubic(float normalized)
         {
-            var inverse = 1f - Mathf.Clamp01(normalized);
-            return 1f - inverse * inverse * inverse;
+            var clamped = Mathf.Clamp01(normalized);
+            return clamped * clamped * clamped;
         }
 
         private Vector2 ResolveQuadraticBezier(
