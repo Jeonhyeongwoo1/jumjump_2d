@@ -113,7 +113,16 @@ namespace JumJump.Presenter
 
         private void OnGoldChanged(in GoldChangedEvent ev)
         {
-            _view?.SetGold(ev.Gold);
+            if (_view == null)
+            {
+                return;
+            }
+
+            _view.SetGold(ev.Gold);
+            if (ev.GoldDelta > 0 && ev.Source == GoldChangeSourceType.AdReward)
+            {
+                _view.PlayAdRewardGoldMoveFX();
+            }
         }
 
         private void OnGameReadyClicked()
@@ -175,7 +184,10 @@ namespace JumJump.Presenter
             }
 
             _view?.SetCharacterOwned(skinId, true);
-            _eventBus.Publish(new GoldChangedEvent(_playerDataRegistry.Gold, -skinData.Price));
+            _eventBus.Publish(new GoldChangedEvent(
+                _playerDataRegistry.Gold,
+                -skinData.Price,
+                GoldChangeSourceType.Purchase));
             return true;
         }
 

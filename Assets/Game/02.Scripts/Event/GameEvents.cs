@@ -200,11 +200,16 @@ namespace JumJump.Event
     {
         public int Gold { get; private set; }
         public int GoldDelta { get; private set; }
+        public GoldChangeSourceType Source { get; private set; }
 
-        public GoldChangedEvent(int gold, int goldDelta)
+        public GoldChangedEvent(
+            int gold,
+            int goldDelta,
+            GoldChangeSourceType source = GoldChangeSourceType.Gameplay)
         {
             Gold = gold;
             GoldDelta = goldDelta;
+            Source = source;
         }
     }
 

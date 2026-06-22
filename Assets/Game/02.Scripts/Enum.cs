@@ -76,4 +76,11 @@ namespace JumJump
         PlayerMiss,
         PlayerDead
     }
+
+    public enum GoldChangeSourceType
+    {
+        Gameplay,
+        AdReward,
+        Purchase
+    }
 }

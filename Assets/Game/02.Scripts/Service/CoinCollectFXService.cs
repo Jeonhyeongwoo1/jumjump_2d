@@ -84,7 +84,7 @@ namespace JumJump.Service
 
         private void OnGoldChanged(in GoldChangedEvent ev)
         {
-            if (ev.GoldDelta <= 0 || !_isReady)
+            if (ev.GoldDelta <= 0 || ev.Source != GoldChangeSourceType.Gameplay || !_isReady)
             {
                 return;
             }

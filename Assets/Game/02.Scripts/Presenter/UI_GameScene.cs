@@ -46,18 +46,35 @@ namespace JumJump.Presenter
         [SerializeField] private float _bestScorePopScale = 1.35f;
         [SerializeField] private Color _scoreFlashColor = new Color(1f, 0.82f, 0.25f, 1f);
         [SerializeField] private Color _bestScoreFlashColor = new Color(1f, 0.94f, 0.18f, 1f);
+        [SerializeField] private UI_GoldRewardFlyIcon _adRewardGoldFlyIconPrefab;
+        [SerializeField, Min(1)] private int _adRewardGoldFlyIconCount = 7;
+        [SerializeField] private float _adRewardGoldFlyDuration = 0.62f;
+        [SerializeField] private float _adRewardGoldSpawnInterval = 0.07f;
+        [SerializeField] private float _adRewardGoldSpawnPopDuration = 0.16f;
+        [SerializeField] private float _adRewardGoldPreMoveDelay = 0.08f;
+        [SerializeField] private float _adRewardGoldSpawnSpread = 34f;
+        [SerializeField] private float _adRewardGoldDropDistance = 26f;
+        [SerializeField] private float _adRewardGoldFlyArcHeight = 118f;
+        [SerializeField] private float _adRewardGoldFlySideRandom = 46f;
+        [SerializeField] private float _goldReceivePunchScale = 1.22f;
+        [SerializeField] private float _goldReceivePunchDuration = 0.24f;
 
         private Coroutine _scoreAnimationRoutine;
         private Coroutine _gameReadyPromptAnimationRoutine;
+        private Coroutine _adRewardGoldFlyRoutine;
+        private Coroutine _goldReceivePunchRoutine;
         private Vector3 _scoreTextDefaultScale;
+        private Vector3 _goldTextDefaultScale;
         private Color _scoreTextDefaultColor;
         private Vector3 _gameReadyPromptDefaultScale;
         private Vector2 _gameReadyPromptDefaultAnchoredPosition;
         private Color _gameReadyPromptDefaultColor;
+        private RectTransform _rootRectTransform;
         private Action _onGameReadyClicked;
         private Action _onAdRewardClicked;
         private Func<int, bool> _onCharacterConfirmed;
         private Func<int, bool> _onCharacterPurchased;
+        private readonly List<UI_GoldRewardFlyIcon> _adRewardGoldFlyIcons = new List<UI_GoldRewardFlyIcon>(8);
         private readonly List<UI_CharacterPage> _characterPages = new List<UI_CharacterPage>(8);
         private readonly List<int> _characterPrices = new List<int>(8);
         private readonly List<bool> _characterOwned = new List<bool>(8);
@@ -71,12 +88,15 @@ namespace JumJump.Presenter
         protected override void Awake()
         {
             base.Awake();
+            _rootRectTransform = (RectTransform)transform;
             PrepareCharacterPageTemplate();
+            PrepareAdRewardGoldFlyIcons();
             _toastMessage = Instantiate(_toastMessagePrefab, transform, false);
             _toastMessage.HideImmediate();
             _characterUnlockFX = Instantiate(_characterUnlockFXPrefab, _characterSelectPanel.transform, false);
             _characterUnlockFX.HideImmediate();
             _scoreTextDefaultScale = _scoreText.rectTransform.localScale;
+            _goldTextDefaultScale = _goldText.rectTransform.localScale;
             _scoreTextDefaultColor = _scoreText.color;
             _gameReadyPromptDefaultScale = _gameReadyPromptText.rectTransform.localScale;
             _gameReadyPromptDefaultAnchoredPosition = _gameReadyPromptText.rectTransform.anchoredPosition;
@@ -157,6 +177,12 @@ namespace JumJump.Presenter
         public void SetAdRewardGoldAmount(int goldAmount)
         {
             _adRewardGoldText.text = $"{Mathf.Max(0, goldAmount)} gold";
+        }
+
+        public void PlayAdRewardGoldMoveFX()
+        {
+            StopAdRewardGoldFlyAnimation();
+            _adRewardGoldFlyRoutine = StartCoroutine(AdRewardGoldMoveRoutine());
         }
 
         public void ShowScorePanel()
@@ -400,6 +426,30 @@ namespace JumJump.Presenter
             }
         }
 
+        private void PrepareAdRewardGoldFlyIcons()
+        {
+            var iconCount = Mathf.Max(1, _adRewardGoldFlyIconCount);
+            for (var i = 0; i < iconCount; i++)
+            {
+                var icon = CreateAdRewardGoldFlyIcon(i);
+                var iconTransform = icon.RectTransform;
+                iconTransform.SetParent(transform, false);
+                iconTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                iconTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                iconTransform.pivot = new Vector2(0.5f, 0.5f);
+
+                icon.gameObject.SetActive(false);
+                _adRewardGoldFlyIcons.Add(icon);
+            }
+        }
+
+        private UI_GoldRewardFlyIcon CreateAdRewardGoldFlyIcon(int index)
+        {
+            var prefabIcon = Instantiate(_adRewardGoldFlyIconPrefab);
+            prefabIcon.gameObject.name = $"AdRewardGoldFlyIcon_{index:00}";
+            return prefabIcon;
+        }
+
         private void ClearGeneratedCharacterPages()
         {
             for (var i = 0; i < _characterPages.Count; i++)
@@ -534,6 +584,279 @@ namespace JumJump.Presenter
             _startCountdownText.rectTransform.localScale = Vector3.one;
             _startCountdownText.alpha = 1f;
             _startCountdownPanel.SetActive(false);
+        }
+
+        private IEnumerator AdRewardGoldMoveRoutine()
+        {
+            var end = ResolveLocalPosition(_goldText.rectTransform);
+            var count = Mathf.Min(Mathf.Max(1, _adRewardGoldFlyIconCount), _adRewardGoldFlyIcons.Count);
+            var spawnInterval = Mathf.Max(0f, _adRewardGoldSpawnInterval);
+            var popDuration = Mathf.Max(0.01f, _adRewardGoldSpawnPopDuration);
+            var preMoveDelay = Mathf.Max(0f, _adRewardGoldPreMoveDelay);
+            var duration = Mathf.Max(0.01f, _adRewardGoldFlyDuration);
+            var iconLifetime = popDuration + preMoveDelay + duration;
+            var totalDuration = spawnInterval * (count - 1) + iconLifetime;
+            var elapsed = 0f;
+            var completedCount = 0;
+            var completed = new bool[count];
+            var activated = new bool[count];
+            var startPositions = new Vector2[count];
+            var dropPositions = new Vector2[count];
+            var controlPositions = new Vector2[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                var icon = _adRewardGoldFlyIcons[i];
+                icon.transform.SetAsLastSibling();
+                icon.RectTransform.localScale = Vector3.zero;
+                icon.gameObject.SetActive(false);
+
+                var start = ResolveAdRewardGoldSpawnPosition();
+                var drop = start + Vector2.down * Mathf.Max(0f, _adRewardGoldDropDistance);
+                startPositions[i] = start;
+                dropPositions[i] = drop;
+                controlPositions[i] = ResolveAdRewardGoldFlyControlPosition(drop, end);
+            }
+
+            while (completedCount < count && elapsed < totalDuration + 0.1f)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                for (var i = 0; i < count; i++)
+                {
+                    if (completed[i])
+                    {
+                        continue;
+                    }
+
+                    if (UpdateAdRewardGoldFlyIcon(
+                            _adRewardGoldFlyIcons[i],
+                            elapsed - i * spawnInterval,
+                            popDuration,
+                            preMoveDelay,
+                            duration,
+                            startPositions[i],
+                            dropPositions[i],
+                            controlPositions[i],
+                            end,
+                            ref activated[i]))
+                    {
+                        completed[i] = true;
+                        completedCount++;
+                        StartGoldReceivePunch();
+                    }
+                }
+
+                yield return null;
+            }
+
+            HideAdRewardGoldFlyIcons();
+            _adRewardGoldFlyRoutine = null;
+        }
+
+        private bool UpdateAdRewardGoldFlyIcon(
+            UI_GoldRewardFlyIcon icon,
+            float localElapsed,
+            float popDuration,
+            float preMoveDelay,
+            float duration,
+            Vector2 start,
+            Vector2 drop,
+            Vector2 control,
+            Vector2 end,
+            ref bool activated)
+        {
+            if (localElapsed < 0f)
+            {
+                return false;
+            }
+
+            if (!activated)
+            {
+                activated = true;
+                icon.gameObject.SetActive(true);
+                icon.transform.SetAsLastSibling();
+                icon.RectTransform.anchoredPosition = start;
+                icon.RectTransform.localScale = Vector3.zero;
+            }
+
+            if (localElapsed < popDuration)
+            {
+                var popProgress = Mathf.Clamp01(localElapsed / popDuration);
+                icon.RectTransform.anchoredPosition = start;
+                icon.RectTransform.localScale = Vector3.one * ResolveAdRewardGoldSpawnScale(popProgress);
+                return false;
+            }
+
+            var moveElapsed = localElapsed - popDuration;
+            if (moveElapsed < preMoveDelay)
+            {
+                icon.RectTransform.anchoredPosition = start;
+                icon.RectTransform.localScale = Vector3.one;
+                return false;
+            }
+
+            var normalized = Mathf.Clamp01((moveElapsed - preMoveDelay) / duration);
+            if (normalized >= 1f)
+            {
+                icon.RectTransform.anchoredPosition = end;
+                icon.RectTransform.localScale = Vector3.zero;
+                icon.gameObject.SetActive(false);
+                return true;
+            }
+
+            icon.RectTransform.anchoredPosition = ResolveAdRewardGoldFlyPosition(
+                start,
+                drop,
+                control,
+                end,
+                normalized);
+            icon.RectTransform.localScale = Vector3.one * ResolveAdRewardGoldFlyScale(normalized);
+            return false;
+        }
+
+        private Vector2 ResolveAdRewardGoldSpawnPosition()
+        {
+            return _rootRectTransform.rect.center +
+                    UnityEngine.Random.insideUnitCircle * Mathf.Max(0f, _adRewardGoldSpawnSpread);
+        }
+
+        private float ResolveAdRewardGoldSpawnScale(float normalized)
+        {
+            if (normalized < 0.72f)
+            {
+                var popProgress = Mathf.Clamp01(normalized / 0.72f);
+                return Mathf.Lerp(0f, 1.1f, Mathf.SmoothStep(0f, 1f, popProgress));
+            }
+
+            var settleProgress = Mathf.InverseLerp(0.72f, 1f, normalized);
+            return Mathf.Lerp(1.1f, 1f, Mathf.SmoothStep(0f, 1f, settleProgress));
+        }
+
+        private float ResolveAdRewardGoldFlyScale(float normalized)
+        {
+            const float ShrinkStart = 0.84f;
+            if (normalized < ShrinkStart)
+            {
+                return 1f;
+            }
+
+            var shrinkProgress = Mathf.InverseLerp(ShrinkStart, 1f, normalized);
+            return Mathf.Lerp(1f, 0f, Mathf.SmoothStep(0f, 1f, shrinkProgress));
+        }
+
+        private Vector2 ResolveAdRewardGoldFlyControlPosition(Vector2 drop, Vector2 end)
+        {
+            return (drop + end) * 0.5f +
+                    Vector2.up * Mathf.Max(0f, _adRewardGoldFlyArcHeight) +
+                    Vector2.right * UnityEngine.Random.Range(-_adRewardGoldFlySideRandom, _adRewardGoldFlySideRandom);
+        }
+
+        private Vector2 ResolveAdRewardGoldFlyPosition(
+            Vector2 start,
+            Vector2 drop,
+            Vector2 control,
+            Vector2 end,
+            float normalized)
+        {
+            const float DropRatio = 0.22f;
+            if (normalized < DropRatio)
+            {
+                var dropProgress = Mathf.Clamp01(normalized / DropRatio);
+                return Vector2.Lerp(start, drop, Mathf.SmoothStep(0f, 1f, dropProgress));
+            }
+
+            var flyProgress = Mathf.InverseLerp(DropRatio, 1f, normalized);
+            return ResolveQuadraticBezier(
+                drop,
+                control,
+                end,
+                EaseOutCubic(flyProgress));
+        }
+
+        private float EaseOutCubic(float normalized)
+        {
+            var inverse = 1f - Mathf.Clamp01(normalized);
+            return 1f - inverse * inverse * inverse;
+        }
+
+        private Vector2 ResolveQuadraticBezier(
+            Vector2 start,
+            Vector2 control,
+            Vector2 end,
+            float normalized)
+        {
+            var inverse = 1f - normalized;
+            return inverse * inverse * start +
+                    2f * inverse * normalized * control +
+                    normalized * normalized * end;
+        }
+
+        private Vector2 ResolveLocalPosition(RectTransform target)
+        {
+            var camera = Canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : Canvas.worldCamera;
+            var screenPosition = RectTransformUtility.WorldToScreenPoint(camera, target.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _rootRectTransform,
+                screenPosition,
+                camera,
+                out var localPosition);
+            return localPosition;
+        }
+
+        private void StopAdRewardGoldFlyAnimation()
+        {
+            if (_adRewardGoldFlyRoutine != null)
+            {
+                StopCoroutine(_adRewardGoldFlyRoutine);
+                _adRewardGoldFlyRoutine = null;
+            }
+
+            HideAdRewardGoldFlyIcons();
+        }
+
+        private void HideAdRewardGoldFlyIcons()
+        {
+            for (var i = 0; i < _adRewardGoldFlyIcons.Count; i++)
+            {
+                var icon = _adRewardGoldFlyIcons[i];
+                icon.RectTransform.localScale = Vector3.one;
+                icon.gameObject.SetActive(false);
+            }
+        }
+
+        private void StartGoldReceivePunch()
+        {
+            if (_goldReceivePunchRoutine != null)
+            {
+                StopCoroutine(_goldReceivePunchRoutine);
+            }
+
+            _goldReceivePunchRoutine = StartCoroutine(GoldReceivePunchRoutine());
+        }
+
+        private IEnumerator GoldReceivePunchRoutine()
+        {
+            var duration = Mathf.Max(0.01f, _goldReceivePunchDuration);
+            var punchScale = _goldTextDefaultScale * Mathf.Max(1f, _goldReceivePunchScale);
+            var elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var normalized = Mathf.Clamp01(elapsed / duration);
+                var pingPong = normalized < 0.5f ? normalized * 2f : (1f - normalized) * 2f;
+                var eased = Mathf.SmoothStep(0f, 1f, pingPong);
+                _goldText.rectTransform.localScale = Vector3.Lerp(_goldTextDefaultScale, punchScale, eased);
+                yield return null;
+            }
+
+            ResetGoldTextAnimation();
+            _goldReceivePunchRoutine = null;
+        }
+
+        private void ResetGoldTextAnimation()
+        {
+            _goldText.rectTransform.localScale = _goldTextDefaultScale;
         }
 
         private void RestartScoreAnimation(float popScaleMultiplier, Color flashColor)
@@ -700,6 +1023,14 @@ namespace JumJump.Presenter
             }
 
             ResetScoreTextAnimation();
+            if (_goldReceivePunchRoutine != null)
+            {
+                StopCoroutine(_goldReceivePunchRoutine);
+                _goldReceivePunchRoutine = null;
+            }
+
+            ResetGoldTextAnimation();
+            StopAdRewardGoldFlyAnimation();
             StopGameReadyPromptAnimation();
         }
 

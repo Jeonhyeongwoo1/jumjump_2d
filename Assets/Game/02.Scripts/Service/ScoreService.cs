@@ -83,7 +83,7 @@ namespace JumJump.Service
 
         public bool GrantAdRewardGold()
         {
-            if (!AddGold(_configData.AdRewardGoldAmount))
+            if (!AddGold(_configData.AdRewardGoldAmount, GoldChangeSourceType.AdReward))
             {
                 return false;
             }
@@ -156,7 +156,9 @@ namespace JumJump.Service
             _baseScore += amount;
         }
 
-        private bool AddGold(int amount)
+        private bool AddGold(
+            int amount,
+            GoldChangeSourceType source = GoldChangeSourceType.Gameplay)
         {
             if (amount <= 0)
             {
@@ -165,7 +167,7 @@ namespace JumJump.Service
 
             if (_playerDataRegistry.AddGold(amount))
             {
-                PublishGoldChanged(amount);
+                PublishGoldChanged(amount, source);
                 return true;
             }
 
@@ -246,9 +248,11 @@ namespace JumJump.Service
 
         private void PublishScoreChanged() => PublishScoreChanged(0, 0, 0, false);
 
-        private void PublishGoldChanged(int goldDelta)
+        private void PublishGoldChanged(
+            int goldDelta,
+            GoldChangeSourceType source = GoldChangeSourceType.Gameplay)
         {
-            _eventBus.Publish(new GoldChangedEvent(Gold, goldDelta));
+            _eventBus.Publish(new GoldChangedEvent(Gold, goldDelta, source));
         }
 
         private void PublishScoreChanged(
