@@ -1857,6 +1857,7 @@ MonoBehaviour:
   _characterPageRoot: {fileID: 2387201270657730613}
   _characterPageTemplate: {fileID: 9200000000000001210}
   _toastMessagePrefab: {fileID: 9200000000000001301, guid: 2938bdcdf14b5254ca185e1cbeb8e20f, type: 3}
+  _characterUnlockFXPrefab: {fileID: 7751474558314442908, guid: d31be3d498204f3c8d36e37330634f20, type: 3}
   _notEnoughGoldMessage: Not enough gold
   _gameReadyPromptPulseDuration: 0.9
   _gameReadyPromptPulseScale: 1.1

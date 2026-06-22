@@ -34,6 +34,7 @@ namespace JumJump.Presenter
         [SerializeField] private RectTransform _characterPageRoot;
         [SerializeField] private UI_CharacterPage _characterPageTemplate;
         [SerializeField] private UI_ToastMessage _toastMessagePrefab;
+        [SerializeField] private UI_CharacterUnlockFX _characterUnlockFXPrefab;
         [SerializeField] private string _notEnoughGoldMessage = "Not enough gold";
         [SerializeField] private float _gameReadyPromptPulseDuration = 0.9f;
         [SerializeField] private float _gameReadyPromptPulseScale = 1.1f;
@@ -63,6 +64,7 @@ namespace JumJump.Presenter
         private readonly List<string> _characterLocalizedNames = new List<string>(8);
         private readonly List<string> _characterLocalizedDescriptions = new List<string>(8);
         private UI_ToastMessage _toastMessage;
+        private UI_CharacterUnlockFX _characterUnlockFX;
         private int _selectedCharacterSkinId;
         private int _currentGold;
 
@@ -72,6 +74,8 @@ namespace JumJump.Presenter
             PrepareCharacterPageTemplate();
             _toastMessage = Instantiate(_toastMessagePrefab, transform, false);
             _toastMessage.HideImmediate();
+            _characterUnlockFX = Instantiate(_characterUnlockFXPrefab, _characterSelectPanel.transform, false);
+            _characterUnlockFX.HideImmediate();
             _scoreTextDefaultScale = _scoreText.rectTransform.localScale;
             _scoreTextDefaultColor = _scoreText.color;
             _gameReadyPromptDefaultScale = _gameReadyPromptText.rectTransform.localScale;
@@ -294,6 +298,7 @@ namespace JumJump.Presenter
             var skinId = _characterPages[currentIndex].SkinId;
             if (_onCharacterPurchased != null && _onCharacterPurchased.Invoke(skinId))
             {
+                PlayCharacterUnlockFX();
                 RefreshCharacterPurchaseState();
                 return;
             }
@@ -305,6 +310,11 @@ namespace JumJump.Presenter
         private void MoveToPreviousCharacter()
         {
             MoveScrollToCharacterIndex(ResolveCurrentCharacterIndex() - 1);
+        }
+
+        private void PlayCharacterUnlockFX()
+        {
+            _characterUnlockFX.PlayAtCenter();
         }
 
         private void MoveToNextCharacter()
