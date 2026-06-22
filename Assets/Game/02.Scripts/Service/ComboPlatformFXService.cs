@@ -129,6 +129,7 @@ namespace JumJump.Service
             }
 
             aura.Play(position, comboCount);
+            _activeAuras.Remove(aura);
             _activeAuras.Add(aura);
             TrimActiveAuras();
         }
@@ -277,6 +278,7 @@ namespace JumJump.Service
 
         private void OnAuraReturnedToPool(ComboPlatformAuraFX fx)
         {
+            _activeAuras.Remove(fx);
             _poolService.Release(_configData.ComboPlatformAuraFXPoolKey, fx);
         }
 

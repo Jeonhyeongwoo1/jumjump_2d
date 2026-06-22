@@ -6,6 +6,7 @@ namespace JumJump.Controller
     public sealed class ComboPlatformAuraFX : MonoBehaviour
     {
         private const float FadeInDuration = 0.18f;
+        private const float ActiveDuration = 0.55f;
         private const float FadeOutDuration = 0.85f;
         private const float MaxAlpha = 0.42f;
         private const float PulseScale = 0.08f;
@@ -84,6 +85,11 @@ namespace JumJump.Controller
             var pulse = 1f + Mathf.Sin(_elapsed * PulseSpeed) * PulseScale;
             transform.localScale = _baseScale * pulse;
             SetAuraAlpha(Mathf.SmoothStep(0f, MaxAlpha, fadeIn));
+
+            if (_elapsed >= ActiveDuration)
+            {
+                FadeOut();
+            }
         }
 
         private void UpdateFadeOut()
