@@ -124,8 +124,6 @@ namespace JumJump.Service
                 GameLogger.Error(nameof(GameBootstrapService), $"Failed to apply forced player skin: {_gameCheatConfigData.ForcedPlayerSkinType}");
                 return;
             }
-
-            _playerDataRegistry.SetSelectedPlayerSkinId(skinId);
         }
     }
 }

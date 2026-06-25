@@ -114,17 +114,20 @@ namespace JumJump.Event
         public PlatformController Platform { get; private set; }
         public Vector3 LandingPosition { get; private set; }
         public int ComboCount { get; private set; }
+        public int ScoreDelta { get; private set; }
         public bool IsComboStarted { get; private set; }
 
         public ComboPlatformActivatedEvent(
             PlatformController platform,
             Vector3 landingPosition,
             int comboCount,
+            int scoreDelta,
             bool isComboStarted)
         {
             Platform = platform;
             LandingPosition = landingPosition;
             ComboCount = comboCount;
+            ScoreDelta = scoreDelta;
             IsComboStarted = isComboStarted;
         }
     }

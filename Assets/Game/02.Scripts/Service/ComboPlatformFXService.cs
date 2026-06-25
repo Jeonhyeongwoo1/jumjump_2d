@@ -85,7 +85,10 @@ namespace JumJump.Service
 
             var position = ResolveFXPosition(ev);
             PlayAura(position, ev.ComboCount);
-            PlayBurst(position, ev.ComboCount);
+            if (ShouldPlayBurst(ev))
+            {
+                PlayBurst(position, ev.ComboCount);
+            }
         }
 
         private void OnComboEnded(in ComboEndedEvent ev)
@@ -143,6 +146,12 @@ namespace JumJump.Service
             }
 
             burst.Play(position, comboCount);
+        }
+
+        private bool ShouldPlayBurst(in ComboPlatformActivatedEvent ev)
+        {
+            const int BurstMinimumScoreDelta = 5;
+            return ev.ScoreDelta >= BurstMinimumScoreDelta;
         }
 
         private void TrimActiveAuras()

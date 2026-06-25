@@ -97,8 +97,9 @@ namespace JumJump.Service
             var wasComboActive = _comboScore > 0;
             var comboBonus = UpdateComboScore(ev);
             var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
+            var scoreDelta = baseScore + comboBonus;
             AddBaseScore(baseScore);
-            AddScore(baseScore + comboBonus, baseScore, comboBonus, comboBonus > 0);
+            AddScore(scoreDelta, baseScore, comboBonus, comboBonus > 0);
             AddGold(1);
 
             if (comboBonus > 0)
@@ -107,6 +108,7 @@ namespace JumJump.Service
                     ev.Platform,
                     ev.LandingPosition,
                     comboBonus,
+                    scoreDelta,
                     !wasComboActive));
             }
         }
