@@ -130,7 +130,7 @@ namespace JumJump.Service
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot reset round.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Player not ready; cannot reset round.");
                 return;
             }
 
@@ -167,7 +167,7 @@ namespace JumJump.Service
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn platform.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Player not ready; cannot spawn platform.");
                 return null;
             }
 
@@ -180,7 +180,7 @@ namespace JumJump.Service
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn platform.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Player not ready; cannot spawn platform.");
                 return null;
             }
 
@@ -232,7 +232,7 @@ namespace JumJump.Service
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn pending double platform.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Player not ready; cannot spawn pending double platform.");
                 return;
             }
 
@@ -260,7 +260,7 @@ namespace JumJump.Service
             var platform = _platformFactory.Get(gimmickType);
             if (platform == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Failed to get platform from factory.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Failed to get platform from factory.");
                 return null;
             }
 
@@ -292,7 +292,7 @@ namespace JumJump.Service
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot spawn rocket path platforms.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Player not ready; cannot spawn rocket path platforms.");
                 return;
             }
 
@@ -507,13 +507,13 @@ namespace JumJump.Service
             var player = _playerRegistry.Player;
             if (player == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Player not ready; cannot revive.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Player not ready; cannot revive.");
                 return;
             }
 
             if (_lastLandedPlatform == null)
             {
-                Debug.LogError($"[{nameof(PlatformSpawnService)}] Last landed platform missing; cannot revive.");
+                GameLogger.Error(nameof(PlatformSpawnService), "Last landed platform missing; cannot revive.");
                 ResetRound();
                 return;
             }

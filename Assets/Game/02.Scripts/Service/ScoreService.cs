@@ -17,6 +17,7 @@ namespace JumJump.Service
         public int RoundHighScoreTarget => _roundHighScoreTarget;
         public int ComboScore => _comboScore;
         public int Gold => _playerDataRegistry.Gold;
+        public int AdRewardGoldAmount => _configData.AdRewardGoldAmount;
 
         private int _score;
         private int _baseScore;
@@ -80,13 +81,36 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<GameOverResultViewRequestedEvent>(OnGameOverResultViewRequested);
         }
 
+        public bool GrantAdRewardGold()
+        {
+            if (!AddGold(_configData.AdRewardGoldAmount, GoldChangeSourceType.AdReward))
+            {
+                return false;
+            }
+
+            _playerDataRegistry.Save();
+            return true;
+        }
+
         private void OnPlayerLanded(in PlayerLandedEvent ev)
         {
+            var wasComboActive = _comboScore > 0;
             var comboBonus = UpdateComboScore(ev);
             var baseScore = Mathf.Max(0, _configData.ScorePerLanding);
+            var scoreDelta = baseScore + comboBonus;
             AddBaseScore(baseScore);
-            AddScore(baseScore + comboBonus, baseScore, comboBonus, comboBonus > 0);
+            AddScore(scoreDelta, baseScore, comboBonus, comboBonus > 0);
             AddGold(1);
+
+            if (comboBonus > 0)
+            {
+                _eventBus.Publish(new ComboPlatformActivatedEvent(
+                    ev.Platform,
+                    ev.LandingPosition,
+                    comboBonus,
+                    scoreDelta,
+                    !wasComboActive));
+            }
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -134,21 +158,31 @@ namespace JumJump.Service
             _baseScore += amount;
         }
 
-        private void AddGold(int amount)
+        private bool AddGold(
+            int amount,
+            GoldChangeSourceType source = GoldChangeSourceType.Gameplay)
         {
             if (amount <= 0)
             {
-                return;
+                return false;
             }
 
             if (_playerDataRegistry.AddGold(amount))
             {
-                PublishGoldChanged(amount);
+                PublishGoldChanged(amount, source);
+                return true;
             }
+
+            return false;
         }
 
         private void OnRestartRequested(in RestartRequestedEvent ev)
         {
+            if (_comboScore > 0 || _comboScoreProgress > 0)
+            {
+                _eventBus.Publish(new ComboEndedEvent());
+            }
+
             _pendingAnimatedScore = 0;
             _pendingAnimatedScoreElapsed = 0f;
             _score = 0;
@@ -191,6 +225,7 @@ namespace JumJump.Service
 
             _comboScore = 0;
             _comboScoreProgress = 0;
+            _eventBus.Publish(new ComboEndedEvent());
             PublishScoreChanged(0, 0, 0, false);
         }
 
@@ -215,9 +250,11 @@ namespace JumJump.Service
 
         private void PublishScoreChanged() => PublishScoreChanged(0, 0, 0, false);
 
-        private void PublishGoldChanged(int goldDelta)
+        private void PublishGoldChanged(
+            int goldDelta,
+            GoldChangeSourceType source = GoldChangeSourceType.Gameplay)
         {
-            _eventBus.Publish(new GoldChangedEvent(Gold, goldDelta));
+            _eventBus.Publish(new GoldChangedEvent(Gold, goldDelta, source));
         }
 
         private void PublishScoreChanged(

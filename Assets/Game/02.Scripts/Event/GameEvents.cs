@@ -89,6 +89,10 @@ namespace JumJump.Event
         }
     }
 
+    public struct PlayerDeadAnimationStartedEvent
+    {
+    }
+
     public struct PlatformShieldBlockedEvent
     {
         public PlatformController Platform { get; private set; }
@@ -115,6 +119,43 @@ namespace JumJump.Event
 
     public struct RestartClickedEvent
     {
+    }
+
+    public struct ComboPlatformActivatedEvent
+    {
+        public PlatformController Platform { get; private set; }
+        public Vector3 LandingPosition { get; private set; }
+        public int ComboCount { get; private set; }
+        public int ScoreDelta { get; private set; }
+        public bool IsComboStarted { get; private set; }
+
+        public ComboPlatformActivatedEvent(
+            PlatformController platform,
+            Vector3 landingPosition,
+            int comboCount,
+            int scoreDelta,
+            bool isComboStarted)
+        {
+            Platform = platform;
+            LandingPosition = landingPosition;
+            ComboCount = comboCount;
+            ScoreDelta = scoreDelta;
+            IsComboStarted = isComboStarted;
+        }
+    }
+
+    public struct ComboEndedEvent
+    {
+    }
+
+    public struct SoundRequestedEvent
+    {
+        public GameSoundType Type { get; private set; }
+
+        public SoundRequestedEvent(GameSoundType type)
+        {
+            Type = type;
+        }
     }
 
     public struct PlatformsResetEvent
@@ -156,15 +197,34 @@ namespace JumJump.Event
         }
     }
 
+    public struct BestScoreReachedEvent
+    {
+        public int Score { get; private set; }
+        public int PreviousHighScore { get; private set; }
+        public Vector3 WorldPosition { get; private set; }
+
+        public BestScoreReachedEvent(int score, int previousHighScore, Vector3 worldPosition)
+        {
+            Score = score;
+            PreviousHighScore = previousHighScore;
+            WorldPosition = worldPosition;
+        }
+    }
+
     public struct GoldChangedEvent
     {
         public int Gold { get; private set; }
         public int GoldDelta { get; private set; }
+        public GoldChangeSourceType Source { get; private set; }
 
-        public GoldChangedEvent(int gold, int goldDelta)
+        public GoldChangedEvent(
+            int gold,
+            int goldDelta,
+            GoldChangeSourceType source = GoldChangeSourceType.Gameplay)
         {
             Gold = gold;
             GoldDelta = goldDelta;
+            Source = source;
         }
     }
 

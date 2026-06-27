@@ -20,12 +20,13 @@ namespace JumJump.Service
         private readonly GameConfigData _gameConfigData;
         private readonly ScoreService _scoreService;
         private readonly PlayerRegistry _playerRegistry;
+        private readonly UnityEngine.Camera _gameCamera;
         private readonly Transform _poolRoot;
 
         private ScoreBoard _scoreBoardPrefab;
         private ScoreBoard _activeScoreBoard;
-        private float _activeBaseY;
         private float _activeStepY;
+        private bool _isBestScoreReached;
         private bool _isReady;
 
         public ScoreBoardService(
@@ -38,6 +39,7 @@ namespace JumJump.Service
             GameConfigData gameConfigData,
             ScoreService scoreService,
             PlayerRegistry playerRegistry,
+            UnityEngine.Camera gameCamera,
             Transform poolRoot)
         {
             _eventBus = eventBus;
@@ -49,6 +51,7 @@ namespace JumJump.Service
             _gameConfigData = gameConfigData;
             _scoreService = scoreService;
             _playerRegistry = playerRegistry;
+            _gameCamera = gameCamera;
             _poolRoot = poolRoot;
         }
 
@@ -62,7 +65,7 @@ namespace JumJump.Service
             var prefab = _resourceService.GetPrefab(_resourceConfigData.ScoreBoardAddressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(ScoreBoardService)}] Failed to load prefab: {_resourceConfigData.ScoreBoardAddressableKey}");
+                GameLogger.Error(nameof(ScoreBoardService), $"Failed to load prefab: {_resourceConfigData.ScoreBoardAddressableKey}");
                 return;
             }
 
@@ -109,6 +112,17 @@ namespace JumJump.Service
                 return;
             }
 
+            if (!_isBestScoreReached && ev.Score > _scoreService.RoundHighScoreTarget)
+            {
+                PlayBestScoreReached(ev.Score);
+                return;
+            }
+
+            if (_isBestScoreReached)
+            {
+                return;
+            }
+
             UpdateActivePosition();
         }
 
@@ -148,9 +162,9 @@ namespace JumJump.Service
             }
 
             _activeStepY = ResolvePlatformStepY();
-            _activeBaseY = ResolveTargetBaseY(player.Position.y, targetScore, _activeStepY);
+            var boardY = ResolveBoardY(player.Position.y, targetScore);
 
-            var spriteIndex = ResolveSpriteIndex(_activeBaseY);
+            var spriteIndex = ResolveSpriteIndex(boardY);
             var sprite = ResolveSprite(spriteIndex);
             if (sprite == null)
             {
@@ -165,7 +179,7 @@ namespace JumJump.Service
 
             _activeScoreBoard = view;
             view.Show(
-                ResolveBoardPosition(player.Position.x, ResolveBoardY()),
+                ResolveBoardPosition(boardY),
                 sprite,
                 GameConst.Score.ScoreBoardSortingOrder,
                 spriteIndex,
@@ -187,8 +201,19 @@ namespace JumJump.Service
 
         private void ResetActiveState()
         {
-            _activeBaseY = 0f;
             _activeStepY = 0f;
+            _isBestScoreReached = false;
+        }
+
+        private void PlayBestScoreReached(int score)
+        {
+            _isBestScoreReached = true;
+            var boardPosition = _activeScoreBoard.transform.position;
+            _eventBus.Publish(new BestScoreReachedEvent(
+                score,
+                _scoreService.RoundHighScoreTarget,
+                boardPosition));
+            _activeScoreBoard.PlayBestScoreReached(ReleaseActive);
         }
 
         private void UpdateActivePosition()
@@ -199,25 +224,30 @@ namespace JumJump.Service
                 return;
             }
 
-            _activeScoreBoard.transform.position = ResolveBoardPosition(player.Position.x, ResolveBoardY());
+            _activeScoreBoard.transform.position = ResolveBoardPosition(
+                ResolveBoardY(player.Position.y, _scoreService.RoundHighScoreTarget));
         }
 
-        private Vector3 ResolveBoardPosition(float x, float y) => new Vector3(x, y, 0f);
+        private Vector3 ResolveBoardPosition(float y) => new Vector3(ResolveBoardX(), y, 0f);
 
-        private float ResolveBoardY()
+        private float ResolveBoardX()
+        {
+            var cameraPosition = _gameCamera.transform.position;
+            var cameraDepth = Mathf.Abs(cameraPosition.z);
+            var boardPosition = _gameCamera.ViewportToWorldPoint(
+                new Vector3(GameConst.Score.ScoreBoardViewportX, 0.5f, cameraDepth));
+            return boardPosition.x;
+        }
+
+        private float ResolveBoardY(float playerY, int targetScore)
         {
             var scorePerLanding = Mathf.Max(1, _gameConfigData.ScorePerLanding);
             var scoreAheadOfPhysicalHeight = Mathf.Max(0, _scoreService.Score - _scoreService.BaseScore);
-            var extraSteps = scoreAheadOfPhysicalHeight / (float)scorePerLanding;
-            return _activeBaseY - extraSteps * _activeStepY;
-        }
-
-        private float ResolveTargetBaseY(float originY, int targetScore, float stepY)
-        {
-            var scorePerLanding = Mathf.Max(1, _gameConfigData.ScorePerLanding);
-            var targetLandingCount = Mathf.CeilToInt(targetScore / (float)scorePerLanding);
-            var targetStepCount = Mathf.Max(0, targetLandingCount - 1);
-            return originY + targetStepCount * stepY + GameConst.Score.ScoreBoardTargetOffsetY;
+            var effectiveTargetScore = Mathf.Max(0, targetScore - scoreAheadOfPhysicalHeight);
+            var targetLandingCount = Mathf.CeilToInt(effectiveTargetScore / (float)scorePerLanding);
+            var currentLandingCount = Mathf.Max(1, Mathf.CeilToInt(_scoreService.BaseScore / (float)scorePerLanding));
+            var remainingStepCount = Mathf.Max(0, targetLandingCount - currentLandingCount);
+            return playerY + remainingStepCount * _activeStepY + GameConst.Score.ScoreBoardTargetOffsetY;
         }
 
         private float ResolvePlatformStepY()

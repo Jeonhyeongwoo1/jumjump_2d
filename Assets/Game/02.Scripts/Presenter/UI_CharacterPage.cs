@@ -11,6 +11,8 @@ namespace JumJump.Presenter
 
         [SerializeField] private Button _button;
         [SerializeField] private Image _characterImage;
+        [SerializeField] private Color _ownedColor = Color.white;
+        [SerializeField] private Color _lockedColor = Color.black;
 
         private Action<int> _onClicked;
         private int _skinId;
@@ -21,6 +23,11 @@ namespace JumJump.Presenter
             _onClicked = onClicked;
             _characterImage.sprite = sprite;
             ButtonUtils.SetListener(_button, OnClicked);
+        }
+
+        public void SetOwned(bool owned)
+        {
+            _characterImage.color = owned ? _ownedColor : _lockedColor;
         }
 
         public void RemoveEvents()

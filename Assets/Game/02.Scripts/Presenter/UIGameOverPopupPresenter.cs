@@ -99,12 +99,14 @@ namespace JumJump.Presenter
                 return;
             }
 
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _eventBus.Publish(new ReviveAdClickedEvent());
             RunReviveAdAsync().Forget();
         }
 
         private void OnCloseClicked()
         {
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             ClosePopup(true);
         }
 

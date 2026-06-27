@@ -39,6 +39,30 @@ MonoBehaviour:
     m_SerializedLabels:
     - PreLoad
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 901a9897efe64086a689c7348b48b8f4
+    m_Address: Player_1005.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be32be62a798c204c880bd3ae41e0474
+    m_Address: Player_1006.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f428b9dd5b488454daac12f67209e074
+    m_Address: Player_1007.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c2dd920570d6334d998fb1d3b7e347e
+    m_Address: Player_1008.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: a56cab7c3fd5b814792637c2897592f9, type: 2}
   m_SchemaSet:

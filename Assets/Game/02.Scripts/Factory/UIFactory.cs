@@ -1,4 +1,5 @@
 using JumJump.Service;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -23,7 +24,7 @@ namespace JumJump.Factory
             var prefab = _resourceService.GetPrefab(addressableKey);
             if (prefab == null)
             {
-                Debug.LogError($"[{nameof(UIFactory)}] Failed to load UI prefab: {addressableKey}");
+                GameLogger.Error(nameof(UIFactory), $"Failed to load UI prefab: {addressableKey}");
                 return null;
             }
 

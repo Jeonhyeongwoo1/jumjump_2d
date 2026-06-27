@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Controller;
 using JumJump.Data;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Service
@@ -47,14 +48,14 @@ namespace JumJump.Service
                 cancellationToken);
             if (!loaded)
             {
-                Debug.LogError($"[{nameof(JumpBoxBoostFXService)}] Failed to load addressable FX: {_configData.JumpBoxBoostFXAddressableKey}");
+                GameLogger.Error(nameof(JumpBoxBoostFXService), $"Failed to load addressable FX: {_configData.JumpBoxBoostFXAddressableKey}");
                 return;
             }
 
             var prefabObject = _resourceService.GetPrefab(_configData.JumpBoxBoostFXAddressableKey);
             if (prefabObject == null || !prefabObject.TryGetComponent(out _prefab))
             {
-                Debug.LogError($"[{nameof(JumpBoxBoostFXService)}] Addressable prefab must have {nameof(JumpBoxBoostFX)}: {_configData.JumpBoxBoostFXAddressableKey}");
+                GameLogger.Error(nameof(JumpBoxBoostFXService), $"Addressable prefab must have {nameof(JumpBoxBoostFX)}: {_configData.JumpBoxBoostFXAddressableKey}");
                 return;
             }
 

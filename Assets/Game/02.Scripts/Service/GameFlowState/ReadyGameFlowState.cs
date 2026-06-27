@@ -73,6 +73,7 @@ namespace JumJump.Service.GameFlowState
             {
                 _lastCountdownSeconds = seconds;
                 _scenePresenter.SetStartCountdown(seconds);
+                _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiCountdownTick));
             }
 
             _scenePresenter.SetStartCountdownProgress(ResolveCountdownProgress(seconds));
@@ -137,6 +138,7 @@ namespace JumJump.Service.GameFlowState
             _scenePresenter.HideGameReadyPanel();
             _scenePresenter.ShowScorePanel();
             _scenePresenter.ShowStartCountdown(_lastCountdownSeconds);
+            _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiCountdownTick));
         }
 
         private float ResolveCountdownProgress(int seconds)

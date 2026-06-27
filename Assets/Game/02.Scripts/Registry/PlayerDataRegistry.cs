@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
@@ -32,9 +34,13 @@ namespace JumJump.Registry
 
             _model.SetHighScore(PlayerPrefs.GetInt(_configData.HighScoreKey, 0));
             _model.SetGold(PlayerPrefs.GetInt(_configData.GoldKey, 0));
+            _model.SetOwnedPlayerSkinIds(ParseOwnedPlayerSkinIds(PlayerPrefs.GetString(
+                _configData.PurchasedPlayerSkinsKey,
+                string.Empty)));
             _model.SetSelectedPlayerSkinId(PlayerPrefs.GetInt(
                 _configData.SelectedPlayerSkinKey,
                 (int)PlayerSkinType.Player_1));
+            _model.ValidateSelectedPlayerSkinOwnership();
             _isLoaded = true;
         }
 
@@ -56,6 +62,16 @@ namespace JumJump.Registry
             }
 
             return true;
+        }
+
+        public bool OwnsPlayerSkin(int skinId)
+        {
+            return _model.OwnsPlayerSkin(skinId);
+        }
+
+        public bool TryPurchasePlayerSkin(int skinId, int price)
+        {
+            return _model.TryPurchasePlayerSkin(skinId, price);
         }
 
         public void SetSelectedPlayerSkinId(int skinId)
@@ -86,7 +102,47 @@ namespace JumJump.Registry
             PlayerPrefs.SetInt(_configData.HighScoreKey, _model.HighScore);
             PlayerPrefs.SetInt(_configData.GoldKey, _model.Gold);
             PlayerPrefs.SetInt(_configData.SelectedPlayerSkinKey, _model.SelectedPlayerSkinId);
+            PlayerPrefs.SetString(_configData.PurchasedPlayerSkinsKey, SerializeOwnedPlayerSkinIds());
             PlayerPrefs.Save();
+        }
+
+        private List<int> ParseOwnedPlayerSkinIds(string value)
+        {
+            var skinIds = new List<int>(8);
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return skinIds;
+            }
+
+            var tokens = value.Split(',');
+            for (var i = 0; i < tokens.Length; i++)
+            {
+                if (int.TryParse(tokens[i], out var skinId))
+                {
+                    skinIds.Add(skinId);
+                }
+            }
+
+            return skinIds;
+        }
+
+        private string SerializeOwnedPlayerSkinIds()
+        {
+            var skinIds = new List<int>(_model.OwnedPlayerSkinIds);
+            skinIds.Sort();
+
+            var builder = new StringBuilder();
+            for (var i = 0; i < skinIds.Count; i++)
+            {
+                if (i > 0)
+                {
+                    builder.Append(',');
+                }
+
+                builder.Append(skinIds[i]);
+            }
+
+            return builder.ToString();
         }
     }
 }

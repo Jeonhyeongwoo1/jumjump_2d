@@ -92,18 +92,29 @@ namespace JumJump.Controller
 
         public bool TryApplySkin(int skinId)
         {
+            if (!TryGetSkinData(skinId, out var skinData))
+            {
+                return false;
+            }
+
+            ApplySkin(skinData);
+            return true;
+        }
+
+        public bool TryGetSkinData(int skinId, out PlayerSkinData skinData)
+        {
             for (var i = 0; i < _skinCatalog.Length; i++)
             {
-                var skinData = _skinCatalog[i];
+                skinData = _skinCatalog[i];
                 if (skinData.SkinId != skinId)
                 {
                     continue;
                 }
 
-                ApplySkin(skinData);
                 return true;
             }
 
+            skinData = null;
             return false;
         }
 
@@ -282,6 +293,7 @@ namespace JumJump.Controller
             _previousPosition = transform.position;
             ResetLandingSink();
             ChangeState(PlayerStateType.Knockback);
+            _eventBus.Publish(new PlayerDeadAnimationStartedEvent());
 
             var directionX = ResolveKnockbackDirectionX(knockbackDirection);
             ApplyFacingScale(directionX);

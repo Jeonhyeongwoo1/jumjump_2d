@@ -6,6 +6,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -40,11 +41,13 @@ namespace JumJump.Service
         public void Initialize()
         {
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
+            _eventBus.Subscribe<BestScoreReachedEvent>(OnBestScoreReached);
         }
 
         public void Dispose()
         {
             _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
+            _eventBus.Unsubscribe<BestScoreReachedEvent>(OnBestScoreReached);
 
             if (_poolRoot != null)
             {
@@ -64,14 +67,14 @@ namespace JumJump.Service
                 cancellationToken);
             if (!loaded)
             {
-                Debug.LogError($"[{nameof(CoinCollectFXService)}] Failed to load addressable FX: {_configData.CoinCollectFXAddressableKey}");
+                GameLogger.Error(nameof(CoinCollectFXService), $"Failed to load addressable FX: {_configData.CoinCollectFXAddressableKey}");
                 return;
             }
 
             var prefabObject = _resourceService.GetPrefab(_configData.CoinCollectFXAddressableKey);
             if (prefabObject == null || !prefabObject.TryGetComponent(out _prefab))
             {
-                Debug.LogError($"[{nameof(CoinCollectFXService)}] Addressable prefab must have {nameof(CoinCollectFX)}: {_configData.CoinCollectFXAddressableKey}");
+                GameLogger.Error(nameof(CoinCollectFXService), $"Addressable prefab must have {nameof(CoinCollectFX)}: {_configData.CoinCollectFXAddressableKey}");
                 return;
             }
 
@@ -81,7 +84,23 @@ namespace JumJump.Service
 
         private void OnGoldChanged(in GoldChangedEvent ev)
         {
-            if (ev.GoldDelta <= 0 || !_isReady)
+            if (ev.GoldDelta <= 0 || ev.Source != GoldChangeSourceType.Gameplay || !_isReady)
+            {
+                return;
+            }
+
+            var player = _playerRegistry.Player;
+            if (player == null)
+            {
+                return;
+            }
+
+            Play(player.Position + _configData.CoinCollectFXOffset);
+        }
+
+        private void OnBestScoreReached(in BestScoreReachedEvent ev)
+        {
+            if (!_isReady)
             {
                 return;
             }

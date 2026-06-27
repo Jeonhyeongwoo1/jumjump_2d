@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JumJump.Factory;
 using JumJump.Presenter;
+using JumJump.Util;
 using UnityEngine;
 
 namespace JumJump.Service
@@ -24,7 +25,7 @@ namespace JumJump.Service
                 popup = _uiFactory.Create<T>(addressableKey);
                 if (popup == null)
                 {
-                    Debug.LogError($"[{nameof(PopupService)}] Failed to create popup: {typeof(T).Name}");
+                    GameLogger.Error(nameof(PopupService), $"Failed to create popup: {typeof(T).Name}");
                     return null;
                 }
                 _cache[typeof(T)] = popup;

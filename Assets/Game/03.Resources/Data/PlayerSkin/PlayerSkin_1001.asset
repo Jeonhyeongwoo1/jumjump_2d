@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: PlayerSkin_1001
   m_EditorClassIdentifier:
   _skinId: 1001
+  _price: 0
   _animatorController: {fileID: 9100000, guid: 008876e382ba4c318693c82ac3964d16, type: 2}

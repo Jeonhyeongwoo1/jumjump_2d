@@ -7,6 +7,7 @@ using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Service.GameFlowState;
+using JumJump.Util;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -31,10 +32,13 @@ namespace JumJump
         [SerializeField] private UnityEngine.Camera _gameCamera;
         [SerializeField] private Transform _platformPoolRoot;
         [SerializeField] private UIDynamicFont _dynamicFontRoot;
+        [SerializeField] private UI_Loading _loadingView;
 
         protected override void Configure(IContainerBuilder builder)
         {
+            GameLogger.SetMinimumLevel(_gameConfigData.MinimumLogLevel);
             builder.RegisterComponent(_dynamicFontRoot);
+            builder.RegisterComponent(_loadingView);
             builder.RegisterInstance(_resourceConfigData);
             builder.RegisterInstance(_gameConfigData);
             builder.RegisterInstance(_playerConfigData);
@@ -45,7 +49,9 @@ namespace JumJump
             builder.RegisterInstance(_appInTossConfig);
             builder.Register<IEventBus, EventBus>(Lifetime.Scoped);
             builder.Register<ResourceService>(Lifetime.Scoped);
+            builder.Register<LocalizationService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);
+            builder.Register<LoadingScreenService>(Lifetime.Scoped);
             builder.Register<PlatformRegistry>(Lifetime.Scoped);
             builder.Register<PlayerRegistry>(Lifetime.Scoped);
             builder.Register<PlayerDataRegistry>(Lifetime.Scoped);
@@ -67,6 +73,8 @@ namespace JumJump
             builder.Register<UIGameOverPopupPresenter>(Lifetime.Scoped);
             builder.Register<UIDynamicFontPresenter>(Lifetime.Scoped);
             builder.Register<ScoreBoardService>(Lifetime.Scoped);
+            builder.Register<ComboPlatformFXFactory>(Lifetime.Scoped);
+            builder.Register<SoundFactory>(Lifetime.Scoped);
             builder.Register<PlatformFactory>(Lifetime.Scoped);
             builder.Register<PlatformGimmickBehaviourFactory>(Lifetime.Scoped);
             builder.Register<PlayerFactory>(Lifetime.Scoped);
@@ -77,7 +85,10 @@ namespace JumJump
             builder.RegisterEntryPoint<InputActionTapService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<AuthService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<AppInTossAnalyticsService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<SoundService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<BestScoreBreakFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<CoinCollectFXService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<ComboPlatformFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<ScoreService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<GameFlowService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<HayLandingFXService>(Lifetime.Scoped).AsSelf();

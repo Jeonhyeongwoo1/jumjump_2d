@@ -5,6 +5,7 @@ namespace JumJump.Util
         public static class UI
         {
             public const int SceneUISortingOrder = 100;
+            public const int LoadingSortingOrder = 2000;
             public const int PopupSortingOrder = 1000;
             public const int StartCountdownSeconds = 3;
             public const float StartCountdownScaleFrom = 0.5f;
@@ -43,6 +44,7 @@ namespace JumJump.Util
             public const int ScoreMilestoneLegend = 100;
             public const float RocketBoostIncrementInterval = 0.06f;
             public const int ScoreBoardMinimumHighScore = 50;
+            public const float ScoreBoardViewportX = 0.25f;
             public const float ScoreBoardTargetOffsetY = 0.85f;
             public const int ScoreBoardSortingOrder = 20;
         }
