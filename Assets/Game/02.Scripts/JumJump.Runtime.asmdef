@@ -1,0 +1,23 @@
+{
+    "name": "JumJump.Runtime",
+    "rootNamespace": "JumJump",
+    "references": [
+        "VContainer",
+        "Unity.InputSystem",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "UniTask",
+        "UniTask.Addressables"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4d08d6c8a9b46979fac6efabc53d2a7, type: 3}
+  m_Name: BackgroundConfigData
+  m_EditorClassIdentifier: 
+  _backgroundGradientMinHeight: -2
+  _backgroundGradientMaxHeight: 80
+  _backgroundLowBottomColor: {r: 0.47, g: 0.82, b: 1, a: 1}
+  _backgroundLowTopColor: {r: 0.18, g: 0.55, b: 0.95, a: 1}
+  _backgroundHighBottomColor: {r: 0.34, g: 0.22, b: 0.75, a: 1}
+  _backgroundHighTopColor: {r: 0.1, g: 0.05, b: 0.32, a: 1}
+  _backgroundHighObjectTint: {r: 0.86, g: 0.78, b: 1, a: 1}
+  _backgroundGradientUpdateThreshold: 0.005
+  _backgroundGradientScreenPadding: 1.15
+  _backgroundGradientZ: 10
+  _backgroundGradientSortingOrder: -1000
+  _backgroundObjectSortingOrder: -900
+  _backgroundObjectPoolCount: 12
+  _backgroundObjectXRange: 3.2
+  _backgroundObjectRecycleBelowY: 8
+  _backgroundObjectSpawnAheadY: 11
+  _backgroundObjectMinScale: 0.35
+  _backgroundObjectMaxScale: 1.3
+  _backgroundObjectMinAlpha: 0.3
+  _backgroundObjectMaxAlpha: 0.7
+  _backgroundObjectMaxRotation: 10
+  _backgroundObjectDriftAmplitude: 0.4
+  _backgroundObjectMinDriftSpeed: 0.1
+  _backgroundObjectMaxDriftSpeed: 0.3
+  _backgroundObjectAlphaFromDepthIndex: 1
+  _backgroundObjectMinParallax: 0.3
+  _backgroundObjectMaxParallax: 0.75
+  _backgroundObjectZ: 9
+  _backgroundDepthLayers:
+  - _startHeight: -100
+    _sprites:
+    - {fileID: 21300000, guid: e21abc94d0189dc42bc2ce6d2e99bedd, type: 3}
+    - {fileID: 21300000, guid: 937bd23a9547bad4c8a8e2004cffc9bc, type: 3}
+    - {fileID: 21300000, guid: 0b0fb9e1b1a8ac64a9b64292744697bb, type: 3}
+    - {fileID: 21300000, guid: 31916b215618c3149a44e84de2bdbc22, type: 3}
+    - {fileID: 21300000, guid: f557563ce826b364dbbee3ec4dd47e58, type: 3}
+    - {fileID: 21300000, guid: 7fe2538ff337ae443b43e4ed35d8c959, type: 3}
+  - _startHeight: 16
+    _sprites:
+    - {fileID: 21300000, guid: a6a1fa693bb447a49ae5378e026dcb65, type: 3}
+    - {fileID: 21300000, guid: e8e97bcbfbd31904ab5dddc3cff0e7de, type: 3}
+    - {fileID: 21300000, guid: 11b73a8796a4c124d95743a35dd92d60, type: 3}
+    - {fileID: 21300000, guid: 78787df840fb3ba419ed25e2e218dbfd, type: 3}
+    - {fileID: 21300000, guid: 75a1990b3d9943e4785d0dc259f59a79, type: 3}
+    - {fileID: 21300000, guid: 0662421bb11ce654483f75127ca441a4, type: 3}
+    - {fileID: 21300000, guid: acb42ccd49dbda740b5fc48b53a80f47, type: 3}
+    - {fileID: 21300000, guid: b26de446058bc2d4aa1050adbf6f102b, type: 3}
+    - {fileID: 21300000, guid: 22284324466d6354ab93eb04980c1dba, type: 3}
+  - _startHeight: 34
+    _sprites:
+    - {fileID: 21300000, guid: 1f38311382d32564a92b896bb91dec42, type: 3}
+    - {fileID: 21300000, guid: d6d057c5049b52843a2e60fe41d12bc7, type: 3}
+    - {fileID: 21300000, guid: 0099f8ec02f71574caf625e17cb2913a, type: 3}
+    - {fileID: 21300000, guid: 41c250218baa617438d80f51b8c75c1b, type: 3}
+    - {fileID: 21300000, guid: 30d5644c41bd3544db3c26dc6baeab5e, type: 3}
+    - {fileID: 21300000, guid: 432e48988f1be834595818dbf06137f5, type: 3}
+    - {fileID: 21300000, guid: fc69635a042a664418abe6decb52a64c, type: 3}
+    - {fileID: 21300000, guid: 44e35803005af48449fe4cba3518f7f2, type: 3}
+    - {fileID: 21300000, guid: 20b017ab52fa88e4b9b9f1f24cfc9ac8, type: 3}
+  - _startHeight: 52
+    _sprites:
+    - {fileID: 21300000, guid: 10331a6b50b4c6747a01e1cecc7934a6, type: 3}
+    - {fileID: 21300000, guid: 87cca1b7cee581742b153eb9aac4e44d, type: 3}
+    - {fileID: 21300000, guid: 205360924d930b444a0b421d3dc497dc, type: 3}
+    - {fileID: 21300000, guid: c59ec25387135dd4d8e7ea2a72cb08d0, type: 3}
+    - {fileID: 21300000, guid: 4729d5a162d8e6d46b4316a89d519b76, type: 3}
+    - {fileID: 21300000, guid: 606c03c6eebc8bb4f8c66fb7e68a1f70, type: 3}
+    - {fileID: 21300000, guid: 78ca534dd23f1b449bd7450869086802, type: 3}
+    - {fileID: 21300000, guid: 90e6d4bfe8ee3bc4eb8de71229a32919, type: 3}
+    - {fileID: 21300000, guid: c7e677aac282ca34eb2d5aaa9a9ca634, type: 3}
+    - {fileID: 21300000, guid: 1ec81ec819b43c94da634e784cf176ca, type: 3}
+    - {fileID: 21300000, guid: 70d7e86688f33e2479af85addb26ce14, type: 3}
+  - _startHeight: 70
+    _sprites:
+    - {fileID: 21300000, guid: 09cedde1c521c2b4a955bb1c33a663a9, type: 3}
+    - {fileID: 21300000, guid: 7d26e8666a5cf0e49aa6c77d05cc989a, type: 3}
+    - {fileID: 21300000, guid: d3df9cfdc066c844f9691d14e92aaff9, type: 3}
+    - {fileID: 21300000, guid: 9ce301373ce15554baa8b45a431685af, type: 3}
+    - {fileID: 21300000, guid: 96f2965fd2d562a4cbacbe7327cfbe49, type: 3}
+    - {fileID: 21300000, guid: 728c21f03d464f947bd09719ad5add05, type: 3}
+    - {fileID: 21300000, guid: a8afccc19fa930641abe255708a48f46, type: 3}
+    - {fileID: 21300000, guid: f44e4eaf0a5227640a7f1e378491d559, type: 3}
+    - {fileID: 21300000, guid: b894cbc1ba92a2f448ac5a13d2aa2ba1, type: 3}
+    - {fileID: 21300000, guid: 95bf1d8fc30c67049bc738cd36fcf922, type: 3}
+    - {fileID: 21300000, guid: 0122166152a5cfa4797f83eb688b1562, type: 3}
