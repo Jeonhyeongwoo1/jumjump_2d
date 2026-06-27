@@ -17,6 +17,8 @@ namespace JumJump.Util
             public const float StartCountdownFadeOutStart = 0.8f;
             public const int GameOverCountdownSeconds = 5;
             public const float GameOverResultViewRestartDelay = 2f;
+            public const float SafeAreaRefreshInterval = 0.25f;
+            public const float MinimumCanvasScaleFactor = 0.0001f;
         }
 
         public static class Platform
@@ -35,6 +37,11 @@ namespace JumJump.Util
 
         public static class Score
         {
+            public const int ScoreMilestoneSmall = 5;
+            public const int ScoreMilestoneMedium = 10;
+            public const int ScoreMilestoneLarge = 20;
+            public const int ScoreMilestoneHuge = 50;
+            public const int ScoreMilestoneLegend = 100;
             public const float RocketBoostIncrementInterval = 0.06f;
             public const int ScoreBoardMinimumHighScore = 50;
             public const float ScoreBoardViewportX = 0.25f;

@@ -15,18 +15,29 @@ namespace JumJump.Presenter
         private readonly IEventBus _eventBus;
         private readonly PopupService _popupService;
         private readonly ResourceConfigData _resourceConfigData;
+        private readonly AppInTossConfigSO _appInTossConfig;
+        private readonly IAdService _adService;
 
         private UI_GameOverPopup _view;
         private CancellationTokenSource _countdownCts;
         private CancellationTokenSource _resultRestartCts;
+        private CancellationTokenSource _adCts;
+        private bool _isReviveAdRunning;
 
         public bool IsShowing => _view != null && _view.gameObject.activeSelf;
 
-        public UIGameOverPopupPresenter(IEventBus eventBus, PopupService popupService, ResourceConfigData resourceConfigData)
+        public UIGameOverPopupPresenter(
+            IEventBus eventBus,
+            PopupService popupService,
+            ResourceConfigData resourceConfigData,
+            AppInTossConfigSO appInTossConfig,
+            IAdService adService)
         {
             _eventBus = eventBus;
             _popupService = popupService;
             _resourceConfigData = resourceConfigData;
+            _appInTossConfig = appInTossConfig;
+            _adService = adService;
         }
 
         public void Show()
@@ -38,7 +49,10 @@ namespace JumJump.Presenter
             }
 
             _view = view;
+            _isReviveAdRunning = false;
+            _view.SetButtonsInteractable(true);
             _view.AddEvents(OnAdClicked, OnCloseClicked);
+            _eventBus.Publish(new ReviveOfferShownEvent());
 
             DisposeCountdown();
             _countdownCts = new CancellationTokenSource();
@@ -49,6 +63,7 @@ namespace JumJump.Presenter
         {
             DisposeCountdown();
             DisposeResultRestart();
+            DisposeAdRequest();
             _view?.RemoveEvents();
             _popupService.PopAll();
             _view = null;
@@ -79,9 +94,14 @@ namespace JumJump.Presenter
 
         private void OnAdClicked()
         {
+            if (_isReviveAdRunning)
+            {
+                return;
+            }
+
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
-            ClosePopup(false);
-            _eventBus.Publish(new ReviveRequestedEvent());
+            _eventBus.Publish(new ReviveAdClickedEvent());
+            RunReviveAdAsync().Forget();
         }
 
         private void OnCloseClicked()
@@ -101,6 +121,45 @@ namespace JumJump.Presenter
             {
                 _eventBus.Publish(new GameOverResultViewRequestedEvent());
                 ScheduleResultRestart();
+            }
+        }
+
+        private async UniTask RunReviveAdAsync()
+        {
+            DisposeCountdown();
+            DisposeAdRequest();
+            _isReviveAdRunning = true;
+            _adCts = new CancellationTokenSource();
+            _view?.SetButtonsInteractable(false);
+
+            try
+            {
+                var result = await _adService.ShowRewardedAdAsync(
+                    _appInTossConfig.ContinueAdGroupId,
+                    _adCts.Token);
+
+                if (_view == null)
+                {
+                    return;
+                }
+
+                if (result.IsSuccess && result.HasReward)
+                {
+                    ClosePopup(false);
+                    _eventBus.Publish(new ReviveRequestedEvent());
+                    return;
+                }
+
+                Debug.LogWarning($"[{nameof(UIGameOverPopupPresenter)}] Revive ad did not reward: {result.Error}");
+                ClosePopup(true);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning($"[{nameof(UIGameOverPopupPresenter)}] revive_ad_cancelled");
+            }
+            finally
+            {
+                DisposeAdRequest();
             }
         }
 
@@ -145,6 +204,19 @@ namespace JumJump.Presenter
             _resultRestartCts.Cancel();
             _resultRestartCts.Dispose();
             _resultRestartCts = null;
+        }
+
+        private void DisposeAdRequest()
+        {
+            if (_adCts == null)
+            {
+                return;
+            }
+
+            _adCts.Cancel();
+            _adCts.Dispose();
+            _adCts = null;
+            _isReviveAdRunning = false;
         }
     }
 }

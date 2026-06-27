@@ -39,6 +39,7 @@ namespace JumJump.Service.GameFlowState
         {
             if (_popupPresenter.IsShowing) return;
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
+            _eventBus.Publish(new RestartClickedEvent());
             _eventBus.Publish(new RestartRequestedEvent());
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Controller;
@@ -13,7 +14,7 @@ using VContainer.Unity;
 
 namespace JumJump.Service
 {
-    public sealed class GameBootstrapService : IAsyncStartable
+    public sealed class GameBootstrapService : IInitializable, IAsyncStartable, IDisposable
     {
         private readonly IEventBus _eventBus;
         private readonly LoadingScreenService _loadingScreenService;
@@ -26,6 +27,8 @@ namespace JumJump.Service
         private readonly CoinCollectFXService _coinCollectFXService;
         private readonly PlayerDataRegistry _playerDataRegistry;
         private readonly GameCheatConfigData _gameCheatConfigData;
+        private readonly AuthRegistry _authRegistry;
+        private bool _hasAuthFailed;
 
         public GameBootstrapService(
             IEventBus eventBus,
@@ -38,7 +41,8 @@ namespace JumJump.Service
             JumpBoxBoostFXService jumpBoxBoostFXService,
             CoinCollectFXService coinCollectFXService,
             PlayerDataRegistry playerDataRegistry,
-            GameCheatConfigData gameCheatConfigData)
+            GameCheatConfigData gameCheatConfigData,
+            AuthRegistry authRegistry)
         {
             _eventBus = eventBus;
             _loadingScreenService = loadingScreenService;
@@ -51,6 +55,13 @@ namespace JumJump.Service
             _coinCollectFXService = coinCollectFXService;
             _playerDataRegistry = playerDataRegistry;
             _gameCheatConfigData = gameCheatConfigData;
+            _authRegistry = authRegistry;
+        }
+
+        public void Initialize()
+        {
+            _eventBus.Subscribe<AuthLoginCompletedEvent>(OnAuthLoginCompleted);
+            _eventBus.Subscribe<AuthLoginFailedEvent>(OnAuthLoginFailed);
         }
 
         public async UniTask StartAsync(CancellationToken cancellation)
@@ -59,7 +70,18 @@ namespace JumJump.Service
             _loadingScreenService.Show();
             _loadingScreenService.SetProgress(0f);
 
-            var workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Preload resources");
+            var workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Wait for auth");
+            var authReady = await WaitForAuthAsync(cancellation);
+            GameLogger.EndWork(nameof(GameBootstrapService), "Wait for auth", workStartedAt);
+            if (!authReady)
+            {
+                GameLogger.Error(nameof(GameBootstrapService), "Auth failed; bootstrap aborted.");
+                _loadingScreenService.Hide();
+                GameLogger.EndWork(nameof(GameBootstrapService), "Bootstrap", bootstrapStartedAt);
+                return;
+            }
+
+            workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Preload resources");
             await _resourceService.PreLoadAsync(_loadingScreenService.SetProgress, cancellation);
             GameLogger.EndWork(nameof(GameBootstrapService), "Preload resources", workStartedAt);
 
@@ -108,6 +130,36 @@ namespace JumJump.Service
             _loadingScreenService.SetProgress(1f);
             _loadingScreenService.Hide();
             GameLogger.EndWork(nameof(GameBootstrapService), "Bootstrap", bootstrapStartedAt);
+        }
+
+        public void Dispose()
+        {
+            _eventBus.Unsubscribe<AuthLoginCompletedEvent>(OnAuthLoginCompleted);
+            _eventBus.Unsubscribe<AuthLoginFailedEvent>(OnAuthLoginFailed);
+        }
+
+        private async UniTask<bool> WaitForAuthAsync(CancellationToken cancellation)
+        {
+            if (_authRegistry.IsLoggedIn)
+            {
+                return true;
+            }
+
+            await UniTask.WaitUntil(
+                () => _authRegistry.IsLoggedIn || _hasAuthFailed,
+                cancellationToken: cancellation);
+
+            return _authRegistry.IsLoggedIn;
+        }
+
+        private void OnAuthLoginCompleted(in AuthLoginCompletedEvent ev)
+        {
+            _hasAuthFailed = false;
+        }
+
+        private void OnAuthLoginFailed(in AuthLoginFailedEvent ev)
+        {
+            _hasAuthFailed = true;
         }
 
         private void ApplyPlayerSkin(Player player)
