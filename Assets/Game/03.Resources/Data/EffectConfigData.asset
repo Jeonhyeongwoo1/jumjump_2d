@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b33a43084b9a48dc850f553d43f861bc, type: 3}
+  m_Name: EffectConfigData
+  m_EditorClassIdentifier: 
+  _hayLandingFXPrefab: {fileID: 1691417389861638064, guid: cfbcfe96cd82c6f42a19cc2383d394c3, type: 3}
+  _hayLandingFXPoolKey: FX_HayLanding
+  _hayLandingFXPoolCount: 8
+  _hayLandingFXOffset: {x: 0, y: 0.1, z: 0}
+  _jumpBoxBoostFXAddressableKey: JumpBoxBoostFX
+  _jumpBoxBoostFXPoolKey: FX_JumpBoxBoost
+  _jumpBoxBoostFXPoolCount: 4
+  _jumpBoxBoostFXOffset: {x: 0, y: 0.1, z: 0}
+  _coinCollectFXAddressableKey: PF_CoinCollectFX
+  _coinCollectFXPoolKey: FX_CoinCollect
+  _coinCollectFXPoolCount: 4
+  _coinCollectFXOffset: {x: 0, y: 0.66, z: 0}
+  _bestScoreBreakFXPrefab: {fileID: 3291040880707138841, guid: b3bd0210f91b5644280a7c1282a722b2, type: 3}
+  _bestScoreBreakFXPoolKey: FX_BestScoreBreak
+  _bestScoreBreakFXPoolCount: 2
+  _bestScoreBreakFXOffset: {x: 0, y: 1.05, z: 0}
+  _comboPlatformAuraSprite: {fileID: 21300000, guid: bcb154442d9248d28e24554596169d5a, type: 3}
+  _comboPlatformPulseSprite: {fileID: 21300000, guid: 612f9da428b613042a495f2fb768eb62, type: 3}
+  _comboPlatformSparkleSprite: {fileID: 21300000, guid: e6229d7a8a5d38747a16a2f160de806e, type: 3}
+  _comboPlatformAuraFXPoolKey: FX_ComboPlatformAura
+  _comboPlatformBurstFXPoolKey: FX_ComboPlatformBurst
+  _comboPlatformAuraFXPoolCount: 12
+  _comboPlatformBurstFXPoolCount: 6
+  _comboPlatformAuraMaxActiveCount: 16
+  _comboPlatformFXOffset: {x: 0, y: 0.08, z: 0}
