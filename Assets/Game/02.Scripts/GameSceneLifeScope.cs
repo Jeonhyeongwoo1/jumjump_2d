@@ -31,11 +31,13 @@ namespace JumJump
         [SerializeField] private UnityEngine.Camera _gameCamera;
         [SerializeField] private Transform _platformPoolRoot;
         [SerializeField] private UIDynamicFont _dynamicFontRoot;
+        [SerializeField] private UI_Loading _loadingView;
 
         protected override void Configure(IContainerBuilder builder)
         {
             GameLogger.SetMinimumLevel(_gameConfigData.MinimumLogLevel);
             builder.RegisterComponent(_dynamicFontRoot);
+            builder.RegisterComponent(_loadingView);
             builder.RegisterInstance(_resourceConfigData);
             builder.RegisterInstance(_gameConfigData);
             builder.RegisterInstance(_playerConfigData);
@@ -47,6 +49,7 @@ namespace JumJump
             builder.Register<ResourceService>(Lifetime.Scoped);
             builder.Register<LocalizationService>(Lifetime.Scoped);
             builder.Register<PoolService>(Lifetime.Scoped);
+            builder.Register<LoadingScreenService>(Lifetime.Scoped);
             builder.Register<PlatformRegistry>(Lifetime.Scoped);
             builder.Register<PlayerRegistry>(Lifetime.Scoped);
             builder.Register<PlayerDataRegistry>(Lifetime.Scoped);

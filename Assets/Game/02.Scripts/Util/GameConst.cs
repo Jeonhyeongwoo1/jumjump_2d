@@ -5,6 +5,7 @@ namespace JumJump.Util
         public static class UI
         {
             public const int SceneUISortingOrder = 100;
+            public const int LoadingSortingOrder = 2000;
             public const int PopupSortingOrder = 1000;
             public const int StartCountdownSeconds = 3;
             public const float StartCountdownScaleFrom = 0.5f;

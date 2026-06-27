@@ -16,6 +16,7 @@ namespace JumJump.Service
     public sealed class GameBootstrapService : IAsyncStartable
     {
         private readonly IEventBus _eventBus;
+        private readonly LoadingScreenService _loadingScreenService;
         private readonly ResourceService _resourceService;
         private readonly PlatformFactory _platformFactory;
         private readonly PlayerFactory _playerFactory;
@@ -28,6 +29,7 @@ namespace JumJump.Service
 
         public GameBootstrapService(
             IEventBus eventBus,
+            LoadingScreenService loadingScreenService,
             ResourceService resourceService,
             PlatformFactory platformFactory,
             PlayerFactory playerFactory,
@@ -39,6 +41,7 @@ namespace JumJump.Service
             GameCheatConfigData gameCheatConfigData)
         {
             _eventBus = eventBus;
+            _loadingScreenService = loadingScreenService;
             _resourceService = resourceService;
             _platformFactory = platformFactory;
             _playerFactory = playerFactory;
@@ -53,8 +56,11 @@ namespace JumJump.Service
         public async UniTask StartAsync(CancellationToken cancellation)
         {
             var bootstrapStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Bootstrap");
+            _loadingScreenService.Show();
+            _loadingScreenService.SetProgress(0f);
+
             var workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Preload resources");
-            await _resourceService.PreLoadAsync(cancellation);
+            await _resourceService.PreLoadAsync(_loadingScreenService.SetProgress, cancellation);
             GameLogger.EndWork(nameof(GameBootstrapService), "Preload resources", workStartedAt);
 
             workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Warmup platform factory");
@@ -87,6 +93,7 @@ namespace JumJump.Service
             {
                 GameLogger.EndWork(nameof(GameBootstrapService), "Spawn player", workStartedAt);
                 GameLogger.Error(nameof(GameBootstrapService), "Player spawn failed; aborting bootstrap.");
+                _loadingScreenService.Hide();
                 GameLogger.EndWork(nameof(GameBootstrapService), "Bootstrap", bootstrapStartedAt);
                 return;
             }
@@ -98,6 +105,8 @@ namespace JumJump.Service
 
             _eventBus.Publish(new PlayerSpawnedEvent(player));
             _eventBus.Publish(new GameResourcesReadyEvent());
+            _loadingScreenService.SetProgress(1f);
+            _loadingScreenService.Hide();
             GameLogger.EndWork(nameof(GameBootstrapService), "Bootstrap", bootstrapStartedAt);
         }
 

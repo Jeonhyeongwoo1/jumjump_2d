@@ -69,17 +69,31 @@ namespace JumJump.Service
 
         public async UniTask PreLoadAsync(CancellationToken cancellationToken = default)
         {
+            await PreLoadAsync(null, cancellationToken);
+        }
+
+        public async UniTask PreLoadAsync(Action<float> onProgress, CancellationToken cancellationToken)
+        {
             if (_isPreLoaded)
             {
+                onProgress?.Invoke(1f);
                 return;
             }
 
             var preLoadLabel = _configData.PreLoadLabel;
-            var loaded = await LoadLabelAsync(preLoadLabel, cancellationToken);
+            var loaded = await LoadLabelAsync(preLoadLabel, onProgress, cancellationToken);
             _isPreLoaded = loaded;
         }
 
         public async UniTask<bool> LoadLabelAsync(string labelKey, CancellationToken cancellationToken = default)
+        {
+            return await LoadLabelAsync(labelKey, null, cancellationToken);
+        }
+
+        public async UniTask<bool> LoadLabelAsync(
+            string labelKey,
+            Action<float> onProgress,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(labelKey))
             {
@@ -89,10 +103,11 @@ namespace JumJump.Service
 
             if (_loadedLabels.Contains(labelKey))
             {
+                onProgress?.Invoke(1f);
                 return true;
             }
 
-            var loaded = await LoadResourcesAsync(labelKey, labelKey, cancellationToken);
+            var loaded = await LoadResourcesAsync(labelKey, labelKey, onProgress, cancellationToken);
             if (!loaded)
             {
                 return false;
@@ -115,7 +130,7 @@ namespace JumJump.Service
                 return true;
             }
 
-            return await LoadResourcesAsync(key, null, cancellationToken);
+            return await LoadResourcesAsync(key, null, null, cancellationToken);
         }
 
         public void Release(string key)
@@ -175,6 +190,7 @@ namespace JumJump.Service
         private async UniTask<bool> LoadResourcesAsync(
             string key,
             string labelKey,
+            Action<float> onProgress,
             CancellationToken cancellationToken)
         {
             var locationsHandle = Addressables.LoadResourceLocationsAsync(key);
@@ -190,6 +206,8 @@ namespace JumJump.Service
                 GameLogger.Debug(nameof(ResourceService), $"Resolved {locations.Count} addressable assets from: {key}");
 
                 var failedCount = 0;
+                var completedCount = 0;
+                onProgress?.Invoke(0f);
                 for (var i = 0; i < locations.Count; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -198,12 +216,16 @@ namespace JumJump.Service
                     if (location == null || string.IsNullOrEmpty(location.PrimaryKey))
                     {
                         failedCount++;
+                        completedCount++;
+                        ReportProgress(onProgress, completedCount, locations.Count);
                         continue;
                     }
 
                     if (IsResourceCached(location.PrimaryKey))
                     {
                         TrackLabelResource(labelKey, location.PrimaryKey);
+                        completedCount++;
+                        ReportProgress(onProgress, completedCount, locations.Count);
                         continue;
                     }
 
@@ -218,6 +240,8 @@ namespace JumJump.Service
                     }
 
                     TrackLabelResource(labelKey, location.PrimaryKey);
+                    completedCount++;
+                    ReportProgress(onProgress, completedCount, locations.Count);
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 }
 
@@ -245,6 +269,17 @@ namespace JumJump.Service
                     Addressables.Release(locationsHandle);
                 }
             }
+        }
+
+        private void ReportProgress(Action<float> onProgress, int completedCount, int totalCount)
+        {
+            if (onProgress == null)
+            {
+                return;
+            }
+
+            var safeTotalCount = Mathf.Max(1, totalCount);
+            onProgress.Invoke(Mathf.Clamp01((float)completedCount / safeTotalCount));
         }
 
         private UniTask<bool> LoadAssetAsync(IResourceLocation location, CancellationToken cancellationToken)
