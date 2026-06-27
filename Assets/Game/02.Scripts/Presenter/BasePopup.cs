@@ -9,6 +9,7 @@ namespace JumJump.Presenter
 
         private float _nextSafeAreaRefreshTime;
         private bool _isSafeAreaInitialized;
+        private bool _isApplyingSafeArea;
 
         public virtual void OnShown() { }
         public virtual void OnHidden() { }
@@ -59,7 +60,20 @@ namespace JumJump.Presenter
 
         private void ApplySafeArea()
         {
-            AppInTossSafeAreaUtility.Apply((RectTransform)transform, Canvas);
+            if (_isApplyingSafeArea)
+            {
+                return;
+            }
+
+            _isApplyingSafeArea = true;
+            try
+            {
+                AppInTossSafeAreaUtility.Apply((RectTransform)transform, Canvas);
+            }
+            finally
+            {
+                _isApplyingSafeArea = false;
+            }
         }
     }
 }

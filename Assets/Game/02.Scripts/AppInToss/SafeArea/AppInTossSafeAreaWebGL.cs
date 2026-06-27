@@ -17,7 +17,7 @@ namespace JumJump.Bridge
 #if UNITY_WEBGL && !UNITY_EDITOR
             return AITSafeArea_IsReady() == 1;
 #else
-            return true;
+            return false;
 #endif
         }
 

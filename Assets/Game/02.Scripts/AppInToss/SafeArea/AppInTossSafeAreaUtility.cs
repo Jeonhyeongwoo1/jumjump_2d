@@ -20,14 +20,15 @@ namespace JumJump.Util
                 -AppInTossSafeAreaWebGL.GetRight() / scaleFactor,
                 -AppInTossSafeAreaWebGL.GetTop() / scaleFactor);
 
-            if (IsApproximatelyEqual(target.offsetMin, offsetMin) &&
-                IsApproximatelyEqual(target.offsetMax, offsetMax))
+            if (!IsApproximatelyEqual(target.offsetMin, offsetMin))
             {
-                return;
+                target.offsetMin = offsetMin;
             }
 
-            target.offsetMin = offsetMin;
-            target.offsetMax = offsetMax;
+            if (!IsApproximatelyEqual(target.offsetMax, offsetMax))
+            {
+                target.offsetMax = offsetMax;
+            }
         }
 
         private static bool IsApproximatelyEqual(Vector2 a, Vector2 b)
