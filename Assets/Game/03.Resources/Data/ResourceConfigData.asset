@@ -21,15 +21,9 @@ MonoBehaviour:
   _scoreBoardAddressableKey: ScoreBoard
   _localizationLanguage: 0
   _localizationCsv: {fileID: 4900000, guid: 42f756f5452846c9bf335dc4f4f6a9a1, type: 3}
+  _playerSkinDataAddressableKeyPrefix: PlayerSkin_
   _playerSpriteAddressableKeys:
   - Player_1001
-  - Player_1002
-  - Player_1003
-  - Player_1004
-  - Player_1005
-  - Player_1006
-  - Player_1007
-  - Player_1008
   _scoreBoardSpriteAddressableKeys:
   - Scoreboard_1.sprite
   - Scoreboard_2.sprite

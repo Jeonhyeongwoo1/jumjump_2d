@@ -26,6 +26,7 @@ namespace JumJump.Service
         private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
         private readonly CoinCollectFXService _coinCollectFXService;
         private readonly PlayerDataRegistry _playerDataRegistry;
+        private readonly ResourceConfigData _resourceConfigData;
         private readonly GameCheatConfigData _gameCheatConfigData;
         private readonly AuthRegistry _authRegistry;
         private bool _hasAuthFailed;
@@ -41,6 +42,7 @@ namespace JumJump.Service
             JumpBoxBoostFXService jumpBoxBoostFXService,
             CoinCollectFXService coinCollectFXService,
             PlayerDataRegistry playerDataRegistry,
+            ResourceConfigData resourceConfigData,
             GameCheatConfigData gameCheatConfigData,
             AuthRegistry authRegistry)
         {
@@ -54,6 +56,7 @@ namespace JumJump.Service
             _jumpBoxBoostFXService = jumpBoxBoostFXService;
             _coinCollectFXService = coinCollectFXService;
             _playerDataRegistry = playerDataRegistry;
+            _resourceConfigData = resourceConfigData;
             _gameCheatConfigData = gameCheatConfigData;
             _authRegistry = authRegistry;
         }
@@ -122,7 +125,7 @@ namespace JumJump.Service
             GameLogger.EndWork(nameof(GameBootstrapService), "Spawn player", workStartedAt);
 
             workStartedAt = GameLogger.BeginWork(nameof(GameBootstrapService), "Apply player skin");
-            ApplyPlayerSkin(player);
+            await ApplyPlayerSkinAsync(player, cancellation);
             GameLogger.EndWork(nameof(GameBootstrapService), "Apply player skin", workStartedAt);
 
             _eventBus.Publish(new PlayerSpawnedEvent(player));
@@ -162,29 +165,52 @@ namespace JumJump.Service
             _hasAuthFailed = true;
         }
 
-        private void ApplyPlayerSkin(Player player)
+        private async UniTask ApplyPlayerSkinAsync(Player player, CancellationToken cancellationToken)
         {
             if (_gameCheatConfigData.ForcePlayerSkin)
             {
-                ApplyForcedPlayerSkin(player);
+                await ApplyForcedPlayerSkinAsync(player, cancellationToken);
                 return;
             }
 
             var skinId = _playerDataRegistry.SelectedPlayerSkinId;
-            if (!player.TryApplySkin(skinId))
+            await ApplyPlayerSkinAsync(player, skinId, cancellationToken);
+        }
+
+        private async UniTask ApplyForcedPlayerSkinAsync(Player player, CancellationToken cancellationToken)
+        {
+            var skinId = (int)_gameCheatConfigData.ForcedPlayerSkinType;
+            await ApplyPlayerSkinAsync(player, skinId, cancellationToken);
+        }
+
+        private async UniTask ApplyPlayerSkinAsync(Player player, int skinId, CancellationToken cancellationToken)
+        {
+            if (skinId == (int)PlayerSkinType.Player_1)
+            {
+                player.ApplyDefaultSkin();
+                return;
+            }
+
+            var key = ResolvePlayerSkinDataAddressableKey(skinId);
+            var loaded = await _resourceService.LoadKeyAsync(key, cancellationToken);
+            if (!loaded)
+            {
+                GameLogger.Error(nameof(GameBootstrapService), $"Failed to load player skin data: {key}");
+                player.ApplyDefaultSkin();
+                return;
+            }
+
+            var skinData = _resourceService.GetAsset<PlayerSkinData>(key);
+            if (skinData == null || !player.TryApplySkin(skinData))
             {
                 GameLogger.Error(nameof(GameBootstrapService), $"Failed to apply selected player skin: {skinId}");
+                player.ApplyDefaultSkin();
             }
         }
 
-        private void ApplyForcedPlayerSkin(Player player)
+        private string ResolvePlayerSkinDataAddressableKey(int skinId)
         {
-            var skinId = (int)_gameCheatConfigData.ForcedPlayerSkinType;
-            if (!player.TryApplySkin(skinId))
-            {
-                GameLogger.Error(nameof(GameBootstrapService), $"Failed to apply forced player skin: {_gameCheatConfigData.ForcedPlayerSkinType}");
-                return;
-            }
+            return _resourceConfigData.PlayerSkinDataAddressableKeyPrefix + skinId;
         }
     }
 }

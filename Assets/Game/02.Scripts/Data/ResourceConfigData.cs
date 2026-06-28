@@ -12,6 +12,7 @@ namespace JumJump.Data
         public string DynamicFontAddressableKey => _dynamicFontAddressableKey;
         public string PlatformAddressableKey => _platformAddressableKey;
         public string ScoreBoardAddressableKey => _scoreBoardAddressableKey;
+        public string PlayerSkinDataAddressableKeyPrefix => _playerSkinDataAddressableKeyPrefix;
         public string[] ScoreBoardSpriteAddressableKeys => _scoreBoardSpriteAddressableKeys;
         public string[] PlayerSpriteAddressableKeys => _playerSpriteAddressableKeys;
         public LocalizationLanguageType LocalizationLanguage => _localizationLanguage;
@@ -39,16 +40,10 @@ namespace JumJump.Data
         [SerializeField] private TextAsset _localizationCsv;
 
         [Header("Player Skins")]
+        [SerializeField] private string _playerSkinDataAddressableKeyPrefix = "PlayerSkin_";
         [SerializeField] private string[] _playerSpriteAddressableKeys =
         {
-            "Player_1001",
-            "Player_1002",
-            "Player_1003",
-            "Player_1004",
-            "Player_1005",
-            "Player_1006",
-            "Player_1007",
-            "Player_1008"
+            "Player_1001"
         };
         [SerializeField] private string[] _scoreBoardSpriteAddressableKeys =
         {

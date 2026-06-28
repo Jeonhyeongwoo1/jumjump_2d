@@ -199,7 +199,14 @@ namespace JumJump.Presenter
                 return;
             }
 
-            if (!player.TryApplySkin(skinId))
+            if (skinId == (int)PlayerSkinType.Player_1)
+            {
+                player.ApplyDefaultSkin();
+                return;
+            }
+
+            if (!TryResolvePlayerSkinData(skinId, out var skinData) ||
+                !player.TryApplySkin(skinData))
             {
                 GameLogger.Error(nameof(UIGameScenePresenter), $"Failed to apply selected player skin: {skinId}");
             }
@@ -222,6 +229,14 @@ namespace JumJump.Presenter
                 var key = keys[i];
                 if (!TryResolveSkinId(key, out var skinId))
                 {
+                    continue;
+                }
+
+                var skinDataKey = ResolvePlayerSkinDataAddressableKey(skinId);
+                var skinDataLoaded = await _resourceService.LoadKeyAsync(skinDataKey, cancellationToken);
+                if (!skinDataLoaded)
+                {
+                    GameLogger.Error(nameof(UIGameScenePresenter), $"Failed to load player skin data: {skinDataKey}");
                     continue;
                 }
 
@@ -284,14 +299,13 @@ namespace JumJump.Presenter
 
         private bool TryResolvePlayerSkinData(int skinId, out PlayerSkinData skinData)
         {
-            skinData = null;
-            var player = _playerRegistry.Player;
-            if (player == null)
-            {
-                return false;
-            }
+            skinData = _resourceService.GetAsset<PlayerSkinData>(ResolvePlayerSkinDataAddressableKey(skinId));
+            return skinData != null;
+        }
 
-            return player.TryGetSkinData(skinId, out skinData);
+        private string ResolvePlayerSkinDataAddressableKey(int skinId)
+        {
+            return _resourceConfigData.PlayerSkinDataAddressableKeyPrefix + skinId;
         }
 
         public void ShowReady()
