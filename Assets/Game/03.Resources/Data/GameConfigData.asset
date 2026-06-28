@@ -31,11 +31,11 @@ MonoBehaviour:
   _masterVolume: 1
   _bgmVolume: 0.55
   _sfxVolume: 0.9
-  _bgmGameLoopClip: {fileID: 8300000, guid: 9dd8cec55b92c11439d71efb291aa5e1, type: 3}
-  _uiButtonTapClip: {fileID: 8300000, guid: ce3bd7dd703e300408e2500cc6b94c90, type: 3}
-  _uiCountdownTickClip: {fileID: 8300000, guid: 4187e4d8ddcb37948959425091d2996c, type: 3}
-  _playerJumpClip: {fileID: 8300000, guid: b5c1d3bc9b05a024c839275090c81296, type: 3}
-  _landingNormalClip: {fileID: 8300000, guid: 6a9a3958bbe19ef49bb414e577e23bb7, type: 3}
-  _goldCollectClip: {fileID: 8300000, guid: 92223be4e95955c4e8e12ef48f2d6174, type: 3}
-  _playerMissClip: {fileID: 8300000, guid: 63c733989cfdd8b40a5772d23650a3a2, type: 3}
-  _playerDeadClip: {fileID: 8300000, guid: 48514b068d79c6247984b608aa601849, type: 3}
+  _bgmGameLoopAddressableKey: Sound_BgmGameLoop
+  _uiButtonTapAddressableKey: Sound_UiButtonTap
+  _uiCountdownTickAddressableKey: Sound_UiCountdownTick
+  _playerJumpAddressableKey: Sound_PlayerJump
+  _landingNormalAddressableKey: Sound_LandingNormal
+  _goldCollectAddressableKey: Sound_GoldCollect
+  _playerMissAddressableKey: Sound_PlayerMiss
+  _playerDeadAddressableKey: Sound_PlayerDead

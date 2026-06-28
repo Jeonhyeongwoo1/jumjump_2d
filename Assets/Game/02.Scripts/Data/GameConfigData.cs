@@ -24,14 +24,14 @@ namespace JumJump.Data
         public float MasterVolume => _masterVolume;
         public float BgmVolume => _bgmVolume;
         public float SfxVolume => _sfxVolume;
-        public AudioClip BgmGameLoopClip => _bgmGameLoopClip;
-        public AudioClip UiButtonTapClip => _uiButtonTapClip;
-        public AudioClip UiCountdownTickClip => _uiCountdownTickClip;
-        public AudioClip PlayerJumpClip => _playerJumpClip;
-        public AudioClip LandingNormalClip => _landingNormalClip;
-        public AudioClip GoldCollectClip => _goldCollectClip;
-        public AudioClip PlayerMissClip => _playerMissClip;
-        public AudioClip PlayerDeadClip => _playerDeadClip;
+        public string BgmGameLoopAddressableKey => _bgmGameLoopAddressableKey;
+        public string UiButtonTapAddressableKey => _uiButtonTapAddressableKey;
+        public string UiCountdownTickAddressableKey => _uiCountdownTickAddressableKey;
+        public string PlayerJumpAddressableKey => _playerJumpAddressableKey;
+        public string LandingNormalAddressableKey => _landingNormalAddressableKey;
+        public string GoldCollectAddressableKey => _goldCollectAddressableKey;
+        public string PlayerMissAddressableKey => _playerMissAddressableKey;
+        public string PlayerDeadAddressableKey => _playerDeadAddressableKey;
 
         [Header("Score")]
         [SerializeField] private int _scorePerLanding = 1;
@@ -67,13 +67,13 @@ namespace JumJump.Data
         [SerializeField, Range(0f, 1f)] private float _masterVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float _bgmVolume = 0.55f;
         [SerializeField, Range(0f, 1f)] private float _sfxVolume = 0.9f;
-        [SerializeField] private AudioClip _bgmGameLoopClip;
-        [SerializeField] private AudioClip _uiButtonTapClip;
-        [SerializeField] private AudioClip _uiCountdownTickClip;
-        [SerializeField] private AudioClip _playerJumpClip;
-        [SerializeField] private AudioClip _landingNormalClip;
-        [SerializeField] private AudioClip _goldCollectClip;
-        [SerializeField] private AudioClip _playerMissClip;
-        [SerializeField] private AudioClip _playerDeadClip;
+        [SerializeField] private string _bgmGameLoopAddressableKey = "Sound_BgmGameLoop";
+        [SerializeField] private string _uiButtonTapAddressableKey = "Sound_UiButtonTap";
+        [SerializeField] private string _uiCountdownTickAddressableKey = "Sound_UiCountdownTick";
+        [SerializeField] private string _playerJumpAddressableKey = "Sound_PlayerJump";
+        [SerializeField] private string _landingNormalAddressableKey = "Sound_LandingNormal";
+        [SerializeField] private string _goldCollectAddressableKey = "Sound_GoldCollect";
+        [SerializeField] private string _playerMissAddressableKey = "Sound_PlayerMiss";
+        [SerializeField] private string _playerDeadAddressableKey = "Sound_PlayerDead";
     }
 }

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
@@ -13,25 +16,31 @@ namespace JumJump.Service
     {
         private readonly IEventBus _eventBus;
         private readonly GameConfigData _configData;
+        private readonly ResourceService _resourceService;
         private readonly SoundFactory _soundFactory;
+        private readonly Dictionary<GameSoundType, AudioClip> _loadedClips = new Dictionary<GameSoundType, AudioClip>(8);
 
         private Transform _root;
         private AudioSource _bgmSource;
         private AudioSource _sfxSource;
+        private CancellationTokenSource _destroyCancellation;
         private bool _isAudioUnlocked;
 
         public SoundService(
             IEventBus eventBus,
             GameConfigData configData,
+            ResourceService resourceService,
             SoundFactory soundFactory)
         {
             _eventBus = eventBus;
             _configData = configData;
+            _resourceService = resourceService;
             _soundFactory = soundFactory;
         }
 
         public void Initialize()
         {
+            _destroyCancellation = new CancellationTokenSource();
             _root = _soundFactory.CreateRoot();
             _bgmSource = _soundFactory.CreateAudioSource(_root, "BGM", true);
             _sfxSource = _soundFactory.CreateAudioSource(_root, "SFX", false);
@@ -62,10 +71,19 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
             _eventBus.Unsubscribe<GameOverEvent>(OnGameOver);
 
+            if (_destroyCancellation != null)
+            {
+                _destroyCancellation.Cancel();
+                _destroyCancellation.Dispose();
+                _destroyCancellation = null;
+            }
+
             if (_root != null)
             {
                 UnityEngine.Object.Destroy(_root.gameObject);
             }
+
+            _loadedClips.Clear();
         }
 
         private void OnTapRequested(in TapRequestedEvent ev)
@@ -79,16 +97,16 @@ namespace JumJump.Service
 
             if (ev.Type == GameSoundType.BgmGameLoop)
             {
-                StartBgm();
+                StartBgmAsync().Forget();
                 return;
             }
 
-            PlayOneShot(ev.Type);
+            PlayOneShotAsync(ev.Type).Forget();
         }
 
         private void OnGameStarted(in GameStartedEvent ev)
         {
-            StartBgm();
+            StartBgmAsync().Forget();
         }
 
         private void OnGameReset(in GameResetEvent ev)
@@ -98,7 +116,7 @@ namespace JumJump.Service
 
         private void OnPlayerJumpStarted(in PlayerJumpStartedEvent ev)
         {
-            PlayOneShot(GameSoundType.PlayerJump);
+            PlayOneShotAsync(GameSoundType.PlayerJump).Forget();
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -108,7 +126,7 @@ namespace JumJump.Service
 
         private void OnPlayerDeadAnimationStarted(in PlayerDeadAnimationStartedEvent ev)
         {
-            PlayOneShot(GameSoundType.PlayerDead);
+            PlayOneShotAsync(GameSoundType.PlayerDead).Forget();
         }
 
         private void OnScoreChanged(in ScoreChangedEvent ev)
@@ -118,14 +136,14 @@ namespace JumJump.Service
                 return;
             }
 
-            PlayOneShot(GameSoundType.LandingNormal);
+            PlayOneShotAsync(GameSoundType.LandingNormal).Forget();
         }
 
         private void OnGoldChanged(in GoldChangedEvent ev)
         {
             if (ev.GoldDelta > 0)
             {
-                PlayOneShot(GameSoundType.GoldCollect);
+                PlayOneShotAsync(GameSoundType.GoldCollect).Forget();
             }
         }
 
@@ -145,17 +163,21 @@ namespace JumJump.Service
             _sfxSource.volume = Mathf.Clamp01(_configData.MasterVolume) * Mathf.Clamp01(_configData.SfxVolume);
         }
 
-        private void StartBgm()
+        private async UniTask StartBgmAsync()
         {
             if (!CanPlayBgm())
             {
                 return;
             }
 
-            var clip = _configData.BgmGameLoopClip;
+            var clip = await LoadClipAsync(GameSoundType.BgmGameLoop);
             if (clip == null)
             {
-                GameLogger.Debug(nameof(SoundService), "BGM clip is not assigned.");
+                return;
+            }
+
+            if (!CanPlayBgm())
+            {
                 return;
             }
 
@@ -176,21 +198,69 @@ namespace JumJump.Service
             }
         }
 
-        private void PlayOneShot(GameSoundType soundType)
+        private async UniTask PlayOneShotAsync(GameSoundType soundType)
         {
             if (!CanPlaySfx())
             {
                 return;
             }
 
-            var clip = ResolveClip(soundType);
+            var clip = await LoadClipAsync(soundType);
             if (clip == null)
             {
-                GameLogger.Debug(nameof(SoundService), $"Sound clip is not assigned: {soundType}");
+                return;
+            }
+
+            if (!CanPlaySfx())
+            {
                 return;
             }
 
             _sfxSource.PlayOneShot(clip);
+        }
+
+        private async UniTask<AudioClip> LoadClipAsync(GameSoundType soundType)
+        {
+            if (_loadedClips.TryGetValue(soundType, out var cachedClip))
+            {
+                return cachedClip;
+            }
+
+            var key = ResolveClipKey(soundType);
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                GameLogger.Debug(nameof(SoundService), $"Sound clip key is not assigned: {soundType}");
+                return null;
+            }
+
+            if (_destroyCancellation == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                var loaded = await _resourceService.LoadKeyAsync(key, _destroyCancellation.Token);
+                if (!loaded)
+                {
+                    GameLogger.Debug(nameof(SoundService), $"Sound clip failed to load: {soundType}, Key: {key}");
+                    return null;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+
+            var clip = _resourceService.GetAsset<AudioClip>(key);
+            if (clip == null)
+            {
+                GameLogger.Debug(nameof(SoundService), $"Sound clip is not assigned: {soundType}, Key: {key}");
+                return null;
+            }
+
+            _loadedClips[soundType] = clip;
+            return clip;
         }
 
         private bool CanPlayBgm()
@@ -207,26 +277,26 @@ namespace JumJump.Service
                    _isAudioUnlocked;
         }
 
-        private AudioClip ResolveClip(GameSoundType soundType)
+        private string ResolveClipKey(GameSoundType soundType)
         {
             switch (soundType)
             {
                 case GameSoundType.BgmGameLoop:
-                    return _configData.BgmGameLoopClip;
+                    return _configData.BgmGameLoopAddressableKey;
                 case GameSoundType.UiButtonTap:
-                    return _configData.UiButtonTapClip;
+                    return _configData.UiButtonTapAddressableKey;
                 case GameSoundType.UiCountdownTick:
-                    return _configData.UiCountdownTickClip;
+                    return _configData.UiCountdownTickAddressableKey;
                 case GameSoundType.PlayerJump:
-                    return _configData.PlayerJumpClip;
+                    return _configData.PlayerJumpAddressableKey;
                 case GameSoundType.LandingNormal:
-                    return _configData.LandingNormalClip;
+                    return _configData.LandingNormalAddressableKey;
                 case GameSoundType.GoldCollect:
-                    return _configData.GoldCollectClip;
+                    return _configData.GoldCollectAddressableKey;
                 case GameSoundType.PlayerMiss:
-                    return _configData.PlayerMissClip;
+                    return _configData.PlayerMissAddressableKey;
                 case GameSoundType.PlayerDead:
-                    return _configData.PlayerDeadClip;
+                    return _configData.PlayerDeadAddressableKey;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(soundType), soundType, null);
             }
