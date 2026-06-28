@@ -1,10 +1,15 @@
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Factory
 {
     public sealed class BackgroundEnvironmentFactory
     {
+        [Inject]
+        public BackgroundEnvironmentFactory()
+        {
+        }
 
         public Transform CreateRoot(string name)
         {

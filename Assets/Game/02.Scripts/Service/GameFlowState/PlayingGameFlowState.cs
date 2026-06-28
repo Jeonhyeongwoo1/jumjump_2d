@@ -2,6 +2,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service.GameFlowState
 {
@@ -14,6 +15,7 @@ namespace JumJump.Service.GameFlowState
         private bool _isGameOverPending;
         private float _gameOverDelayElapsed;
 
+        [Inject]
         public PlayingGameFlowState(IEventBus eventBus, PlayerConfigData configData)
         {
             _eventBus = eventBus;

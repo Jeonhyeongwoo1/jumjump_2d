@@ -6,6 +6,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -15,6 +16,7 @@ namespace JumJump.Service
         private readonly IEventBus _eventBus;
         private CancellationTokenSource _cts;
 
+        [Inject]
         public IAPService(AppInTossConfigSO config, IEventBus eventBus)
         {
             _config = config;

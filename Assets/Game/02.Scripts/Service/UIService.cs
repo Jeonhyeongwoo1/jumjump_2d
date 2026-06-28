@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JumJump.Factory;
 using JumJump.Presenter;
 using UnityEngine;
+using VContainer;
 using Object = UnityEngine.Object;
 
 namespace JumJump.Service
@@ -12,6 +13,7 @@ namespace JumJump.Service
         private readonly UIFactory _uiFactory;
         private readonly Dictionary<Type, BaseSceneUI> _activeUIs = new Dictionary<Type, BaseSceneUI>();
 
+        [Inject]
         public UIService(UIFactory uiFactory)
         {
             _uiFactory = uiFactory;

@@ -7,6 +7,7 @@ using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -40,6 +41,7 @@ namespace JumJump.Service
         private readonly GameConfigData _gameConfigData;
         private readonly PlayerConfigData _playerConfigData;
 
+        [Inject]
         public PlatformSpawnService(
             IEventBus eventBus,
             PlatformFactory platformFactory,

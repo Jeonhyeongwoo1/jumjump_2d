@@ -4,6 +4,7 @@ using JumJump.Interface;
 using JumJump.Service.GameFlowState;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -19,6 +20,7 @@ namespace JumJump.Service
         private readonly PlayingGameFlowState _playingState;
         private readonly GameOverGameFlowState _gameOverState;
 
+        [Inject]
         public GameFlowService(
             IEventBus eventBus,
             ReadyGameFlowState readyState,

@@ -7,6 +7,7 @@ using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -32,6 +33,7 @@ namespace JumJump.Service
         private string SavePlayerProgressUrl =>
             _config.CloudFunctionBaseUrl + AppInTossConfigSO.SavePlayerProgressPath;
 
+        [Inject]
         public AuthService(
             IEventBus eventBus,
             AppInTossConfigSO config,

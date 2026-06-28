@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using JumJump.Controller;
 using JumJump.Util;
+using VContainer;
 
 namespace JumJump.Registry
 {
@@ -10,6 +11,11 @@ namespace JumJump.Registry
         private float _roundBottomY;
         private float _roundTopY;
         private bool _hasRoundBounds;
+
+        [Inject]
+        public PlatformRegistry()
+        {
+        }
 
         public void Register(PlatformController platform)
         {

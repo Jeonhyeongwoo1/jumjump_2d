@@ -3,6 +3,10 @@
 ## Highest Priority: Required Dependency / Component Rules
 
 - Required DI dependencies resolved through constructors, `[Inject] Construct`, `Bind`, or `Initialize` are assumed to exist. Assign them directly and use them directly.
+- For every non-MonoBehaviour class created by VContainer through `GameSceneLifeScope` `Register` or `RegisterEntryPoint`, mark the intended constructor with `[Inject]`, even when it is the only public constructor.
+- For MonoBehaviour injection, keep using `[Inject] Construct(...)` methods instead of constructors.
+- Do not add `[Inject]` to data structs, event structs, models, or helper objects that are created manually rather than by VContainer.
+- The `[Inject]` constructor marker is for explicitness and Mobile WebGL IL2CPP/AOT constructor discovery reliability; it has no meaningful per-frame runtime performance cost.
 - Do not add defensive null checks for required DI dependencies such as `_eventBus == null`, `_configData == null`, `_playerRegistry == null`, or `_platformFactory == null`.
 - Required `[SerializeField]` component references are assumed to be wired by prefab/scene setup. Do not silently recover them with `GetComponent`, `GetComponentInChildren`, or `GetComponentInParent`.
 - Do not add fallback code like `if (_animator == null) _animator = GetComponent<Animator>();` for required serialized components. Missing prefab wiring should fail visibly instead of being hidden.

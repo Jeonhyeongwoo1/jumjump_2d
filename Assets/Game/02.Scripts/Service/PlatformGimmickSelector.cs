@@ -1,5 +1,6 @@
 using JumJump.Data;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -9,6 +10,7 @@ namespace JumJump.Service
         private readonly GameCheatConfigData _gameCheatConfigData;
         private readonly ScoreService _scoreService;
 
+        [Inject]
         public PlatformGimmickSelector(
             PlatformConfigData configData,
             GameCheatConfigData gameCheatConfigData,

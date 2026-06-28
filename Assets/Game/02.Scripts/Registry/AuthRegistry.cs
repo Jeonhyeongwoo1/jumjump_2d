@@ -9,6 +9,11 @@
         public long CreatedAtMillis { get; private set; }
         public bool IsLoggedIn => !string.IsNullOrEmpty(SessionToken) && !string.IsNullOrEmpty(UserId);
 
+        [VContainer.Inject]
+        public AuthRegistry()
+        {
+        }
+
         public void SetSessionToken(string sessionToken)
         {
             SessionToken = sessionToken;

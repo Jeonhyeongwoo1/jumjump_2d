@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using JumJump.Registry;
 using UnityEngine;
 using UnityEngine.Networking;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -11,6 +12,7 @@ namespace JumJump.Service
     {
         private readonly AuthRegistry _authRegistry;
 
+        [Inject]
         public HttpService(AuthRegistry authRegistry)
         {
             _authRegistry = authRegistry;

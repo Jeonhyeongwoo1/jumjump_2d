@@ -3,6 +3,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -15,6 +16,7 @@ namespace JumJump.Service
         private Transform _poolRoot;
         private int _createdCount;
 
+        [Inject]
         public HayLandingFXService(
             IEventBus eventBus,
             EffectConfigData configData,

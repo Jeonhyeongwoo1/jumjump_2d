@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using JumJump.Data;
 using JumJump.Util;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -15,6 +16,7 @@ namespace JumJump.Service
         private readonly Dictionary<string, LocalizedTextEntry> _textEntries = new Dictionary<string, LocalizedTextEntry>(32);
         private bool _isLoaded;
 
+        [Inject]
         public LocalizationService(ResourceConfigData resourceConfigData)
         {
             _resourceConfigData = resourceConfigData;

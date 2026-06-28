@@ -5,6 +5,7 @@ using JumJump.Interface;
 using JumJump.Presenter;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service.GameFlowState
 {
@@ -22,6 +23,7 @@ namespace JumJump.Service.GameFlowState
         private float _countdownRemaining;
         private int _lastCountdownSeconds;
 
+        [Inject]
         public ReadyGameFlowState(
             IEventBus eventBus,
             UIService uiService,

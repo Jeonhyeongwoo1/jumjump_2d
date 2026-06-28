@@ -1,4 +1,5 @@
 using JumJump.Controller;
+using VContainer;
 
 namespace JumJump.Registry
 {
@@ -8,6 +9,11 @@ namespace JumJump.Registry
     public sealed class PlayerRegistry
     {
         public Player Player { get; private set; }
+
+        [Inject]
+        public PlayerRegistry()
+        {
+        }
 
         public void Set(Player player)
         {

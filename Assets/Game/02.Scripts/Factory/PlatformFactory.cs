@@ -5,6 +5,7 @@ using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Factory
 {
@@ -23,6 +24,7 @@ namespace JumJump.Factory
         private PlatformController _platformPrefab;
         private bool _isReady;
 
+        [Inject]
         public PlatformFactory(
             Transform poolRoot,
             PoolService poolService,

@@ -1,4 +1,5 @@
 using JumJump.Presenter;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -7,6 +8,7 @@ namespace JumJump.Service
         private readonly UI_Loading _view;
         private readonly UnityEngine.Camera _gameCamera;
 
+        [Inject]
         public LoadingScreenService(
             UI_Loading view,
             UnityEngine.Camera gameCamera)

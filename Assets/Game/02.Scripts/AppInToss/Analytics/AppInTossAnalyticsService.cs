@@ -7,6 +7,7 @@ using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -37,6 +38,7 @@ namespace JumJump.Service
         private bool _hasPendingGameOver;
         private bool _hasTrackedSessionStart;
 
+        [Inject]
         public AppInTossAnalyticsService(IEventBus eventBus, AuthRegistry authRegistry, ScoreService scoreService)
         {
             _eventBus = eventBus;

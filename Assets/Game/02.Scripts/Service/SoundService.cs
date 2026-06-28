@@ -8,6 +8,7 @@ using JumJump.Factory;
 using JumJump.Interface;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -26,6 +27,7 @@ namespace JumJump.Service
         private CancellationTokenSource _destroyCancellation;
         private bool _isAudioUnlocked;
 
+        [Inject]
         public SoundService(
             IEventBus eventBus,
             GameConfigData configData,

@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using JumJump.Util;
 using UnityEngine;
 using UnityEngine.Pool;
+using VContainer;
 
 namespace JumJump.Service
 {
     public sealed class PoolService
     {
         private readonly Dictionary<string, IPool> _pools = new Dictionary<string, IPool>(16);
+
+        [Inject]
+        public PoolService()
+        {
+        }
 
         public void Register<T>(
             string key,

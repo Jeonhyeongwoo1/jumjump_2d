@@ -1,6 +1,7 @@
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Presenter;
+using VContainer;
 
 namespace JumJump.Service.GameFlowState
 {
@@ -12,6 +13,7 @@ namespace JumJump.Service.GameFlowState
         private readonly ScoreService _scoreService;
         private readonly UIGameOverPopupPresenter _popupPresenter;
 
+        [Inject]
         public GameOverGameFlowState(
             IEventBus eventBus,
             ScoreService scoreService,

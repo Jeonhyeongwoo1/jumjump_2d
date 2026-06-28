@@ -1,6 +1,7 @@
 using JumJump.Interface;
 using JumJump.Service;
 using JumJump.Service.PlatformGimmick;
+using VContainer;
 
 namespace JumJump.Factory
 {
@@ -11,6 +12,7 @@ namespace JumJump.Factory
         private readonly IPlatformGimmickBehaviour[] _behaviours;
         private readonly JumpBoxBoostFXService _jumpBoxBoostFXService;
 
+        [Inject]
         public PlatformGimmickBehaviourFactory(JumpBoxBoostFXService jumpBoxBoostFXService)
         {
             _jumpBoxBoostFXService = jumpBoxBoostFXService;

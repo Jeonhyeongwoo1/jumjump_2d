@@ -10,6 +10,7 @@ using JumJump.Presenter;
 using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -31,6 +32,7 @@ namespace JumJump.Service
         private readonly AuthRegistry _authRegistry;
         private bool _hasAuthFailed;
 
+        [Inject]
         public GameBootstrapService(
             IEventBus eventBus,
             LoadingScreenService loadingScreenService,

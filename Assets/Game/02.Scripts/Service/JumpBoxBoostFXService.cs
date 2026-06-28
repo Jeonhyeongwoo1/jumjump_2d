@@ -5,6 +5,7 @@ using JumJump.Controller;
 using JumJump.Data;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -18,6 +19,7 @@ namespace JumJump.Service
         private int _createdCount;
         private bool _isReady;
 
+        [Inject]
         public JumpBoxBoostFXService(
             EffectConfigData configData,
             PoolService poolService,

@@ -7,6 +7,7 @@ using JumJump.Interface;
 using JumJump.Service;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Presenter
 {
@@ -26,6 +27,7 @@ namespace JumJump.Presenter
 
         public bool IsShowing => _view != null && _view.gameObject.activeSelf;
 
+        [Inject]
         public UIGameOverPopupPresenter(
             IEventBus eventBus,
             PopupService popupService,

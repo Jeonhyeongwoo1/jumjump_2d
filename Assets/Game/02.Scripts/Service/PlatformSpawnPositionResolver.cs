@@ -1,5 +1,6 @@
 using JumJump.Data;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -8,6 +9,7 @@ namespace JumJump.Service
         private readonly PlatformConfigData _configData;
         private readonly UnityEngine.Camera _gameCamera;
 
+        [Inject]
         public PlatformSpawnPositionResolver(PlatformConfigData configData, UnityEngine.Camera gameCamera)
         {
             _configData = configData;

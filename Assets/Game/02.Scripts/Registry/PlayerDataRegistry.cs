@@ -5,6 +5,7 @@ using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Model;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Registry
 {
@@ -19,6 +20,7 @@ namespace JumJump.Registry
         private readonly PlayerModel _model = new PlayerModel();
         private bool _isLoaded;
 
+        [Inject]
         public PlayerDataRegistry(IEventBus eventBus, GameConfigData configData)
         {
             _eventBus = eventBus;

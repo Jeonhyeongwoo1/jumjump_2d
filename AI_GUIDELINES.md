@@ -3,6 +3,10 @@
 ## Highest Priority: Required Dependency / Component Rules
 
 - DI로 주입되는 필수 의존성은 null 체크하지 않는다. 생성자, `Construct`, `Bind`, `Initialize`에서 받은 필수 인자는 존재를 전제로 하고 직접 사용한다.
+- VContainer가 `GameSceneLifeScope`의 `Register` 또는 `RegisterEntryPoint`로 생성하는 non-MonoBehaviour 클래스는 의도한 생성자에 `[Inject]`를 명시한다. 생성자가 하나뿐이어도 Mobile WebGL IL2CPP/AOT 환경의 생성자 탐색 안정성을 위해 명시한다.
+- MonoBehaviour는 생성자 주입을 사용하지 않고 `[Inject] public void Construct(...)` 패턴을 사용한다.
+- event struct, data struct, model, 수동 `new`로 생성하는 helper 객체에는 `[Inject]`를 붙이지 않는다.
+- `[Inject]`는 컨테이너가 생성자를 선택하는 메타데이터이며 매 프레임 실행되는 로직이 아니므로 의미 있는 런타임 성능 비용은 없다.
 - 필수 `[SerializeField]` 컴포넌트는 프리팹/씬에서 반드시 연결되어 있어야 한다. 코드에서 `GetComponent`, `GetComponentInChildren`, `GetComponentInParent`로 fallback resolve 하지 않는다.
 - 금지 예시: `if (_eventBus == null)`, `if (_configData == null)`, `if (_animator == null) _animator = GetComponent<Animator>();`, `if (_spriteRenderer == null) _spriteRenderer = GetComponentInChildren<SpriteRenderer>();`
 - null 체크는 현재 플레이어처럼 spawn 전에는 없을 수 있는 런타임 상태, 명시적 optional dependency, nullable 이벤트 payload, 풀/팩토리 실패 반환값에만 둔다.
@@ -324,6 +328,15 @@ private void OnPlayerLanded(in PlayerLandedEvent ev) { }
 
 ### 의존성 주입 패턴
 
+#### VContainer `[Inject]` 기준
+
+- `GameSceneLifeScope`에서 `Register` 또는 `RegisterEntryPoint`로 등록하는 non-MonoBehaviour 서비스, 팩토리, 프레젠터, 레지스트리, 엔트리포인트 클래스는 생성자에 `[Inject]`를 붙인다.
+- 생성자가 하나뿐이어도 `[Inject]`를 붙인다. WebGL은 IL2CPP/AOT 빌드이므로 명시적인 생성자 메타데이터가 VContainer의 constructor discovery 실패를 줄인다.
+- 대표 증상: `VContainerException: Type does not found injectable constructor`.
+- `[Inject]`는 컨테이너 빌드/resolve 시 생성자 선택에만 관여한다. 게임 루프에서 반복 실행되는 코드가 아니므로 성능 비용은 사실상 없다.
+- MonoBehaviour는 생성자를 만들지 않고 `[Inject] public void Construct(...)` 메서드로 주입받는다.
+- event/data struct, 단순 model, 수동 `new`로 생성하는 helper 객체에는 `[Inject]`를 붙이지 않는다.
+
 **서비스 / Presenter (non-MonoBehaviour) — 생성자 주입, `readonly` 필드:**
 ```csharp
 public sealed class ScoreService : IInitializable, IDisposable
@@ -331,6 +344,7 @@ public sealed class ScoreService : IInitializable, IDisposable
     private readonly IEventBus _eventBus;
     private readonly GameConfigData _configData;
 
+    [Inject]
     public ScoreService(IEventBus eventBus, GameConfigData configData)
     {
         _eventBus = eventBus;

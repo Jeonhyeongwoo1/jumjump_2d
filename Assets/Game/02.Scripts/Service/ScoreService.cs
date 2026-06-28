@@ -5,6 +5,7 @@ using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -30,6 +31,7 @@ namespace JumJump.Service
         private readonly GameConfigData _configData;
         private readonly PlayerDataRegistry _playerDataRegistry;
 
+        [Inject]
         public ScoreService(
             IEventBus eventBus,
             GameConfigData configData,

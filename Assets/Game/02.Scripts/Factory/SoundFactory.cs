@@ -1,9 +1,15 @@
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Factory
 {
     public sealed class SoundFactory
     {
+        [Inject]
+        public SoundFactory()
+        {
+        }
+
         public Transform CreateRoot()
         {
             var root = new GameObject("SoundRoot");

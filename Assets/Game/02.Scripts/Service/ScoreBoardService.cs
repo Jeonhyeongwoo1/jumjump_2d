@@ -6,6 +6,7 @@ using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -29,6 +30,7 @@ namespace JumJump.Service
         private bool _isBestScoreReached;
         private bool _isReady;
 
+        [Inject]
         public ScoreBoardService(
             IEventBus eventBus,
             PoolService poolService,

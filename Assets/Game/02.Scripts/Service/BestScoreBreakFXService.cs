@@ -5,6 +5,7 @@ using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -22,6 +23,7 @@ namespace JumJump.Service
         private bool _hasPlayedForRound;
         private bool _isReady;
 
+        [Inject]
         public BestScoreBreakFXService(
             EffectConfigData configData,
             IEventBus eventBus,

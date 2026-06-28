@@ -2,6 +2,7 @@ using System;
 using JumJump.Controller;
 using JumJump.Data;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Factory
 {
@@ -13,6 +14,7 @@ namespace JumJump.Factory
 
         private readonly EffectConfigData _configData;
 
+        [Inject]
         public ComboPlatformFXFactory(EffectConfigData configData)
         {
             _configData = configData;

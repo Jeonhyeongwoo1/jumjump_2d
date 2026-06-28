@@ -20,6 +20,7 @@ namespace JumJump.Factory
         private GameObject _playerPrefab;
         private bool _isReady;
 
+        [Inject]
         public PlayerFactory(
             PoolService poolService,
             ResourceService resourceService,

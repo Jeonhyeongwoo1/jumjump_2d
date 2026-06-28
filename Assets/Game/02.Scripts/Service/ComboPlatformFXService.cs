@@ -6,6 +6,7 @@ using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -26,6 +27,7 @@ namespace JumJump.Service
         private int _pendingPlatformPulseComboCount;
         private bool _hasPendingPlatformPulse;
 
+        [Inject]
         public ComboPlatformFXService(
             IEventBus eventBus,
             EffectConfigData configData,

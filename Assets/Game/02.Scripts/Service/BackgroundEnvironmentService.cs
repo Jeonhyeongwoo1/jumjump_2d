@@ -4,6 +4,7 @@ using JumJump.Event;
 using JumJump.Factory;
 using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -35,6 +36,7 @@ namespace JumJump.Service
         private float _elapsedTime;
         private bool _isInitialized;
 
+        [Inject]
         public BackgroundEnvironmentService(
             IEventBus eventBus,
             BackgroundConfigData configData,

@@ -8,6 +8,7 @@ using JumJump.Interface;
 using JumJump.Registry;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -24,6 +25,7 @@ namespace JumJump.Service
         private int _createdCount;
         private bool _isReady;
 
+        [Inject]
         public CoinCollectFXService(
             EffectConfigData configData,
             IEventBus eventBus,

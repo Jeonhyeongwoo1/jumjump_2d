@@ -6,6 +6,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Service
 {
@@ -16,6 +17,7 @@ namespace JumJump.Service
         private readonly ScoreService _scoreService;
         private CancellationTokenSource _cts;
 
+        [Inject]
         public AdService(IEventBus eventBus, AppInTossConfigSO config, ScoreService scoreService)
         {
             _eventBus = eventBus;

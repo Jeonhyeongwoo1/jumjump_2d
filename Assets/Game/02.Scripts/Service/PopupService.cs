@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JumJump.Factory;
 using JumJump.Presenter;
+using VContainer;
 using JumJump.Util;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace JumJump.Service
         private readonly Dictionary<Type, BasePopup> _cache = new Dictionary<Type, BasePopup>();
         private readonly Stack<BasePopup> _stack = new Stack<BasePopup>();
 
+        [Inject]
         public PopupService(UIFactory uiFactory)
         {
             _uiFactory = uiFactory;

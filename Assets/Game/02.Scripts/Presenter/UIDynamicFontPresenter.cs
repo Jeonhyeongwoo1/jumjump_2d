@@ -6,6 +6,7 @@ using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Presenter
 {
@@ -20,6 +21,7 @@ namespace JumJump.Presenter
 
         private int _previousScore;
 
+        [Inject]
         public UIDynamicFontPresenter(
             IEventBus eventBus,
             PoolService poolService,

@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
 using JumJump.Interface;
+using VContainer;
 
 namespace JumJump.Event
 {
     public sealed class EventBus : IEventBus
     {
         private readonly Dictionary<Type, Delegate> _handlers = new Dictionary<Type, Delegate>(32);
+
+        [Inject]
+        public EventBus()
+        {
+        }
 
         public void Subscribe<T>(Interface.EventHandler<T> handler) where T : struct
         {

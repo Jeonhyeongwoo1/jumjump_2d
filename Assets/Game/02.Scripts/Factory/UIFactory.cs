@@ -12,6 +12,7 @@ namespace JumJump.Factory
         private readonly IObjectResolver _resolver;
         private readonly UnityEngine.Camera _gameCamera;
 
+        [Inject]
         public UIFactory(ResourceService resourceService, IObjectResolver resolver, UnityEngine.Camera gameCamera)
         {
             _resourceService = resourceService;

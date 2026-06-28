@@ -6,6 +6,7 @@ using JumJump.Interface;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using VContainer;
 using VContainer.Unity;
 
 namespace JumJump.Service
@@ -20,6 +21,7 @@ namespace JumJump.Service
         private readonly InputActionAsset _inputActions;
         private readonly GameConfigData _configData;
 
+        [Inject]
         public InputActionTapService(IEventBus eventBus, InputActionAsset inputActions, GameConfigData configData)
         {
             _eventBus = eventBus;
