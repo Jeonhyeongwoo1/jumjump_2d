@@ -34,9 +34,47 @@ mergeInto(LibraryManager.library, {
       });
     }
 
+    function isProduction() {
+      return window.IS_PRODUCTION === true;
+    }
+
+    function hasReactNativeBridge() {
+      return !!window.ReactNativeWebView;
+    }
+
+    function isLocalDevelopmentHost() {
+      var hostname = window.location && window.location.hostname ? window.location.hostname : '';
+      return hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '::1' ||
+        /^192\.168\./.test(hostname) ||
+        /^10\./.test(hostname) ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+    }
+
+    function resolveDevTossHash() {
+      if (isProduction() || !isLocalDevelopmentHost()) {
+        throw new Error('apps_in_toss_sdk_not_ready');
+      }
+
+      var key = 'ait_dev_toss_hash';
+      var storedHash = localStorage.getItem(key);
+      if (storedHash) {
+        return storedHash;
+      }
+
+      var generatedHash = 'dev-webgl-user-' + Math.random().toString(36).slice(2);
+      localStorage.setItem(key, generatedHash);
+      return generatedHash;
+    }
+
     async function resolveTossHash() {
       var appsInToss = await waitForAppsInTossSdk();
       if (appsInToss) {
+        if (!hasReactNativeBridge()) {
+          return resolveDevTossHash();
+        }
+
         var getUserKey = typeof appsInToss.getAnonymousKey === 'function'
           ? appsInToss.getAnonymousKey
           : appsInToss.getUserKeyForGame;
@@ -61,19 +99,7 @@ mergeInto(LibraryManager.library, {
         throw new Error('invalid_user_key_response');
       }
 
-      if (window.IS_PRODUCTION === true) {
-        throw new Error('apps_in_toss_sdk_not_ready');
-      }
-
-      var key = 'ait_dev_toss_hash';
-      var storedHash = localStorage.getItem(key);
-      if (storedHash) {
-        return storedHash;
-      }
-
-      var generatedHash = 'dev-webgl-user-' + Math.random().toString(36).slice(2);
-      localStorage.setItem(key, generatedHash);
-      return generatedHash;
+      return resolveDevTossHash();
     }
 
     async function login() {
