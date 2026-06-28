@@ -7,6 +7,7 @@ namespace JumJump.Presenter
     {
         protected Canvas Canvas { get; private set; }
 
+        private RectTransform _safeAreaTarget;
         private float _nextSafeAreaRefreshTime;
         private bool _isSafeAreaInitialized;
         private bool _isApplyingSafeArea;
@@ -18,6 +19,7 @@ namespace JumJump.Presenter
         {
             Canvas = GetComponent<Canvas>();
             Canvas.sortingOrder = GameConst.UI.PopupSortingOrder;
+            _safeAreaTarget = AppInTossSafeAreaUtility.ResolveTarget((RectTransform)transform);
             _isSafeAreaInitialized = true;
             ApplySafeArea();
         }
@@ -68,7 +70,7 @@ namespace JumJump.Presenter
             _isApplyingSafeArea = true;
             try
             {
-                AppInTossSafeAreaUtility.Apply((RectTransform)transform, Canvas);
+                AppInTossSafeAreaUtility.Apply(_safeAreaTarget, Canvas);
             }
             finally
             {
