@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using VContainer;
 using Object = UnityEngine.Object;
 
 namespace JumJump.Service
@@ -25,6 +26,7 @@ namespace JumJump.Service
 
         private bool _isPreLoaded;
 
+        [Inject]
         public ResourceService(ResourceConfigData configData)
         {
             _configData = configData;
@@ -128,6 +130,11 @@ namespace JumJump.Service
             if (IsResourceCached(key))
             {
                 return true;
+            }
+
+            if (key.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
+            {
+                return await LoadSpriteKeyAsync(key, cancellationToken);
             }
 
             return await LoadResourcesAsync(key, null, null, cancellationToken);
@@ -268,6 +275,62 @@ namespace JumJump.Service
                 {
                     Addressables.Release(locationsHandle);
                 }
+            }
+        }
+
+        private async UniTask<bool> LoadSpriteKeyAsync(string spriteKey, CancellationToken cancellationToken)
+        {
+            if (await TryLoadSpriteAssetByKeyAsync(spriteKey, spriteKey, cancellationToken))
+            {
+                return true;
+            }
+
+            var baseKey = spriteKey.Substring(0, spriteKey.Length - SpriteKeySuffix.Length);
+            if (await TryLoadSpriteAssetByKeyAsync(baseKey, spriteKey, cancellationToken))
+            {
+                return true;
+            }
+
+            GameLogger.Error(nameof(ResourceService), $"Addressables sprite key returned no locations: {spriteKey}");
+            return false;
+        }
+
+        private async UniTask<bool> TryLoadSpriteAssetByKeyAsync(
+            string loadKey,
+            string cacheKey,
+            CancellationToken cancellationToken)
+        {
+            AsyncOperationHandle<Sprite> handle = default;
+            try
+            {
+                handle = Addressables.LoadAssetAsync<Sprite>(loadKey);
+                var sprite = await handle.ToUniTask(cancellationToken: cancellationToken);
+                if (sprite == null)
+                {
+                    ReleaseHandle(handle);
+                    return false;
+                }
+
+                CacheResource(cacheKey, sprite, handle);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                if (handle.IsValid())
+                {
+                    ReleaseHandle(handle);
+                }
+
+                throw;
+            }
+            catch
+            {
+                if (handle.IsValid())
+                {
+                    ReleaseHandle(handle);
+                }
+
+                return false;
             }
         }
 

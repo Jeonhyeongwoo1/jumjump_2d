@@ -43,7 +43,14 @@ namespace JumJump.Data
         [SerializeField] private string _playerSkinDataAddressableKeyPrefix = "PlayerSkin_";
         [SerializeField] private string[] _playerSpriteAddressableKeys =
         {
-            "Player_1001"
+            "Player_1001.sprite",
+            "Player_1002.sprite",
+            "Player_1003.sprite",
+            "Player_1004.sprite",
+            "Player_1005.sprite",
+            "Player_1006.sprite",
+            "Player_1007.sprite",
+            "Player_1008.sprite"
         };
         [SerializeField] private string[] _scoreBoardSpriteAddressableKeys =
         {

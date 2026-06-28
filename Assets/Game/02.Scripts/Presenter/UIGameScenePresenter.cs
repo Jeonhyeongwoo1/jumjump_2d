@@ -9,11 +9,14 @@ using JumJump.Registry;
 using JumJump.Service;
 using JumJump.Util;
 using UnityEngine;
+using VContainer;
 
 namespace JumJump.Presenter
 {
     public sealed class UIGameScenePresenter : IDisposable
     {
+        private const string SpriteKeySuffix = ".sprite";
+
         private readonly IEventBus _eventBus;
         private readonly ScoreService _scoreService;
         private readonly PlayerDataRegistry _playerDataRegistry;
@@ -24,6 +27,7 @@ namespace JumJump.Presenter
         private UI_GameScene _view;
         private bool _hasPlayedBestScoreAnimation;
 
+        [Inject]
         public UIGameScenePresenter(
             IEventBus eventBus,
             ScoreService scoreService,
@@ -281,14 +285,21 @@ namespace JumJump.Presenter
         private bool TryResolveSkinId(string spriteAddressableKey, out int skinId)
         {
             skinId = 0;
-            var delimiterIndex = spriteAddressableKey.LastIndexOf('_');
-            if (delimiterIndex < 0 || delimiterIndex >= spriteAddressableKey.Length - 1)
+            var key = spriteAddressableKey;
+            if (!string.IsNullOrEmpty(key) &&
+                key.EndsWith(SpriteKeySuffix, StringComparison.Ordinal))
+            {
+                key = key.Substring(0, key.Length - SpriteKeySuffix.Length);
+            }
+
+            var delimiterIndex = key.LastIndexOf('_');
+            if (delimiterIndex < 0 || delimiterIndex >= key.Length - 1)
             {
                 GameLogger.Error(nameof(UIGameScenePresenter), $"Invalid character sprite key: {spriteAddressableKey}");
                 return false;
             }
 
-            if (int.TryParse(spriteAddressableKey.Substring(delimiterIndex + 1), out skinId))
+            if (int.TryParse(key.Substring(delimiterIndex + 1), out skinId))
             {
                 return true;
             }

@@ -23,7 +23,14 @@ MonoBehaviour:
   _localizationCsv: {fileID: 4900000, guid: 42f756f5452846c9bf335dc4f4f6a9a1, type: 3}
   _playerSkinDataAddressableKeyPrefix: PlayerSkin_
   _playerSpriteAddressableKeys:
-  - Player_1001
+  - Player_1001.sprite
+  - Player_1002.sprite
+  - Player_1003.sprite
+  - Player_1004.sprite
+  - Player_1005.sprite
+  - Player_1006.sprite
+  - Player_1007.sprite
+  - Player_1008.sprite
   _scoreBoardSpriteAddressableKeys:
   - Scoreboard_1.sprite
   - Scoreboard_2.sprite
