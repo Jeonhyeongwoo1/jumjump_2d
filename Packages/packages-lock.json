@@ -248,6 +248,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.2",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.profiling.core": {
       "version": "1.0.3",
       "depth": 1,
@@ -345,15 +352,6 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.uiextensions": {
-      "version": "https://github.com/Unity-UI-Extensions/com.unity.uiextensions.git#v3.0.0",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.ugui": "2.0.0"
-      },
-      "hash": "d47f838ba918bbb9b26f242bd944940a711f525f"
-    },
     "com.unity.ugui": {
       "version": "2.0.0",
       "depth": 0,
@@ -362,6 +360,15 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
+    },
+    "com.unity.uiextensions": {
+      "version": "https://github.com/Unity-UI-Extensions/com.unity.uiextensions.git#v3.0.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      },
+      "hash": "d47f838ba918bbb9b26f242bd944940a711f525f"
     },
     "com.unity.visualscripting": {
       "version": "1.9.9",
@@ -372,6 +379,15 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "im.toss.apps-in-toss-unity-sdk": {
+      "version": "https://github.com/toss/apps-in-toss-unity-sdk.git#release/v2.9.3",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "hash": "1cd7aafd8967f9e1cbcb76e1f9dd6fa61f62762b"
     },
     "jp.hadashikick.vcontainer": {
       "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0",

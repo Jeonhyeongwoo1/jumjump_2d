@@ -6344,11 +6344,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1846150863418231506, guid: 41c913a3c5fab4d408795c83c172fc1a, type: 3}
   m_PrefabInstance: {fileID: 1273612037}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1273612039 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1846150863418231505, guid: 41c913a3c5fab4d408795c83c172fc1a, type: 3}
-  m_PrefabInstance: {fileID: 1273612037}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1273612041 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4506536553612858722, guid: 41c913a3c5fab4d408795c83c172fc1a, type: 3}
@@ -11742,17 +11737,17 @@ RectTransform:
   m_GameObject: {fileID: 6041712215646399185}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1273612038}
   m_Father: {fileID: 1680520125}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 0}
 --- !u!223 &2702319198172461088
 Canvas:
   m_ObjectHideFlags: 0
