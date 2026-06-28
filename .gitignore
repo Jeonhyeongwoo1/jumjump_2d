@@ -183,8 +183,20 @@ x86/
 # Apps in Toss SDK - 자동 보호 패턴
 **/AITCredentials.asset
 **/AITCredentials.asset.meta
+.pnpm-store/
+*.ait
 ait-build/
 webgl/
 Assets/WebGLTemplates/
+!Assets/WebGLTemplates/
+Assets/WebGLTemplates/*
+!Assets/WebGLTemplates/AITTemplate/
+Assets/WebGLTemplates/AITTemplate/*
+!Assets/WebGLTemplates/AITTemplate/BuildConfig~/
+Assets/WebGLTemplates/AITTemplate/BuildConfig~/*
+!Assets/WebGLTemplates/AITTemplate/BuildConfig~/package.json
+!Assets/WebGLTemplates/AITTemplate/BuildConfig~/pnpm-lock.yaml
+!Assets/WebGLTemplates/AITTemplate/BuildConfig~/pnpm-workspace.yaml
+!Assets/WebGLTemplates/AITTemplate/BuildConfig~/vite.config.ts
 Assets/StreamingAssets/build_info
 Assets/StreamingAssets/build_info.meta

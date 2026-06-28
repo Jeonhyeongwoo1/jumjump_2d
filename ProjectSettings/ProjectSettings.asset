@@ -561,14 +561,14 @@ PlayerSettings:
   m_TemplateCustomTags:
     AIT_ALLOWS_INLINE_MEDIA_PLAYBACK: true
     AIT_APP_NAME: com-lumogames-piyohop
-    AIT_BRIDGE_COLOR_MODE: light
+    AIT_BRIDGE_COLOR_MODE: inverted
     AIT_DEVICE_PIXEL_RATIO: -1
     AIT_DISPLAY_NAME: Piyo Hop
-    AIT_EARLY_FETCH_SCRIPT: ""
+    AIT_EARLY_FETCH_SCRIPT:
     AIT_ENABLE_DEBUG_CONSOLE: false
     AIT_ICON_URL: https://jumpjump-21a86.web.app/assets/piyo-hop-icon.png
     AIT_IS_PRODUCTION: true
-    AIT_LOADING_SCREEN: ""
+    AIT_LOADING_SCREEN:
     AIT_MEDIA_PLAYBACK_REQUIRES_USER_ACTION: true
     AIT_OUTDIR: dist
     AIT_PERMISSIONS: '[]'
@@ -835,11 +835,11 @@ PlayerSettings:
   blurSplashScreenBackground: 1
   spritePackerPolicy: 
   webGLMemorySize: 1024
-  webGLExceptionSupport: 1
-  webGLNameFilesAsHashes: 0
+  webGLExceptionSupport: 3
+  webGLNameFilesAsHashes: 1
   webGLShowDiagnostics: 0
   webGLDataCaching: 0
-  webGLDebugSymbols: 0
+  webGLDebugSymbols: 1
   webGLEmscriptenArgs: 
   webGLModulesDirectory: 
   webGLTemplate: PROJECT:AITTemplate
@@ -873,7 +873,7 @@ PlayerSettings:
   il2cppCodeGeneration: {}
   il2cppStacktraceInformation: {}
   managedStrippingLevel:
-    WebGL: 4
+    WebGL: 3
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1
   allowUnsafeCode: 0
@@ -974,7 +974,7 @@ PlayerSettings:
   hmiLoadingImage: {fileID: 0}
   platformRequiresReadableAssets: 0
   virtualTexturingSupportEnabled: 0
-  insecureHttpOption: 0
+  insecureHttpOption: 2
   androidVulkanDenyFilterList: []
   androidVulkanAllowFilterList: []
   androidVulkanDeviceFilterListAsset: {fileID: 0}
