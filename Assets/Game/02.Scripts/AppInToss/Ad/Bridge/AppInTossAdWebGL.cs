@@ -14,6 +14,7 @@ namespace JumJump.Bridge
         [DllImport("__Internal")] private static extern int AITAd_HasReward();
         [DllImport("__Internal")] private static extern string AITAd_GetRewardType();
         [DllImport("__Internal")] private static extern int AITAd_GetRewardAmount();
+        [DllImport("__Internal")] private static extern void AITAd_ResumeAudio();
 #endif
 
         public static void Load(string adGroupId, int wave)
@@ -90,6 +91,13 @@ namespace JumJump.Bridge
             return AITAd_GetRewardAmount();
 #else
             return 0;
+#endif
+        }
+
+        public static void ResumeAudio()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            AITAd_ResumeAudio();
 #endif
         }
     }

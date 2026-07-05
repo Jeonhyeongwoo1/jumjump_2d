@@ -183,6 +183,11 @@ namespace JumJump.Presenter
             _adRewardGoldText.text = $"{Mathf.Max(0, goldAmount)} gold";
         }
 
+        public void SetAdRewardButtonInteractable(bool isInteractable)
+        {
+            _adRewardButton.interactable = isInteractable;
+        }
+
         public void PlayAdRewardGoldMoveFX()
         {
             StopAdRewardGoldFlyAnimation();

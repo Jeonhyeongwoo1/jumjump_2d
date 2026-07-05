@@ -24,8 +24,12 @@ namespace JumJump.Presenter
         private readonly ResourceService _resourceService;
         private readonly LocalizationService _localizationService;
         private readonly ResourceConfigData _resourceConfigData;
+        private readonly AppInTossConfigSO _appInTossConfig;
+        private readonly IAdService _adService;
         private UI_GameScene _view;
+        private CancellationTokenSource _adRewardCts;
         private bool _hasPlayedBestScoreAnimation;
+        private bool _isAdRewardRunning;
 
         [Inject]
         public UIGameScenePresenter(
@@ -35,7 +39,9 @@ namespace JumJump.Presenter
             PlayerRegistry playerRegistry,
             ResourceService resourceService,
             LocalizationService localizationService,
-            ResourceConfigData resourceConfigData)
+            ResourceConfigData resourceConfigData,
+            AppInTossConfigSO appInTossConfig,
+            IAdService adService)
         {
             _eventBus = eventBus;
             _scoreService = scoreService;
@@ -44,6 +50,8 @@ namespace JumJump.Presenter
             _resourceService = resourceService;
             _localizationService = localizationService;
             _resourceConfigData = resourceConfigData;
+            _appInTossConfig = appInTossConfig;
+            _adService = adService;
         }
 
         public void Bind(UI_GameScene view)
@@ -56,6 +64,7 @@ namespace JumJump.Presenter
 
             _view = view;
             _hasPlayedBestScoreAnimation = false;
+            _isAdRewardRunning = false;
             _view.AddEvents(
                 OnGameReadyClicked,
                 OnAdRewardClicked,
@@ -74,6 +83,7 @@ namespace JumJump.Presenter
 
         public void Unbind()
         {
+            DisposeAdRewardRequest();
             _eventBus.Unsubscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
             _view?.RemoveEvents();
@@ -147,8 +157,59 @@ namespace JumJump.Presenter
 
         private void OnAdRewardClicked()
         {
+            if (_isAdRewardRunning)
+            {
+                return;
+            }
+
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
-            _scoreService.GrantAdRewardGold();
+            RunAdRewardAsync().Forget();
+        }
+
+        private async UniTask RunAdRewardAsync()
+        {
+            DisposeAdRewardRequest();
+            _isAdRewardRunning = true;
+            _adRewardCts = new CancellationTokenSource();
+            _view?.SetAdRewardButtonInteractable(false);
+
+            try
+            {
+                var result = await _adService.ShowRewardedAdAsync(
+                    _appInTossConfig.RewardAdGroupId,
+                    _adRewardCts.Token);
+
+                if (!result.IsSuccess || !result.HasReward)
+                {
+                    GameLogger.Warning(nameof(UIGameScenePresenter), $"Ad reward was not granted: {result.Error}");
+                    return;
+                }
+
+                _scoreService.GrantAdRewardGold();
+            }
+            catch (OperationCanceledException)
+            {
+                GameLogger.Warning(nameof(UIGameScenePresenter), "ad_reward_cancelled");
+            }
+            finally
+            {
+                DisposeAdRewardRequest();
+                _view?.SetAdRewardButtonInteractable(true);
+            }
+        }
+
+        private void DisposeAdRewardRequest()
+        {
+            if (_adRewardCts == null)
+            {
+                _isAdRewardRunning = false;
+                return;
+            }
+
+            _adRewardCts.Cancel();
+            _adRewardCts.Dispose();
+            _adRewardCts = null;
+            _isAdRewardRunning = false;
         }
 
         private bool OnCharacterConfirmed(int skinId)

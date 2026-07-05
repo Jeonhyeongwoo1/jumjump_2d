@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JumJump.Bridge;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Factory;
@@ -26,6 +27,9 @@ namespace JumJump.Service
         private AudioSource _sfxSource;
         private CancellationTokenSource _destroyCancellation;
         private bool _isAudioUnlocked;
+        private bool _shouldBgmBePlaying;
+        private bool _isPreloadingCoreAudio;
+        private bool _hasPreloadedCoreAudio;
 
         [Inject]
         public SoundService(
@@ -50,6 +54,7 @@ namespace JumJump.Service
 
             _eventBus.Subscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Subscribe<SoundRequestedEvent>(OnSoundRequested);
+            _eventBus.Subscribe<GameResourcesReadyEvent>(OnGameResourcesReady);
             _eventBus.Subscribe<GameStartedEvent>(OnGameStarted);
             _eventBus.Subscribe<GameResetEvent>(OnGameReset);
             _eventBus.Subscribe<PlayerJumpStartedEvent>(OnPlayerJumpStarted);
@@ -57,6 +62,7 @@ namespace JumJump.Service
             _eventBus.Subscribe<PlayerDeadAnimationStartedEvent>(OnPlayerDeadAnimationStarted);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
+            _eventBus.Subscribe<AdEventLoggedEvent>(OnAdEventLogged);
             _eventBus.Subscribe<GameOverEvent>(OnGameOver);
         }
 
@@ -64,6 +70,7 @@ namespace JumJump.Service
         {
             _eventBus.Unsubscribe<TapRequestedEvent>(OnTapRequested);
             _eventBus.Unsubscribe<SoundRequestedEvent>(OnSoundRequested);
+            _eventBus.Unsubscribe<GameResourcesReadyEvent>(OnGameResourcesReady);
             _eventBus.Unsubscribe<GameStartedEvent>(OnGameStarted);
             _eventBus.Unsubscribe<GameResetEvent>(OnGameReset);
             _eventBus.Unsubscribe<PlayerJumpStartedEvent>(OnPlayerJumpStarted);
@@ -71,6 +78,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<PlayerDeadAnimationStartedEvent>(OnPlayerDeadAnimationStarted);
             _eventBus.Unsubscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Unsubscribe<GoldChangedEvent>(OnGoldChanged);
+            _eventBus.Unsubscribe<AdEventLoggedEvent>(OnAdEventLogged);
             _eventBus.Unsubscribe<GameOverEvent>(OnGameOver);
 
             if (_destroyCancellation != null)
@@ -91,11 +99,14 @@ namespace JumJump.Service
         private void OnTapRequested(in TapRequestedEvent ev)
         {
             UnlockAudio();
+            RestoreAudioOutput();
+            PreloadCoreAudioAsync().Forget();
         }
 
         private void OnSoundRequested(in SoundRequestedEvent ev)
         {
             UnlockAudio();
+            RestoreAudioOutput();
 
             if (ev.Type == GameSoundType.BgmGameLoop)
             {
@@ -106,13 +117,21 @@ namespace JumJump.Service
             PlayOneShotAsync(ev.Type).Forget();
         }
 
+        private void OnGameResourcesReady(in GameResourcesReadyEvent ev)
+        {
+            PreloadCoreAudioAsync().Forget();
+        }
+
         private void OnGameStarted(in GameStartedEvent ev)
         {
+            _shouldBgmBePlaying = true;
+            RestoreAudioOutput();
             StartBgmAsync().Forget();
         }
 
         private void OnGameReset(in GameResetEvent ev)
         {
+            _shouldBgmBePlaying = false;
             StopBgm();
         }
 
@@ -123,6 +142,7 @@ namespace JumJump.Service
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
         {
+            _shouldBgmBePlaying = false;
             StopBgm();
         }
 
@@ -151,12 +171,39 @@ namespace JumJump.Service
 
         private void OnGameOver(in GameOverEvent ev)
         {
+            _shouldBgmBePlaying = false;
             StopBgm();
+        }
+
+        private void OnAdEventLogged(in AdEventLoggedEvent ev)
+        {
+            if (ev.EventType != "show_rewarded" &&
+                ev.EventType != "show_dismissed" &&
+                ev.EventType != "show_failed")
+            {
+                return;
+            }
+
+            RestoreAudioOutput();
+            if (_shouldBgmBePlaying)
+            {
+                StartBgmAsync().Forget();
+            }
         }
 
         private void UnlockAudio()
         {
             _isAudioUnlocked = true;
+        }
+
+        private void RestoreAudioOutput()
+        {
+            AudioListener.pause = false;
+            AudioListener.volume = 1f;
+            ApplyVolumes();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            AppInTossAdWebGL.ResumeAudio();
+#endif
         }
 
         private void ApplyVolumes()
@@ -177,6 +224,8 @@ namespace JumJump.Service
             {
                 return;
             }
+
+            await PrepareAudioDataAsync(clip);
 
             if (!CanPlayBgm())
             {
@@ -213,12 +262,61 @@ namespace JumJump.Service
                 return;
             }
 
+            await PrepareAudioDataAsync(clip);
+
             if (!CanPlaySfx())
             {
                 return;
             }
 
             _sfxSource.PlayOneShot(clip);
+        }
+
+        private async UniTask PreloadCoreAudioAsync()
+        {
+            if (_hasPreloadedCoreAudio || _isPreloadingCoreAudio)
+            {
+                return;
+            }
+
+            _isPreloadingCoreAudio = true;
+
+            try
+            {
+                await PreloadClipAsync(GameSoundType.UiButtonTap);
+                await PreloadClipAsync(GameSoundType.UiCountdownTick);
+                await PreloadClipAsync(GameSoundType.PlayerJump);
+                await PreloadClipAsync(GameSoundType.LandingNormal);
+                await PreloadClipAsync(GameSoundType.GoldCollect);
+                await PreloadClipAsync(GameSoundType.PlayerMiss);
+                await PreloadClipAsync(GameSoundType.PlayerDead);
+                await PreloadClipAsync(GameSoundType.BgmGameLoop);
+                _hasPreloadedCoreAudio = true;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            finally
+            {
+                _isPreloadingCoreAudio = false;
+            }
+        }
+
+        private async UniTask PreloadClipAsync(GameSoundType soundType)
+        {
+            var clip = await LoadClipAsync(soundType);
+            if (clip == null)
+            {
+                return;
+            }
+
+            await PrepareAudioDataAsync(clip);
+
+            if (soundType == GameSoundType.BgmGameLoop)
+            {
+                _bgmSource.clip = clip;
+            }
         }
 
         private async UniTask<AudioClip> LoadClipAsync(GameSoundType soundType)
@@ -263,6 +361,28 @@ namespace JumJump.Service
 
             _loadedClips[soundType] = clip;
             return clip;
+        }
+
+        private async UniTask PrepareAudioDataAsync(AudioClip clip)
+        {
+            if (clip.loadState == AudioDataLoadState.Unloaded)
+            {
+                clip.LoadAudioData();
+            }
+
+            if (_destroyCancellation == null)
+            {
+                return;
+            }
+
+            while (clip.loadState == AudioDataLoadState.Loading)
+            {
+                var isCanceled = await UniTask.Yield(PlayerLoopTiming.Update, _destroyCancellation.Token).SuppressCancellationThrow();
+                if (isCanceled)
+                {
+                    return;
+                }
+            }
         }
 
         private bool CanPlayBgm()

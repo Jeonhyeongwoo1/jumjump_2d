@@ -17,8 +17,8 @@ MonoBehaviour:
   _webGLLoginTimeoutMs: 30000
   _adLoadTimeoutMs: 15000
   _adShowTimeoutMs: 120000
-  _continueAdGroupId: continue
-  _rewardAdGroupId: reward
+  _continueAdGroupId: ait.v2.live.1631bb4b98674f9e
+  _rewardAdGroupId: ait.v2.live.7f8160553eb64cae
   _editorAdRewardType: reward
   _editorAdRewardAmount: 1
   _editorAdLoadDelayMs: 300

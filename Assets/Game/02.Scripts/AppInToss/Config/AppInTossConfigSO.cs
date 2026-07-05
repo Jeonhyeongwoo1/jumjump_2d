@@ -22,8 +22,8 @@ namespace JumJump.Data
         [SerializeField] private int _adShowTimeoutMs = 120000;
 
         [Header("Ad Group IDs")]
-        [SerializeField] private string _continueAdGroupId = "continue";
-        [SerializeField] private string _rewardAdGroupId = "reward";
+        [SerializeField] private string _continueAdGroupId = "ait.v2.live.1631bb4b98674f9e";
+        [SerializeField] private string _rewardAdGroupId = "ait.v2.live.7f8160553eb64cae";
 
         [Header("Ad Editor Simulation")]
         [SerializeField] private string _editorAdRewardType = "reward";
