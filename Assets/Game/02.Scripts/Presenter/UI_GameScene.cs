@@ -524,8 +524,7 @@ namespace JumJump.Presenter
             var currentIndex = ResolveCurrentCharacterIndex();
             var isOwned = _characterOwned[currentIndex];
             var price = _characterPrices[currentIndex];
-            var isSelected = _characterPages[currentIndex].SkinId == _selectedCharacterSkinId;
-            var canSelect = isOwned && !isSelected;
+            var canSelect = isOwned;
 
             _characterNameText.text = _characterLocalizedNames[currentIndex];
             _characterDescriptionText.text = _characterLocalizedDescriptions[currentIndex];
