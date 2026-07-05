@@ -152,7 +152,8 @@ namespace JumJump.Service
             }
 
             var targetScore = _scoreService.RoundHighScoreTarget;
-            if (targetScore <= GameConst.Score.ScoreBoardMinimumHighScore)
+            if (targetScore <= GameConst.Score.ScoreBoardMinimumHighScore ||
+                _scoreService.Score > targetScore)
             {
                 return;
             }
@@ -226,8 +227,21 @@ namespace JumJump.Service
                 return;
             }
 
-            _activeScoreBoard.transform.position = ResolveBoardPosition(
-                ResolveBoardY(player.Position.y, _scoreService.RoundHighScoreTarget));
+            var targetScore = _scoreService.RoundHighScoreTarget;
+            var boardY = ResolveBoardY(player.Position.y, targetScore);
+            var spriteIndex = ResolveSpriteIndex(boardY);
+            var sprite = ResolveSprite(spriteIndex);
+            if (sprite == null)
+            {
+                return;
+            }
+
+            _activeScoreBoard.transform.position = ResolveBoardPosition(boardY);
+            _activeScoreBoard.UpdateVisual(
+                sprite,
+                GameConst.Score.ScoreBoardSortingOrder,
+                spriteIndex,
+                targetScore);
         }
 
         private Vector3 ResolveBoardPosition(float y) => new Vector3(ResolveBoardX(), y, 0f);

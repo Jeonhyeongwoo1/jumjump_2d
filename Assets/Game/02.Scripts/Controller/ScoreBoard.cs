@@ -37,10 +37,13 @@ namespace JumJump.Controller
             transform.position = worldPosition;
             transform.localScale = _defaultScale;
             _spriteRenderer.color = _spriteDefaultColor;
-            _spriteRenderer.sprite = sprite;
-            _spriteRenderer.sortingOrder = sortingOrder;
-            UpdateScoreText(spriteIndex, highScore, sortingOrder);
+            ApplyVisual(sprite, sortingOrder, spriteIndex, highScore);
             gameObject.SetActive(true);
+        }
+
+        public void UpdateVisual(Sprite sprite, int sortingOrder, int spriteIndex, int highScore)
+        {
+            ApplyVisual(sprite, sortingOrder, spriteIndex, highScore);
         }
 
         public void PlayBestScoreReached(Action onComplete)
@@ -56,6 +59,13 @@ namespace JumJump.Controller
             _spriteRenderer.color = _spriteDefaultColor;
             ResetActiveScoreTextVisual();
             gameObject.SetActive(false);
+        }
+
+        private void ApplyVisual(Sprite sprite, int sortingOrder, int spriteIndex, int highScore)
+        {
+            _spriteRenderer.sprite = sprite;
+            _spriteRenderer.sortingOrder = sortingOrder;
+            UpdateScoreText(spriteIndex, highScore, sortingOrder);
         }
 
         private void UpdateScoreText(int spriteIndex, int highScore, int sortingOrder)
