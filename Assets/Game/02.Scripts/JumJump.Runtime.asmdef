@@ -9,7 +9,8 @@
         "Unity.Addressables",
         "Unity.ResourceManager",
         "UniTask",
-        "UniTask.Addressables"
+        "UniTask.Addressables",
+        "AppsInTossSDK"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,7 +1,9 @@
 using System;
-using JumJump.Bridge;
+using AppsInToss;
+using Cysharp.Threading.Tasks;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Util;
 using VContainer;
 using VContainer.Unity;
 
@@ -10,6 +12,7 @@ namespace JumJump.Service
     public sealed class HapticFeedbackService : IInitializable, IDisposable
     {
         private readonly IEventBus _eventBus;
+        private bool _hasLoggedFailure;
 
         [Inject]
         public HapticFeedbackService(IEventBus eventBus)
@@ -41,7 +44,28 @@ namespace JumJump.Service
 
         private void PlayLight()
         {
-            AppInTossHapticWebGL.VibrateLight();
+            PlayLightAsync().Forget();
+        }
+
+        private async UniTask PlayLightAsync()
+        {
+            try
+            {
+                await AIT.GenerateHapticFeedback(new HapticFeedbackOptions
+                {
+                    Type = HapticFeedbackType.Tap
+                });
+            }
+            catch (Exception ex)
+            {
+                if (_hasLoggedFailure)
+                {
+                    return;
+                }
+
+                _hasLoggedFailure = true;
+                GameLogger.Warning(nameof(HapticFeedbackService), $"haptic_feedback_failed: {ex.Message}");
+            }
         }
     }
 }
