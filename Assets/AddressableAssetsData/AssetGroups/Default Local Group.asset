@@ -18,8 +18,7 @@ MonoBehaviour:
   - m_GUID: 9dd8cec55b92c11439d71efb291aa5e1
     m_Address: Sound_BgmGameLoop
     m_ReadOnly: 0
-    m_SerializedLabels:
-    - PreLoad
+    m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ce3bd7dd703e300408e2500cc6b94c90
     m_Address: Sound_UiButtonTap

@@ -235,8 +235,6 @@ namespace JumJump.Service
                 return;
             }
 
-            await PrepareAudioDataAsync(clip);
-
             if (!CanPlayBgm())
             {
                 return;
@@ -300,7 +298,6 @@ namespace JumJump.Service
                 await PreloadClipAsync(GameSoundType.GoldCollect);
                 await PreloadClipAsync(GameSoundType.PlayerMiss);
                 await PreloadClipAsync(GameSoundType.PlayerDead);
-                await PreloadClipAsync(GameSoundType.BgmGameLoop);
                 _hasPreloadedCoreAudio = true;
             }
             catch (OperationCanceledException)
@@ -321,12 +318,13 @@ namespace JumJump.Service
                 return;
             }
 
-            await PrepareAudioDataAsync(clip);
-
             if (soundType == GameSoundType.BgmGameLoop)
             {
                 _bgmSource.clip = clip;
+                return;
             }
+
+            await PrepareAudioDataAsync(clip);
         }
 
         private async UniTask<AudioClip> LoadClipAsync(GameSoundType soundType)
@@ -375,6 +373,11 @@ namespace JumJump.Service
 
         private async UniTask PrepareAudioDataAsync(AudioClip clip)
         {
+            if (clip.loadType == AudioClipLoadType.Streaming)
+            {
+                return;
+            }
+
             if (clip.loadState == AudioDataLoadState.Unloaded)
             {
                 clip.LoadAudioData();
