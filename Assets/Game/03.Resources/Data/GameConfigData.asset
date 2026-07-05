@@ -20,6 +20,7 @@ MonoBehaviour:
   _selectedPlayerSkinKey: JumJump.SelectedPlayerSkin
   _purchasedPlayerSkinsKey: JumJump.PurchasedPlayerSkins
   _tapActionPath: Player/Attack
+  _jumpActionPath: Player/Jump
   _cameraMinimumY: 0
   _cameraSmoothSpeed: 8
   _cameraVerticalOffset: 1.2

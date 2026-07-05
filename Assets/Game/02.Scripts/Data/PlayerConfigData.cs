@@ -10,6 +10,7 @@ namespace JumJump.Data
         public float PlayerVerticalOffset => _playerVerticalOffset;
         public float PlayerLandingVerticalTolerance => _playerLandingVerticalTolerance;
         public float PlayerLandingEnabledNormalizedTime => _playerLandingEnabledNormalizedTime;
+        public float PlayerJumpBufferDuration => _playerJumpBufferDuration;
         public float PlayerLandingSinkOffset => _playerLandingSinkOffset;
         public float PlayerLandingSinkDuration => _playerLandingSinkDuration;
         public float PlayerContactHalfWidth => _playerContactHalfWidth;
@@ -27,6 +28,7 @@ namespace JumJump.Data
         [SerializeField] private float _playerVerticalOffset = 0.58f;
         [SerializeField] private float _playerLandingVerticalTolerance = 0.35f;
         [SerializeField] private float _playerLandingEnabledNormalizedTime = 0.5f;
+        [SerializeField] private float _playerJumpBufferDuration = 0.12f;
         [SerializeField] private float _playerLandingSinkOffset = 0.16f;
         [SerializeField] private float _playerLandingSinkDuration = 0.18f;
         [SerializeField] private float _playerContactHalfWidth = 0.22f;

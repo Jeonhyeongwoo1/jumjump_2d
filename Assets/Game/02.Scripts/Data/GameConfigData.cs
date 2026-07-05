@@ -13,6 +13,7 @@ namespace JumJump.Data
         public string SelectedPlayerSkinKey => _selectedPlayerSkinKey;
         public string PurchasedPlayerSkinsKey => _purchasedPlayerSkinsKey;
         public string TapActionPath => _tapActionPath;
+        public string JumpActionPath => _jumpActionPath;
         public float CameraMinimumY => _cameraMinimumY;
         public float CameraSmoothSpeed => _cameraSmoothSpeed;
         public float CameraVerticalOffset => _cameraVerticalOffset;
@@ -48,6 +49,7 @@ namespace JumJump.Data
 
         [Header("Input")]
         [SerializeField] private string _tapActionPath = "Player/Attack";
+        [SerializeField] private string _jumpActionPath = "Player/Jump";
 
         [Header("Camera")]
         [SerializeField] private float _cameraMinimumY;

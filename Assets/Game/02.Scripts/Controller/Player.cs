@@ -34,12 +34,14 @@ namespace JumJump.Controller
         [SerializeField] private Animator _shieldAnimator;
 
         private float _jumpElapsed;
+        private float _jumpBufferElapsed;
         private int _isJumpingAnimatorParameterHash;
         private int _isDeadAnimatorParameterHash;
         private int _idleAnimatorStateHash;
         private int _shieldIdleAnimatorStateHash;
         private int _shieldBreakAnimatorStateHash;
         private PlayerStateType _state;
+        private bool _hasBufferedJump;
         private PlayerShieldRuntime _shield;
         private PlayerRocketBoostRuntime _rocketBoost;
         private PlayerLandingSinkRuntime _landingSink;
@@ -64,6 +66,7 @@ namespace JumJump.Controller
         public void ResetForRound()
         {
             _jumpElapsed = 0f;
+            ClearBufferedJump();
             _rocketBoost.Reset();
             _knockback.Reset();
             _groundPosition = _spawnPosition;
@@ -113,15 +116,18 @@ namespace JumJump.Controller
             var contactPosition = ResolveGroundContactPosition(landingPosition);
             PlaceAtGroundPosition(landingPosition, true);
             _eventBus.Publish(new PlayerLandedEvent(platform, contactPosition));
+            TryConsumeBufferedJump();
         }
 
         public void LandOnStackedPlatform(PlatformController platform, Vector3 landingPosition)
         {
             PlaceAtGroundPosition(landingPosition, true);
+            TryConsumeBufferedJump();
         }
 
         public void ReviveAt(Vector3 groundPosition)
         {
+            ClearBufferedJump();
             ApplyFacingScale(1f);
             PlaceAtGroundPosition(groundPosition, false);
         }
@@ -149,6 +155,7 @@ namespace JumJump.Controller
         public void StartRocketBoost(PlatformController targetPlatform, Vector3 targetGroundPosition)
         {
             _jumpElapsed = 0f;
+            ClearBufferedJump();
             _knockback.Reset();
             _rocketBoost.Start(
                 targetPlatform,
@@ -162,11 +169,18 @@ namespace JumJump.Controller
 
         private void OnPlayerJumpRequested(in PlayerJumpRequestedEvent ev)
         {
-            if (_state != PlayerStateType.Idle)
+            if (_state == PlayerStateType.Idle)
             {
+                StartJump();
                 return;
             }
 
+            BufferJump();
+        }
+
+        private void StartJump()
+        {
+            ClearBufferedJump();
             _jumpElapsed = 0f;
             ResetLandingSink();
             _groundPosition = transform.position;
@@ -174,6 +188,22 @@ namespace JumJump.Controller
             ApplyJumpVelocity();
             ChangeState(PlayerStateType.Jump);
             _eventBus.Publish(new PlayerJumpStartedEvent());
+        }
+
+        private void BufferJump()
+        {
+            if (_state != PlayerStateType.Jump && _state != PlayerStateType.RocketBoost)
+            {
+                return;
+            }
+
+            if (Mathf.Max(0f, _configData.PlayerJumpBufferDuration) <= 0f)
+            {
+                return;
+            }
+
+            _hasBufferedJump = true;
+            _jumpBufferElapsed = 0f;
         }
 
         private void OnPlayerMissedLanding(in PlayerMissedLandingEvent ev)
@@ -278,6 +308,7 @@ namespace JumJump.Controller
             }
 
             _jumpElapsed = 0f;
+            ClearBufferedJump();
             _rocketBoost.Reset();
             _knockback.Reset();
             _previousPosition = transform.position;
@@ -445,6 +476,8 @@ namespace JumJump.Controller
 
         private void FixedUpdate()
         {
+            TickJumpBuffer(Time.fixedDeltaTime);
+
             if (_state == PlayerStateType.RocketBoost)
             {
                 UpdateRocketBoost(Time.fixedDeltaTime);
@@ -491,6 +524,7 @@ namespace JumJump.Controller
             _knockback.Reset();
             _previousPosition = _spawnPosition;
             _state = PlayerStateType.Idle;
+            ClearBufferedJump();
             _shield.Reset(_shieldVisualRoot, _shieldSpriteRenderer);
             ApplyAnimatorState();
         }
@@ -550,6 +584,36 @@ namespace JumJump.Controller
             }
 
             platform.TryResolveStackedLanding(this);
+        }
+
+        private void TickJumpBuffer(float deltaTime)
+        {
+            if (!_hasBufferedJump)
+            {
+                return;
+            }
+
+            _jumpBufferElapsed += deltaTime;
+            if (_jumpBufferElapsed > Mathf.Max(0f, _configData.PlayerJumpBufferDuration))
+            {
+                ClearBufferedJump();
+            }
+        }
+
+        private void TryConsumeBufferedJump()
+        {
+            if (!_hasBufferedJump || _state != PlayerStateType.Idle)
+            {
+                return;
+            }
+
+            StartJump();
+        }
+
+        private void ClearBufferedJump()
+        {
+            _hasBufferedJump = false;
+            _jumpBufferElapsed = 0f;
         }
     }
 }

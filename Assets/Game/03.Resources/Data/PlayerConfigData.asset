@@ -17,6 +17,7 @@ MonoBehaviour:
   _playerVerticalOffset: 0.58
   _playerLandingVerticalTolerance: 0.35
   _playerLandingEnabledNormalizedTime: 0.5
+  _playerJumpBufferDuration: 0.12
   _playerLandingSinkOffset: 0.3
   _playerLandingSinkDuration: 0.2
   _playerContactHalfWidth: 3
