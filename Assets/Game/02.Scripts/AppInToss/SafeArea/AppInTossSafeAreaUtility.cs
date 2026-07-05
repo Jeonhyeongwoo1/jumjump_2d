@@ -25,7 +25,7 @@ namespace JumJump.Util
             return root;
         }
 
-        public static void Apply(RectTransform target, Canvas canvas)
+        public static void Apply(RectTransform target, Canvas canvas, bool applyTopInset = true)
         {
             if (!AppInTossSafeAreaWebGL.IsReady())
             {
@@ -35,12 +35,13 @@ namespace JumJump.Util
             StretchToParent(target);
 
             var scaleFactor = Mathf.Max(GameConst.UI.MinimumCanvasScaleFactor, canvas.scaleFactor);
+            var topInset = applyTopInset ? AppInTossSafeAreaWebGL.GetTop() : 0f;
             var offsetMin = new Vector2(
                 AppInTossSafeAreaWebGL.GetLeft() / scaleFactor,
                 AppInTossSafeAreaWebGL.GetBottom() / scaleFactor);
             var offsetMax = new Vector2(
                 -AppInTossSafeAreaWebGL.GetRight() / scaleFactor,
-                -AppInTossSafeAreaWebGL.GetTop() / scaleFactor);
+                -topInset / scaleFactor);
 
             if (!IsApproximatelyEqual(target.offsetMin, offsetMin))
             {

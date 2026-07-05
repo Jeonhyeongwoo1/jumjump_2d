@@ -6,6 +6,7 @@ namespace JumJump.Presenter
     public abstract class BasePopup : MonoBehaviour
     {
         protected Canvas Canvas { get; private set; }
+        protected virtual bool ApplyTopSafeAreaInset => true;
 
         private RectTransform _safeAreaTarget;
         private float _nextSafeAreaRefreshTime;
@@ -70,7 +71,7 @@ namespace JumJump.Presenter
             _isApplyingSafeArea = true;
             try
             {
-                AppInTossSafeAreaUtility.Apply(_safeAreaTarget, Canvas);
+                AppInTossSafeAreaUtility.Apply(_safeAreaTarget, Canvas, ApplyTopSafeAreaInset);
             }
             finally
             {
