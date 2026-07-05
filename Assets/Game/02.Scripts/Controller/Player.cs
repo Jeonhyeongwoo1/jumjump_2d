@@ -24,6 +24,7 @@ namespace JumJump.Controller
         public float PreviousBottomY => ResolveBottomY(_previousPosition);
         public float GroundContactOffset => ResolveGroundContactOffset();
         public PlayerStateType State => _state;
+        public bool HasShield => _shield.HasShield;
 
         [SerializeField] private Collider2D _bodyCollider;
         [SerializeField] private Rigidbody2D _rigidbody;

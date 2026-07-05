@@ -10,6 +10,8 @@ namespace JumJump.Controller
         private float _breakElapsed;
         private Sprite _idleSprite;
 
+        public bool HasShield => _hasShield;
+
         public void CacheIdleSprite(Sprite sprite)
         {
             _idleSprite = sprite;

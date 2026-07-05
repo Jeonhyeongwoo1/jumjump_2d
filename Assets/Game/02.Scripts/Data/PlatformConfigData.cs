@@ -43,14 +43,14 @@ namespace JumJump.Data
         {
             new PlatformGimmickSetting(PlatformGimmickType.Normal, 0, 1f, 1f, 1f),
             new PlatformGimmickSetting(PlatformGimmickType.Small, 10, 0.16f, 0.7f, 0.7f),
-            new PlatformGimmickSetting(PlatformGimmickType.Fast, 10, 0.16f, 1f, 1f, 1.3f, 1.3f),
+            new PlatformGimmickSetting(PlatformGimmickType.Fast, 10, 0.16f, 1f, 1f, 1.105f, 1.105f),
             new PlatformGimmickSetting(PlatformGimmickType.Slow, 10, 0.16f, 1f, 1f, 0.85f, 0.85f),
-            new PlatformGimmickSetting(PlatformGimmickType.SmallAndFast, 10, 0.16f, 0.7f, 0.7f, 1.3f, 1.3f),
-            new PlatformGimmickSetting(PlatformGimmickType.Ghost, 10, 0.16f, 1f, 1f, 1f, 1f, 1.2f, 1.6f),
-            new PlatformGimmickSetting(PlatformGimmickType.Double, 20, 0.1f, 1f, 1f),
-            new PlatformGimmickSetting(PlatformGimmickType.Reveal, 15, 0.16f, 1f, 1f, 1f, 1f, 0.08f, 0.18f),
-            new PlatformGimmickSetting(PlatformGimmickType.Shield, 30, 0.12f, 1f, 1f),
-            new PlatformGimmickSetting(PlatformGimmickType.Rocket, 30, 0.08f, 1f, 1f)
+            new PlatformGimmickSetting(PlatformGimmickType.SmallAndFast, 65, 0.16f, 0.7f, 0.7f, 1.105f, 1.105f),
+            new PlatformGimmickSetting(PlatformGimmickType.Ghost, 55, 0.16f, 1f, 1f, 1f, 1f, 0.8f, 1.2f),
+            new PlatformGimmickSetting(PlatformGimmickType.Double, 35, 0.1f, 1f, 1f),
+            new PlatformGimmickSetting(PlatformGimmickType.Reveal, 45, 0.16f, 1f, 1f, 1f, 1f, 0.08f, 0.18f),
+            new PlatformGimmickSetting(PlatformGimmickType.Shield, 0, 1f, 1f, 1f),
+            new PlatformGimmickSetting(PlatformGimmickType.Rocket, 0, 1f, 1f, 1f)
         };
         [SerializeField] private float _platformBaseMoveSpeed = 0.45f;
         [SerializeField] private float _platformBaseMoveSpeedMinScale = 1f;
