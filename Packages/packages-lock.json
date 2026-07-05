@@ -387,7 +387,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.0.2"
       },
-      "hash": "1cd7aafd8967f9e1cbcb76e1f9dd6fa61f62762b"
+      "hash": "7bb1f3f8334535e69484c14cbc9692e784564690"
     },
     "jp.hadashikick.vcontainer": {
       "version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0",
