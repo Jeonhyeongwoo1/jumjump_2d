@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: AITConfig
   m_EditorClassIdentifier: AppsInTossSDKEditor::AppsInToss.AITEditorScriptObject
   appName: com-lumogames-piyohop
-  displayName: Piyo Hop
+  displayName: 병아리 점프
   version: 1.0.0
   description: 
-  primaryColor: '#3182F6'
+  primaryColor: "#3182F6"
   iconUrl: https://jumpjump-21a86.web.app/assets/piyo-hop-icon.png
   bridgeColorMode: 0
   webViewType: 0

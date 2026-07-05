@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Lumogames
-  productName: Piyo Hop
+  productName: "\uBCD1\uC544\uB9AC \uC810\uD504"
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -563,7 +563,7 @@ PlayerSettings:
     AIT_APP_NAME: com-lumogames-piyohop
     AIT_BRIDGE_COLOR_MODE: inverted
     AIT_DEVICE_PIXEL_RATIO: -1
-    AIT_DISPLAY_NAME: Piyo Hop
+    AIT_DISPLAY_NAME: "\uBCD1\uC544\uB9AC \uC810\uD504"
     AIT_EARLY_FETCH_SCRIPT:
     AIT_ENABLE_DEBUG_CONSOLE: false
     AIT_ICON_URL: https://jumpjump-21a86.web.app/assets/piyo-hop-icon.png
