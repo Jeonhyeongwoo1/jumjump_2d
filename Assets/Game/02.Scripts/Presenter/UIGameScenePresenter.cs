@@ -56,7 +56,12 @@ namespace JumJump.Presenter
 
             _view = view;
             _hasPlayedBestScoreAnimation = false;
-            _view.AddEvents(OnGameReadyClicked, OnAdRewardClicked, OnCharacterConfirmed, OnCharacterPurchased);
+            _view.AddEvents(
+                OnGameReadyClicked,
+                OnAdRewardClicked,
+                OnCharacterConfirmed,
+                OnCharacterPurchased,
+                OnButtonPressed);
             _eventBus.Subscribe<ScoreChangedEvent>(OnScoreChanged);
             _eventBus.Subscribe<GoldChangedEvent>(OnGoldChanged);
             _view.SetScore(_scoreService.Score);
@@ -133,6 +138,11 @@ namespace JumJump.Presenter
         {
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _eventBus.Publish(new TapRequestedEvent());
+        }
+
+        private void OnButtonPressed()
+        {
+            _eventBus.Publish(new HapticFeedbackRequestedEvent());
         }
 
         private void OnAdRewardClicked()

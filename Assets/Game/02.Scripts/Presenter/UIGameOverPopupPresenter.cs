@@ -53,7 +53,7 @@ namespace JumJump.Presenter
             _view = view;
             _isReviveAdRunning = false;
             _view.SetButtonsInteractable(true);
-            _view.AddEvents(OnAdClicked, OnCloseClicked);
+            _view.AddEvents(OnAdClicked, OnCloseClicked, OnButtonPressed);
             _eventBus.Publish(new ReviveOfferShownEvent());
 
             DisposeCountdown();
@@ -104,6 +104,11 @@ namespace JumJump.Presenter
             _eventBus.Publish(new SoundRequestedEvent(GameSoundType.UiButtonTap));
             _eventBus.Publish(new ReviveAdClickedEvent());
             RunReviveAdAsync().Forget();
+        }
+
+        private void OnButtonPressed()
+        {
+            _eventBus.Publish(new HapticFeedbackRequestedEvent());
         }
 
         private void OnCloseClicked()

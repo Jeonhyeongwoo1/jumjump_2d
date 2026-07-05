@@ -72,6 +72,7 @@ namespace JumJump.Presenter
         private RectTransform _rootRectTransform;
         private Action _onGameReadyClicked;
         private Action _onAdRewardClicked;
+        private Action _onButtonPressed;
         private Func<int, bool> _onCharacterConfirmed;
         private Func<int, bool> _onCharacterPurchased;
         private readonly List<UI_GoldRewardFlyIcon> _adRewardGoldFlyIcons = new List<UI_GoldRewardFlyIcon>(8);
@@ -108,20 +109,22 @@ namespace JumJump.Presenter
             Action onGameReadyClicked,
             Action onAdRewardClicked,
             Func<int, bool> onCharacterConfirmed,
-            Func<int, bool> onCharacterPurchased)
+            Func<int, bool> onCharacterPurchased,
+            Action onButtonPressed)
         {
             _onGameReadyClicked = onGameReadyClicked;
             _onAdRewardClicked = onAdRewardClicked;
+            _onButtonPressed = onButtonPressed;
             _onCharacterConfirmed = onCharacterConfirmed;
             _onCharacterPurchased = onCharacterPurchased;
-            ButtonUtils.SetListener(_gameReadyButton, OnGameReadyClicked);
-            ButtonUtils.SetListener(_selectCharacterButton, ShowCharacterSelectPanel);
-            ButtonUtils.SetListener(_selectCharacterHitAreaButton, ShowCharacterSelectPanel);
-            ButtonUtils.SetListener(_adRewardButton, OnAdRewardClicked);
-            ButtonUtils.SetListener(_characterConfirmButton, ConfirmSelectedCharacter);
-            ButtonUtils.SetListener(_characterBuyButton, BuySelectedCharacter);
-            ButtonUtils.SetListener(_characterPrevButton, MoveToPreviousCharacter);
-            ButtonUtils.SetListener(_characterNextButton, MoveToNextCharacter);
+            ButtonUtils.SetListener(_gameReadyButton, OnGameReadyClicked, _onButtonPressed);
+            ButtonUtils.SetListener(_selectCharacterButton, ShowCharacterSelectPanel, _onButtonPressed);
+            ButtonUtils.SetListener(_selectCharacterHitAreaButton, ShowCharacterSelectPanel, _onButtonPressed);
+            ButtonUtils.SetListener(_adRewardButton, OnAdRewardClicked, _onButtonPressed);
+            ButtonUtils.SetListener(_characterConfirmButton, ConfirmSelectedCharacter, _onButtonPressed);
+            ButtonUtils.SetListener(_characterBuyButton, BuySelectedCharacter, _onButtonPressed);
+            ButtonUtils.SetListener(_characterPrevButton, MoveToPreviousCharacter, _onButtonPressed);
+            ButtonUtils.SetListener(_characterNextButton, MoveToNextCharacter, _onButtonPressed);
             _characterScrollRect.onValueChanged.AddListener(OnCharacterScrollValueChanged);
         }
 
@@ -129,6 +132,7 @@ namespace JumJump.Presenter
         {
             _onGameReadyClicked = null;
             _onAdRewardClicked = null;
+            _onButtonPressed = null;
             _onCharacterConfirmed = null;
             _onCharacterPurchased = null;
             _gameReadyButton.onClick.RemoveAllListeners();
@@ -238,7 +242,7 @@ namespace JumJump.Presenter
             {
                 var page = Instantiate(_characterPageTemplate, _characterPageRoot);
                 page.gameObject.name = $"CharacterPage_{skinIds[i]}";
-                page.Initialize(skinIds[i], sprites[i], OnCharacterPageClicked);
+                page.Initialize(skinIds[i], sprites[i], OnCharacterPageClicked, _onButtonPressed);
                 page.SetOwned(owned[i]);
                 page.gameObject.SetActive(true);
                 _characterPages.Add(page);

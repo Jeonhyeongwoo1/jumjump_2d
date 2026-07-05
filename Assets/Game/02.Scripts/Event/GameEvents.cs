@@ -158,6 +158,10 @@ namespace JumJump.Event
         }
     }
 
+    public struct HapticFeedbackRequestedEvent
+    {
+    }
+
     public struct PlatformsResetEvent
     {
         public PlatformController StartPlatform { get; private set; }

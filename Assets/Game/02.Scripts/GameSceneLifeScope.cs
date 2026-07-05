@@ -86,6 +86,7 @@ namespace JumJump
             builder.RegisterEntryPoint<AuthService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<AppInTossAnalyticsService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<PromotionService>(Lifetime.Scoped).AsSelf();
+            builder.RegisterEntryPoint<HapticFeedbackService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<SoundService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<BestScoreBreakFXService>(Lifetime.Scoped).AsSelf();
             builder.RegisterEntryPoint<CoinCollectFXService>(Lifetime.Scoped).AsSelf();

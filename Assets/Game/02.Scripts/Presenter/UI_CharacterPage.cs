@@ -17,12 +17,12 @@ namespace JumJump.Presenter
         private Action<int> _onClicked;
         private int _skinId;
 
-        public void Initialize(int skinId, Sprite sprite, Action<int> onClicked)
+        public void Initialize(int skinId, Sprite sprite, Action<int> onClicked, Action onButtonPressed)
         {
             _skinId = skinId;
             _onClicked = onClicked;
             _characterImage.sprite = sprite;
-            ButtonUtils.SetListener(_button, OnClicked);
+            ButtonUtils.SetListener(_button, OnClicked, onButtonPressed);
         }
 
         public void SetOwned(bool owned)

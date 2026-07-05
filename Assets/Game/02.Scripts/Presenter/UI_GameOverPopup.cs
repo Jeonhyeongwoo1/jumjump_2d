@@ -19,10 +19,10 @@ namespace JumJump.Presenter
             gameObject.SetActive(false);
         }
 
-        public void AddEvents(Action onAdClicked, Action onCloseClicked)
+        public void AddEvents(Action onAdClicked, Action onCloseClicked, Action onButtonPressed)
         {
-            ButtonUtils.SetListener(_adButton, onAdClicked);
-            ButtonUtils.SetListener(_closeButton, onCloseClicked);
+            ButtonUtils.SetListener(_adButton, onAdClicked, onButtonPressed);
+            ButtonUtils.SetListener(_closeButton, onCloseClicked, onButtonPressed);
         }
 
         public void RemoveEvents()
