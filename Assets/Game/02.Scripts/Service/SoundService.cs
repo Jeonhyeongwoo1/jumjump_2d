@@ -28,6 +28,7 @@ namespace JumJump.Service
         private CancellationTokenSource _destroyCancellation;
         private bool _isAudioUnlocked;
         private bool _shouldBgmBePlaying;
+        private bool _isResourcePreloadReady;
         private bool _isPreloadingCoreAudio;
         private bool _hasPreloadedCoreAudio;
 
@@ -100,7 +101,10 @@ namespace JumJump.Service
         {
             UnlockAudio();
             RestoreAudioOutput();
-            PreloadCoreAudioAsync().Forget();
+            if (_isResourcePreloadReady)
+            {
+                PreloadCoreAudioAsync().Forget();
+            }
         }
 
         private void OnSoundRequested(in SoundRequestedEvent ev)
@@ -110,6 +114,7 @@ namespace JumJump.Service
 
             if (ev.Type == GameSoundType.BgmGameLoop)
             {
+                _shouldBgmBePlaying = true;
                 StartBgmAsync().Forget();
                 return;
             }
@@ -119,7 +124,12 @@ namespace JumJump.Service
 
         private void OnGameResourcesReady(in GameResourcesReadyEvent ev)
         {
+            _isResourcePreloadReady = true;
             PreloadCoreAudioAsync().Forget();
+            if (_shouldBgmBePlaying)
+            {
+                StartBgmAsync().Forget();
+            }
         }
 
         private void OnGameStarted(in GameStartedEvent ev)
@@ -389,14 +399,16 @@ namespace JumJump.Service
         {
             return _configData.SoundEnabled &&
                    _configData.BgmEnabled &&
-                   _isAudioUnlocked;
+                   _isAudioUnlocked &&
+                   _isResourcePreloadReady;
         }
 
         private bool CanPlaySfx()
         {
             return _configData.SoundEnabled &&
                    _configData.SfxEnabled &&
-                   _isAudioUnlocked;
+                   _isAudioUnlocked &&
+                   _isResourcePreloadReady;
         }
 
         private string ResolveClipKey(GameSoundType soundType)
