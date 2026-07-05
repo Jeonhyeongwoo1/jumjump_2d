@@ -40,6 +40,12 @@ namespace JumJump.Data
         [Header("IAP Editor Simulation")]
         [SerializeField] private int _editorIAPDelayMs = 1500;
 
+        [Header("Promotion")]
+        [SerializeField] private string _firstPlayPromotionCode = "";
+        [SerializeField, Min(0)] private int _firstPlayPromotionAmount = 0;
+        [SerializeField] private int _promotionGrantTimeoutMs = 15000;
+        [SerializeField] private int _editorPromotionGrantDelayMs = 300;
+
         public string CloudFunctionBaseUrl => _productionBaseUrl;
         public string EditorTossHash => _editorTossHash;
         public int WebGLLoginTimeoutMs => _webGLLoginTimeoutMs;
@@ -54,5 +60,9 @@ namespace JumJump.Data
         public string AdRemovalProductId => _adRemovalProductId;
         public int IAPPurchaseTimeoutMs => _iapPurchaseTimeoutMs;
         public int EditorIAPDelayMs => _editorIAPDelayMs;
+        public string FirstPlayPromotionCode => _firstPlayPromotionCode;
+        public int FirstPlayPromotionAmount => _firstPlayPromotionAmount;
+        public int PromotionGrantTimeoutMs => _promotionGrantTimeoutMs;
+        public int EditorPromotionGrantDelayMs => _editorPromotionGrantDelayMs;
     }
 }

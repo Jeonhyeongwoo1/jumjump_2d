@@ -187,6 +187,10 @@ x86/
 *.ait
 ait-build/
 webgl/
+!Assets/Plugins/WebGL/
+!Assets/Plugins/WebGL/AppInToss/
+!Assets/Plugins/WebGL/AppInToss/*.jslib
+!Assets/Plugins/WebGL/AppInToss/*.jslib.meta
 Assets/WebGLTemplates/
 !Assets/WebGLTemplates/
 Assets/WebGLTemplates/*

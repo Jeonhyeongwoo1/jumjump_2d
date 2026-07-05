@@ -354,4 +354,33 @@ namespace JumJump.Event
             Error = error;
         }
     }
+
+    public struct PromotionEventLoggedEvent
+    {
+        public string PromotionCode { get; private set; }
+        public string CampaignType { get; private set; }
+        public string EventType { get; private set; }
+        public int Amount { get; private set; }
+        public string RewardKey { get; private set; }
+        public string ErrorCode { get; private set; }
+        public string ErrorMessage { get; private set; }
+
+        public PromotionEventLoggedEvent(
+            string promotionCode,
+            string campaignType,
+            string eventType,
+            int amount,
+            string rewardKey = "",
+            string errorCode = "",
+            string errorMessage = "")
+        {
+            PromotionCode = promotionCode;
+            CampaignType = campaignType;
+            EventType = eventType;
+            Amount = amount;
+            RewardKey = rewardKey;
+            ErrorCode = errorCode;
+            ErrorMessage = errorMessage;
+        }
+    }
 }
