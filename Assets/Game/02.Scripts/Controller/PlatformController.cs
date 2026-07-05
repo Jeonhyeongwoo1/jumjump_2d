@@ -255,7 +255,7 @@ namespace JumJump.Controller
         internal void EnterPreview(float alpha)
         {
             _motion.Pause();
-            SetInteractionEnabled(true);
+            SetInteractionEnabled(false);
             SetPlatformAlpha(alpha);
         }
 
