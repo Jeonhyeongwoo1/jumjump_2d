@@ -40,7 +40,7 @@ MonoBehaviour:
     enableDebugConsole: 0
     developmentBuild: 0
     enableLZ4Compression: 1
-    compressionFormat: 0
+    compressionFormat: -1
     managedStrippingLevel: -1
     debugSymbolsExternal: 1
   memorySize: 1024
@@ -54,7 +54,7 @@ MonoBehaviour:
   wasmStreaming: 1
   exceptionSupport: -1
   showUnityLogo: -1
-  decompressionFallback: 0
+  decompressionFallback: -1
   runInBackground: -1
   webAssemblyArithmeticExceptions: -1
   enableBuildOptimizationCheck: 1
