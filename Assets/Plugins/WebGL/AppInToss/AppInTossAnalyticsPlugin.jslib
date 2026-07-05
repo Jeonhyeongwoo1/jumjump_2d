@@ -10,22 +10,43 @@
       return;
     }
 
-    var sdk = window.AppsInToss;
-    var eventLog = sdk && typeof sdk.eventLog === 'function' ? sdk.eventLog : null;
-    if (!eventLog) {
-      console.warn('[AITAnalytics] AppsInToss.eventLog is not ready', payload);
-      return;
+    if (payload.Log_name && !payload.log_name) {
+      payload.log_name = payload.Log_name;
+    }
+    if (payload.Log_type && !payload.log_type) {
+      payload.log_type = payload.Log_type;
+    }
+    if (payload.Params && !payload.params) {
+      payload.params = payload.Params;
     }
 
-    try {
-      var result = eventLog.call(sdk, payload);
-      if (result && typeof result.catch === 'function') {
-        result.catch(function (error) {
-          console.error('[AITAnalytics] eventLog failed', error);
-        });
+    var dispatch = function (retryCount) {
+      var sdk = window.AppsInToss;
+      var eventLog = sdk && typeof sdk.eventLog === 'function' ? sdk.eventLog : null;
+      if (!eventLog) {
+        if (retryCount < 20) {
+          setTimeout(function () {
+            dispatch(retryCount + 1);
+          }, 250);
+          return;
+        }
+
+        console.warn('[AITAnalytics] AppsInToss.eventLog is not ready', payload);
+        return;
       }
-    } catch (error) {
-      console.error('[AITAnalytics] eventLog failed', error);
-    }
+
+      try {
+        var result = eventLog.call(sdk, payload);
+        if (result && typeof result.catch === 'function') {
+          result.catch(function (error) {
+            console.error('[AITAnalytics] eventLog failed', error);
+          });
+        }
+      } catch (error) {
+        console.error('[AITAnalytics] eventLog failed', error);
+      }
+    };
+
+    dispatch(0);
   }
 });

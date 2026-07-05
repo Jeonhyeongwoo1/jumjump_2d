@@ -60,6 +60,7 @@ namespace JumJump.Service
             _eventBus.Subscribe<ScoreChangedEvent>(HandleScoreChanged);
             _eventBus.Subscribe<IAPEventLoggedEvent>(HandleIAPEventLogged);
             _eventBus.Subscribe<AdEventLoggedEvent>(HandleAdEventLogged);
+            _eventBus.Subscribe<PromotionEventLoggedEvent>(HandlePromotionEventLogged);
         }
 
         public void Dispose()
@@ -76,6 +77,7 @@ namespace JumJump.Service
             _eventBus.Unsubscribe<ScoreChangedEvent>(HandleScoreChanged);
             _eventBus.Unsubscribe<IAPEventLoggedEvent>(HandleIAPEventLogged);
             _eventBus.Unsubscribe<AdEventLoggedEvent>(HandleAdEventLogged);
+            _eventBus.Unsubscribe<PromotionEventLoggedEvent>(HandlePromotionEventLogged);
         }
 
         private void HandleAuthLoginCompleted(in AuthLoginCompletedEvent ev)
@@ -206,6 +208,23 @@ namespace JumJump.Service
             LogEvent(
                 "ad_event",
                 $"\"ad_group_id\":\"{Escape(ev.AdGroupId)}\",\"placement\":\"{Escape(ev.AdGroupId)}\",\"ad_type\":\"rewarded\",\"event_type\":\"{Escape(ev.EventType)}\",\"score\":{ev.Score}{errorParam}{rewardParams}");
+        }
+
+        private void HandlePromotionEventLogged(in PromotionEventLoggedEvent ev)
+        {
+            string rewardKeyParam = string.IsNullOrEmpty(ev.RewardKey)
+                ? string.Empty
+                : $",\"reward_key\":\"{Escape(ev.RewardKey)}\"";
+            string errorCodeParam = string.IsNullOrEmpty(ev.ErrorCode)
+                ? string.Empty
+                : $",\"error_code\":\"{Escape(ev.ErrorCode)}\"";
+            string errorMessageParam = string.IsNullOrEmpty(ev.ErrorMessage)
+                ? string.Empty
+                : $",\"error_message\":\"{Escape(ev.ErrorMessage)}\"";
+
+            LogEvent(
+                "promotion_event",
+                $"\"promotion_code\":\"{Escape(ev.PromotionCode)}\",\"campaign_type\":\"{Escape(ev.CampaignType)}\",\"event_type\":\"{Escape(ev.EventType)}\",\"amount\":{ev.Amount},\"score\":{_scoreService.Score}{rewardKeyParam}{errorCodeParam}{errorMessageParam}");
         }
 
         private void BeginRun()
@@ -370,7 +389,7 @@ namespace JumJump.Service
 
         private UniTask LogEventAsync(string logName, string paramsJson)
         {
-            string payloadJson = $"{{\"Log_name\":\"{Escape(logName)}\",\"Log_type\":\"event\",\"Params\":{{\"user_id\":\"{Escape(GetUserId())}\",\"session_id\":\"{_sessionId}\",{paramsJson}}}}}";
+            string payloadJson = $"{{\"log_name\":\"{Escape(logName)}\",\"log_type\":\"event\",\"params\":{{\"user_id\":\"{Escape(GetUserId())}\",\"session_id\":\"{_sessionId}\",{paramsJson}}}}}";
 #if UNITY_WEBGL && !UNITY_EDITOR
             AppInTossAnalyticsWebGL.EventLog(payloadJson);
 #else
