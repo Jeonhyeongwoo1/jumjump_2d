@@ -6,6 +6,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -84,7 +85,7 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(AuthService)}] Login failed: {ex.Message}");
+                GameLogger.Error(nameof(AuthService), $"Login failed: {ex.Message}");
                 _eventBus.Publish(new AuthLoginFailedEvent(ex.Message));
             }
         }
@@ -208,11 +209,11 @@ namespace JumJump.Service
             }
             catch (OperationCanceledException)
             {
-                Debug.LogWarning($"[{nameof(AuthService)}] progress_save_cancelled");
+                GameLogger.Warning(nameof(AuthService), "progress_save_cancelled");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(AuthService)}] progress_save_failed: {ex.Message}");
+                GameLogger.Error(nameof(AuthService), $"progress_save_failed: {ex.Message}");
             }
         }
 
@@ -231,7 +232,7 @@ namespace JumJump.Service
             string error = AppInTossAuthWebGL.GetLoginError();
             if (!string.IsNullOrEmpty(error))
             {
-                Debug.LogError($"[{nameof(AuthService)}] WebGL login error: {error}");
+                GameLogger.Error(nameof(AuthService), $"WebGL login error: {error}");
                 return null;
             }
 
@@ -249,7 +250,7 @@ namespace JumJump.Service
                 response.User == null ||
                 string.IsNullOrEmpty(response.User.UserId))
             {
-                Debug.LogError($"[{nameof(AuthService)}] invalid_login_response");
+                GameLogger.Error(nameof(AuthService), "invalid_login_response");
                 return false;
             }
 
@@ -264,7 +265,7 @@ namespace JumJump.Service
         {
             if (userData == null || string.IsNullOrEmpty(userData.UserId))
             {
-                Debug.LogError($"[{nameof(AuthService)}] invalid_user_response");
+                GameLogger.Error(nameof(AuthService), "invalid_user_response");
                 return false;
             }
 
@@ -290,7 +291,7 @@ namespace JumJump.Service
                 return true;
             }
 
-            Debug.LogError($"[{nameof(AuthService)}] auth_required");
+            GameLogger.Error(nameof(AuthService), "auth_required");
             return false;
         }
     }

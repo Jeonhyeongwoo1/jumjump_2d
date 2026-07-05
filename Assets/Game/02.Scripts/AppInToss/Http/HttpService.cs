@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 using UnityEngine.Networking;
 using VContainer;
@@ -48,7 +49,7 @@ namespace JumJump.Service
         {
             if (string.IsNullOrEmpty(json))
             {
-                Debug.LogError($"[{nameof(HttpService)}] empty_response");
+                GameLogger.Error(nameof(HttpService), "empty_response");
                 return default;
             }
 
@@ -73,7 +74,7 @@ namespace JumJump.Service
             if (request.result != UnityWebRequest.Result.Success)
             {
                 string body = request.downloadHandler?.text ?? string.Empty;
-                Debug.LogError($"[{nameof(HttpService)}] http_error:{request.responseCode}:{request.error}:{body}");
+                GameLogger.Error(nameof(HttpService), $"http_error:{request.responseCode}:{request.error}:{body}");
                 return default;
             }
 

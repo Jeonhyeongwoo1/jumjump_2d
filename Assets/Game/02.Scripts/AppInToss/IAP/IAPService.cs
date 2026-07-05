@@ -5,6 +5,7 @@ using JumJump.Bridge;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 
@@ -49,7 +50,7 @@ namespace JumJump.Service
             catch (Exception ex)
             {
                 _eventBus.Publish(new IAPEventLoggedEvent(productId, "purchase_failed", error: ex.Message));
-                Debug.LogError($"[{nameof(IAPService)}] Purchase failed: {ex.Message}");
+                GameLogger.Error(nameof(IAPService), $"Purchase failed: {ex.Message}");
                 return IAPResult.Failure(ex.Message);
             }
         }

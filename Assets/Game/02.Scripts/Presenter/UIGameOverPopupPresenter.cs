@@ -157,12 +157,12 @@ namespace JumJump.Presenter
                     return;
                 }
 
-                Debug.LogWarning($"[{nameof(UIGameOverPopupPresenter)}] Revive ad did not reward: {result.Error}");
+                GameLogger.Warning(nameof(UIGameOverPopupPresenter), $"Revive ad did not reward: {result.Error}");
                 ClosePopup(true);
             }
             catch (OperationCanceledException)
             {
-                Debug.LogWarning($"[{nameof(UIGameOverPopupPresenter)}] revive_ad_cancelled");
+                GameLogger.Warning(nameof(UIGameOverPopupPresenter), "revive_ad_cancelled");
             }
             finally
             {

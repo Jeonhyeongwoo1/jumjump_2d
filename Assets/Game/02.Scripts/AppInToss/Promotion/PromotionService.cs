@@ -6,6 +6,7 @@ using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
 using JumJump.Registry;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -82,11 +83,11 @@ namespace JumJump.Service
             }
             catch (OperationCanceledException)
             {
-                Debug.LogWarning($"[{nameof(PromotionService)}] promotion_grant_cancelled");
+                GameLogger.Warning(nameof(PromotionService), "promotion_grant_cancelled");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(PromotionService)}] promotion_grant_failed: {ex.Message}");
+                GameLogger.Error(nameof(PromotionService), $"promotion_grant_failed: {ex.Message}");
             }
             finally
             {

@@ -393,7 +393,7 @@ namespace JumJump.Service
 #if UNITY_WEBGL && !UNITY_EDITOR
             AppInTossAnalyticsWebGL.EventLog(payloadJson);
 #else
-            Debug.Log($"[{nameof(AppInTossAnalyticsService)}] {payloadJson}");
+            GameLogger.Debug(nameof(AppInTossAnalyticsService), payloadJson);
 #endif
             return UniTask.CompletedTask;
         }

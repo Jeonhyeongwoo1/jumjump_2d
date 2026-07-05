@@ -5,6 +5,7 @@ using JumJump.Bridge;
 using JumJump.Data;
 using JumJump.Event;
 using JumJump.Interface;
+using JumJump.Util;
 using UnityEngine;
 using VContainer;
 
@@ -54,7 +55,7 @@ namespace JumJump.Service
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[{nameof(AdService)}] Ad failed: {ex.Message}");
+                GameLogger.Error(nameof(AdService), $"Ad failed: {ex.Message}");
                 return AdResult.Failure(ex.Message);
             }
         }

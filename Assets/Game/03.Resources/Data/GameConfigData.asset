@@ -25,7 +25,7 @@ MonoBehaviour:
   _cameraSmoothSpeed: 8
   _cameraVerticalOffset: 1.2
   _rocketBoostPlatformCount: 10
-  _minimumLogLevel: 1
+  _minimumLogLevel: 4
   _soundEnabled: 1
   _bgmEnabled: 1
   _sfxEnabled: 1
