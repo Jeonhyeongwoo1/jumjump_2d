@@ -229,6 +229,7 @@ namespace JumJump.Service
                 return;
             }
 
+            RestoreAudioOutput();
             var clip = await LoadClipAsync(GameSoundType.BgmGameLoop);
             if (clip == null)
             {
@@ -240,6 +241,7 @@ namespace JumJump.Service
                 return;
             }
 
+            RestoreAudioOutput();
             if (_bgmSource.isPlaying && _bgmSource.clip == clip)
             {
                 return;
@@ -264,6 +266,7 @@ namespace JumJump.Service
                 return;
             }
 
+            RestoreAudioOutput();
             var clip = await LoadClipAsync(soundType);
             if (clip == null)
             {
@@ -277,6 +280,7 @@ namespace JumJump.Service
                 return;
             }
 
+            RestoreAudioOutput();
             _sfxSource.PlayOneShot(clip);
         }
 

@@ -27,6 +27,6 @@ MonoBehaviour:
   _iapPurchaseTimeoutMs: 120000
   _editorIAPDelayMs: 1500
   _firstPlayPromotionCode: 01KWR5R8E7YTSH96BCNZ3Y30Z6
-  _firstPlayPromotionAmount: 1
+  _firstPlayPromotionAmount: 5
   _promotionGrantTimeoutMs: 15000
   _editorPromotionGrantDelayMs: 300
