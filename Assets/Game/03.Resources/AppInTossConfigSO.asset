@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9140fd8e79cb6244bb64eeb6b769b45, type: 3}
+  m_Name: AppInTossConfigSO
+  m_EditorClassIdentifier:
+  _productionBaseUrl: https://asia-northeast3-jumpjump-21a86.cloudfunctions.net
+  _editorTossHash: editor-test-user-hash-jumjump
+  _webGLLoginTimeoutMs: 30000
+  _adLoadTimeoutMs: 15000
+  _adShowTimeoutMs: 120000
+  _continueAdGroupId: ait.v2.live.1631bb4b98674f9e
+  _rewardAdGroupId: ait.v2.live.7f8160553eb64cae
+  _editorAdRewardType: reward
+  _editorAdRewardAmount: 1
+  _editorAdLoadDelayMs: 300
+  _editorAdShowDelayMs: 1500
+  _adRemovalProductId: ad_removal
+  _iapPurchaseTimeoutMs: 120000
+  _editorIAPDelayMs: 1500
+  _firstPlayPromotionCode: 01KWR5R8E7YTSH96BCNZ3Y30Z6
+  _firstPlayPromotionAmount: 5
+  _promotionGrantTimeoutMs: 15000
+  _editorPromotionGrantDelayMs: 300

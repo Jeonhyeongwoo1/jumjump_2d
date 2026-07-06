@@ -1,0 +1,26 @@
+{
+    "name": "JumJump.Editor",
+    "rootNamespace": "JumJump.Editor",
+    "references": [
+        "JumJump.Runtime",
+        "VContainer",
+        "Unity.InputSystem",
+        "Unity.InputSystem.ForUI",
+        "UnityEngine.UI",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

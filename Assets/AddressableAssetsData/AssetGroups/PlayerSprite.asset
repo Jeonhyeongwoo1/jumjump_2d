@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: PlayerSprite
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: PlayerSprite
+  m_GUID: ce229a1bf8385ff4cb29b53212a8bbc9
+  m_SerializeEntries:
+  - m_GUID: 3e14569723d142e59a770676af80a1e1
+    m_Address: PlayerSkin_1004
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 41604daa9132e3c449db869c2548caf9
+    m_Address: Player_1001.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 43d2f162df144457bad10c03bdf9c123
+    m_Address: PlayerSkin_1001
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 56d8e25b6ef54e31b62796e8e3b4c63f
+    m_Address: PlayerSkin_1003
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c2dd920570d6334d998fb1d3b7e347e
+    m_Address: Player_1008.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 901a9897efe64086a689c7348b48b8f4
+    m_Address: Player_1005.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 96b3dfa1b31d07e4bb085cb4371b6832
+    m_Address: Player_1004.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a412e29dfd54581850a978901df61b5
+    m_Address: PlayerSkin_1007
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9e0c061a67bb4524f85eee91b4055403
+    m_Address: Player_1002.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be32be62a798c204c880bd3ae41e0474
+    m_Address: Player_1006.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c475ed68aa0e4b044a4d05f4df96e140
+    m_Address: Player_1003.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c9da53356d5c4ba88f7d0d635ed8fb15
+    m_Address: PlayerSkin_1008
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cad52300e0d04e24b12067dcc69f9a4b
+    m_Address: PlayerSkin_1002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f006709abaec41619986dce5fa731b0a
+    m_Address: PlayerSkin_1006
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f428b9dd5b488454daac12f67209e074
+    m_Address: Player_1007.sprite
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fc36a14b64434be9aaa9de09c63adf40
+    m_Address: PlayerSkin_1005
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - PreLoad
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: a56cab7c3fd5b814792637c2897592f9, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: dd7e4875975a2ca4ab9b0ec62a93348b, type: 2}
+    - {fileID: 11400000, guid: 022f1eff9f6fcb14fbcd7724dceaf9ed, type: 2}
