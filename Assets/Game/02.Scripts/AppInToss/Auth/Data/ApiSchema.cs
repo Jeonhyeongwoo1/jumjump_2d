@@ -82,5 +82,70 @@ namespace JumJump.Data
                 this.selectedPlayerSkinId = selectedPlayerSkinId;
             }
         }
+
+        [Serializable]
+        public sealed class DailyPlayResponse
+        {
+            public DailyPlayData dailyPlay;
+
+            public DailyPlayData DailyPlay => dailyPlay;
+        }
+
+        [Serializable]
+        public sealed class DailyPlayData
+        {
+            public string todayDateKey;
+            public int currentStreak;
+            public int maxStreak;
+            public int totalRecordedDays;
+            public bool alreadyRecordedToday;
+            public bool eligibleDay3Promotion;
+            public bool eligibleDay7Promotion;
+            public bool day3Claimed;
+            public bool day7Claimed;
+
+            public string TodayDateKey => todayDateKey;
+            public int CurrentStreak => currentStreak;
+            public int MaxStreak => maxStreak;
+            public int TotalRecordedDays => totalRecordedDays;
+            public bool AlreadyRecordedToday => alreadyRecordedToday;
+            public bool EligibleDay3Promotion => eligibleDay3Promotion;
+            public bool EligibleDay7Promotion => eligibleDay7Promotion;
+            public bool Day3Claimed => day3Claimed;
+            public bool Day7Claimed => day7Claimed;
+        }
+
+        [Serializable]
+        public sealed class AttendancePromotionClaimRequest
+        {
+            public int milestoneDay;
+
+            public AttendancePromotionClaimRequest(int milestoneDay)
+            {
+                this.milestoneDay = milestoneDay;
+            }
+        }
+
+        [Serializable]
+        public sealed class AttendancePromotionClaimResponse
+        {
+            public AttendancePromotionClaimData attendancePromotionClaim;
+
+            public AttendancePromotionClaimData AttendancePromotionClaim => attendancePromotionClaim;
+        }
+
+        [Serializable]
+        public sealed class AttendancePromotionClaimData
+        {
+            public int milestoneDay;
+            public int currentStreak;
+            public bool day3Claimed;
+            public bool day7Claimed;
+
+            public int MilestoneDay => milestoneDay;
+            public int CurrentStreak => currentStreak;
+            public bool Day3Claimed => day3Claimed;
+            public bool Day7Claimed => day7Claimed;
+        }
     }
 }

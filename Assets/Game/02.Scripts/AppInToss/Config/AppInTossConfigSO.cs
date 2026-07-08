@@ -9,6 +9,8 @@ namespace JumJump.Data
         public const string PlayerMePath = "/playerMe";
         public const string RecordAdRemovalPurchasePath = "/recordAdRemovalPurchase";
         public const string SavePlayerProgressPath = "/savePlayerProgress";
+        public const string RecordDailyPlayPath = "/recordDailyPlay";
+        public const string ClaimAttendancePromotionPath = "/claimAttendancePromotion";
 
         [Header("Cloud Functions")]
         [SerializeField] private string _productionBaseUrl = "https://asia-northeast3-jumpjump-21a86.cloudfunctions.net";
@@ -43,6 +45,10 @@ namespace JumJump.Data
         [Header("Promotion")]
         [SerializeField] private string _firstPlayPromotionCode = "";
         [SerializeField, Min(0)] private int _firstPlayPromotionAmount = 0;
+        [SerializeField] private string _day3AttendancePromotionCode = "";
+        [SerializeField, Min(0)] private int _day3AttendancePromotionAmount = 0;
+        [SerializeField] private string _day7AttendancePromotionCode = "";
+        [SerializeField, Min(0)] private int _day7AttendancePromotionAmount = 0;
         [SerializeField] private int _promotionGrantTimeoutMs = 15000;
         [SerializeField] private int _editorPromotionGrantDelayMs = 300;
 
@@ -62,6 +68,10 @@ namespace JumJump.Data
         public int EditorIAPDelayMs => _editorIAPDelayMs;
         public string FirstPlayPromotionCode => _firstPlayPromotionCode;
         public int FirstPlayPromotionAmount => _firstPlayPromotionAmount;
+        public string Day3AttendancePromotionCode => _day3AttendancePromotionCode;
+        public int Day3AttendancePromotionAmount => _day3AttendancePromotionAmount;
+        public string Day7AttendancePromotionCode => _day7AttendancePromotionCode;
+        public int Day7AttendancePromotionAmount => _day7AttendancePromotionAmount;
         public int PromotionGrantTimeoutMs => _promotionGrantTimeoutMs;
         public int EditorPromotionGrantDelayMs => _editorPromotionGrantDelayMs;
     }

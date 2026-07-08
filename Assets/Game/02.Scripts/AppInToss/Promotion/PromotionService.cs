@@ -16,24 +16,36 @@ namespace JumJump.Service
     public sealed class PromotionService : IInitializable, IDisposable
     {
         private const string FirstPlayCampaignType = "first_play_complete";
+        private const string AttendanceDay3CampaignType = "attendance_day3_complete";
+        private const string AttendanceDay7CampaignType = "attendance_day7_complete";
         private const string FirstPlayClaimKeyPrefix = "appintoss_promotion_first_play_";
+        private const int AttendanceDay3 = 3;
+        private const int AttendanceDay7 = 7;
 
         private readonly IEventBus _eventBus;
         private readonly AppInTossConfigSO _config;
         private readonly AuthRegistry _authRegistry;
+        private readonly HttpService _httpClient;
 
         private CancellationTokenSource _grantCts;
         private bool _isGranting;
+
+        private string RecordDailyPlayUrl =>
+            _config.CloudFunctionBaseUrl + AppInTossConfigSO.RecordDailyPlayPath;
+        private string ClaimAttendancePromotionUrl =>
+            _config.CloudFunctionBaseUrl + AppInTossConfigSO.ClaimAttendancePromotionPath;
 
         [Inject]
         public PromotionService(
             IEventBus eventBus,
             AppInTossConfigSO config,
-            AuthRegistry authRegistry)
+            AuthRegistry authRegistry,
+            HttpService httpClient)
         {
             _eventBus = eventBus;
             _config = config;
             _authRegistry = authRegistry;
+            _httpClient = httpClient;
         }
 
         public void Initialize()
@@ -74,12 +86,8 @@ namespace JumJump.Service
                     return;
                 }
 
-                await TryGrantPromotionAsync(
-                    FirstPlayCampaignType,
-                    _config.FirstPlayPromotionCode,
-                    _config.FirstPlayPromotionAmount,
-                    ResolveFirstPlayClaimKey(),
-                    cancellationToken);
+                await TryGrantFirstPlayPromotionAsync(cancellationToken);
+                await TryGrantAttendancePromotionsAsync(cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -95,32 +103,112 @@ namespace JumJump.Service
             }
         }
 
-        private async UniTask TryGrantPromotionAsync(
+        private async UniTask TryGrantFirstPlayPromotionAsync(CancellationToken cancellationToken)
+        {
+            var claimKey = ResolveFirstPlayClaimKey();
+            if (IsClaimed(claimKey))
+            {
+                return;
+            }
+
+            var status = await TryGrantPromotionAsync(
+                FirstPlayCampaignType,
+                _config.FirstPlayPromotionCode,
+                _config.FirstPlayPromotionAmount,
+                cancellationToken);
+
+            if (IsClaimedPromotionStatus(status))
+            {
+                MarkClaimed(claimKey);
+            }
+        }
+
+        private async UniTask TryGrantAttendancePromotionsAsync(CancellationToken cancellationToken)
+        {
+            var dailyPlay = await RecordDailyPlayAsync(cancellationToken);
+            if (dailyPlay == null)
+            {
+                PublishPromotionEvent(string.Empty, "attendance", "daily_play_record_failed", 0);
+                return;
+            }
+
+            if (dailyPlay.EligibleDay3Promotion)
+            {
+                await TryGrantAttendancePromotionAsync(
+                    AttendanceDay3,
+                    AttendanceDay3CampaignType,
+                    _config.Day3AttendancePromotionCode,
+                    _config.Day3AttendancePromotionAmount,
+                    cancellationToken);
+            }
+
+            if (dailyPlay.EligibleDay7Promotion)
+            {
+                await TryGrantAttendancePromotionAsync(
+                    AttendanceDay7,
+                    AttendanceDay7CampaignType,
+                    _config.Day7AttendancePromotionCode,
+                    _config.Day7AttendancePromotionAmount,
+                    cancellationToken);
+            }
+        }
+
+        private async UniTask TryGrantAttendancePromotionAsync(
+            int milestoneDay,
             string campaignType,
             string promotionCode,
             int amount,
-            string claimKey,
             CancellationToken cancellationToken)
         {
-            if (!IsPromotionConfigured(promotionCode, amount) || IsClaimed(claimKey))
+            var status = await TryGrantPromotionAsync(
+                campaignType,
+                promotionCode,
+                amount,
+                cancellationToken);
+
+            if (!IsClaimedPromotionStatus(status))
             {
                 return;
+            }
+
+            var claimResponse = await ClaimAttendancePromotionAsync(milestoneDay, cancellationToken);
+            if (claimResponse == null || claimResponse.AttendancePromotionClaim == null)
+            {
+                PublishPromotionEvent(
+                    promotionCode,
+                    campaignType,
+                    "attendance_claim_failed",
+                    amount,
+                    errorCode: "empty_claim_response");
+                return;
+            }
+
+            PublishPromotionEvent(promotionCode, campaignType, "attendance_claim_success", amount);
+        }
+
+        private async UniTask<PromotionGrantStatus> TryGrantPromotionAsync(
+            string campaignType,
+            string promotionCode,
+            int amount,
+            CancellationToken cancellationToken)
+        {
+            if (!IsPromotionConfigured(promotionCode, amount))
+            {
+                return PromotionGrantStatus.Skipped;
             }
 
             PublishPromotionEvent(promotionCode, campaignType, "grant_requested", amount);
             var result = await GrantPromotionRewardAsync(campaignType, promotionCode, amount, cancellationToken);
             if (result.IsSuccess)
             {
-                MarkClaimed(claimKey);
                 PublishPromotionEvent(promotionCode, campaignType, "grant_success", amount, result.RewardKey);
-                return;
+                return PromotionGrantStatus.Success;
             }
 
             if (result.ErrorCode == "4113")
             {
-                MarkClaimed(claimKey);
                 PublishPromotionEvent(promotionCode, campaignType, "already_granted", amount, errorCode: result.ErrorCode);
-                return;
+                return PromotionGrantStatus.AlreadyGranted;
             }
 
             var eventType = result.IsUnsupported ? "grant_unsupported" : "grant_failed";
@@ -131,6 +219,28 @@ namespace JumJump.Service
                 amount,
                 errorCode: result.ErrorCode,
                 errorMessage: result.ErrorMessage);
+            return result.IsUnsupported ? PromotionGrantStatus.Unsupported : PromotionGrantStatus.Failed;
+        }
+
+        private async UniTask<ApiSchema.DailyPlayData> RecordDailyPlayAsync(CancellationToken cancellationToken)
+        {
+            var response = await _httpClient.PostAuthorizedAsync<ApiSchema.DailyPlayResponse>(
+                RecordDailyPlayUrl,
+                new object(),
+                cancellationToken);
+
+            return response?.DailyPlay;
+        }
+
+        private UniTask<ApiSchema.AttendancePromotionClaimResponse> ClaimAttendancePromotionAsync(
+            int milestoneDay,
+            CancellationToken cancellationToken)
+        {
+            var body = new ApiSchema.AttendancePromotionClaimRequest(milestoneDay);
+            return _httpClient.PostAuthorizedAsync<ApiSchema.AttendancePromotionClaimResponse>(
+                ClaimAttendancePromotionUrl,
+                body,
+                cancellationToken);
         }
 
         private async UniTask<PromotionRewardResult> GrantPromotionRewardAsync(
@@ -189,7 +299,9 @@ namespace JumJump.Service
 
         private bool HasConfiguredPromotion()
         {
-            return IsPromotionConfigured(_config.FirstPlayPromotionCode, _config.FirstPlayPromotionAmount);
+            return IsPromotionConfigured(_config.FirstPlayPromotionCode, _config.FirstPlayPromotionAmount) ||
+                   IsPromotionConfigured(_config.Day3AttendancePromotionCode, _config.Day3AttendancePromotionAmount) ||
+                   IsPromotionConfigured(_config.Day7AttendancePromotionCode, _config.Day7AttendancePromotionAmount);
         }
 
         private bool IsPromotionConfigured(string promotionCode, int amount)
@@ -211,6 +323,11 @@ namespace JumJump.Service
         {
             PlayerPrefs.SetInt(claimKey, 1);
             PlayerPrefs.Save();
+        }
+
+        private bool IsClaimedPromotionStatus(PromotionGrantStatus status)
+        {
+            return status == PromotionGrantStatus.Success || status == PromotionGrantStatus.AlreadyGranted;
         }
 
         private void PublishPromotionEvent(
@@ -249,6 +366,15 @@ namespace JumJump.Service
             _grantCts.Cancel();
             _grantCts.Dispose();
             _grantCts = null;
+        }
+
+        private enum PromotionGrantStatus
+        {
+            Skipped,
+            Success,
+            AlreadyGranted,
+            Unsupported,
+            Failed
         }
     }
 }

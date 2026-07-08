@@ -28,5 +28,9 @@ MonoBehaviour:
   _editorIAPDelayMs: 1500
   _firstPlayPromotionCode: 01KWR5R8E7YTSH96BCNZ3Y30Z6
   _firstPlayPromotionAmount: 5
+  _day3AttendancePromotionCode:
+  _day3AttendancePromotionAmount: 0
+  _day7AttendancePromotionCode:
+  _day7AttendancePromotionAmount: 0
   _promotionGrantTimeoutMs: 15000
   _editorPromotionGrantDelayMs: 300

@@ -24,3 +24,35 @@ export type PlayerProgressRequest = {
   gold: number;
   selectedPlayerSkinId: number;
 };
+
+export type AttendanceState = {
+  lastDateKey: string;
+  currentStreak: number;
+  maxStreak: number;
+  totalRecordedDays: number;
+  day3Claimed: boolean;
+  day7Claimed: boolean;
+};
+
+export type DailyPlayResponse = {
+  todayDateKey: string;
+  currentStreak: number;
+  maxStreak: number;
+  totalRecordedDays: number;
+  alreadyRecordedToday: boolean;
+  eligibleDay3Promotion: boolean;
+  eligibleDay7Promotion: boolean;
+  day3Claimed: boolean;
+  day7Claimed: boolean;
+};
+
+export type AttendancePromotionClaimRequest = {
+  milestoneDay: 3 | 7;
+};
+
+export type AttendancePromotionClaimResponse = {
+  milestoneDay: 3 | 7;
+  currentStreak: number;
+  day3Claimed: boolean;
+  day7Claimed: boolean;
+};
